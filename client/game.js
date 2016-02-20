@@ -106,6 +106,15 @@ window.onload = function() {
     
     var GameWorld = new TGameWorld();
     
+    ActionType = {
+        MOVE : 0,
+        ATTACK : 1,
+        RUNHIT : 2,
+        MORPH: 3,
+        REFRESH: 4,
+        YIELD: 5
+    }
+
     function THexagonField() {
         var hexagonField = Game.add.group();
 		Game.stage.backgroundColor = "#ffffff";
@@ -128,6 +137,22 @@ window.onload = function() {
         
         this.Add = function (marker) {
             hexagonField.add(marker);
+        }
+
+        this.Highlight = function(hex, rad) {
+        }
+
+        this.HighlightOff = function(hex) {
+        }
+
+        this.DoAction = function(subject, action, object) {
+            if (action == ActionType.MOVE) {
+            } else if (action == ActionType.ATTACK) {
+            } else if (action == ActionType.RUNHIT) {
+            } else if (action == ActionType.MORPH) {
+            } else if (action == ActionType.REFRESH) {
+            } else (action == ActionType.YIELD) {
+            }
         }
     }
     
