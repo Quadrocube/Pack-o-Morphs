@@ -4,8 +4,10 @@ window.onload = function() {
     function TGameLogic() {
         // return null if assertion failed, else true or result of engagement or whatever
         this.Attack = function(subj, obj) {
-            assert(); // Distance is 1, etc...
-        }
+            //assert(); // Distance is 1, etc...
+        };
+        this.Move = function(subj, obj) {
+        };
     }
 
     function TGameWorld() {
@@ -160,10 +162,10 @@ window.onload = function() {
 
         this.DoAction = function(subject, action, object) {
             if (action == ActionType.MOVE) {
-                assert(GameWorld.gameLogic.Move(), "Move failed");
+                assert(GameWorld.gameLogic.Move(subject, object), "Move failed");
             } else if (action == ActionType.ATTACK) {
                 var damage = GameWorld.gameLogic.Attack(subject, object);
-                assert(GameWorld.gameLogic.Move(), "Attack failed");
+                assert(damage, "Attack failed");
             } else if (action == ActionType.RUNHIT) {
             } else if (action == ActionType.MORPH) {
             } else if (action == ActionType.REFRESH) {
@@ -187,14 +189,21 @@ window.onload = function() {
         RHINO: 6,
         WASP: 7,
         SPIDER: 8
-    }
+    };
 
-    function TCreature {
-        var type;
-        var MOV;
-        var HPP;
+    HexType = {
+        CREATURE: 0,
+        FOREST: 1,
+        EMPTY: 2
+    };
+
+    function TCreature(_type, _mov, _hpp) {
+        var type = _type;
+        var MOV = _mov;
+        var HPP = _hpp;
     };
     
+    // string, HexType, TCreature
     function TFieldObject(sprite_name, type, initCreature) {
         var marker = Game.add.sprite(0,0,sprite_name);
         // row = y, column = x
@@ -291,7 +300,7 @@ window.onload = function() {
         GameWorld.Init();
         
         HexagonField = new THexagonField();
-        Marker = new TFieldObject("marker");
+        Marker = new TFieldObject("marker", HexType.EMPTY, null);
         
         Game.input.mouse.mouseDownCallback = mouseDownCallback;
 	}
