@@ -1,5 +1,5 @@
 
-function Set() {
+function MySet() {
     this.carry = [];
     this.has = function(obj) {
         for (i = 0; i < this.carry.length; i++) {
