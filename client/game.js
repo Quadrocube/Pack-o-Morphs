@@ -181,7 +181,7 @@ window.onload = function() {
     
     var GameWorld = new TGameWorld();
     
-    ActionType = {
+    var ActionType = {
         MOVE : 0,
         ATTACK : 1,
         RUNHIT : 2,
@@ -244,7 +244,7 @@ window.onload = function() {
             }
             return null;
         };
-
+        
         this.DoAction = function(subject, action, object) {
             if (action === ActionType.MOVE) {
                 assert(GameWorld.gameLogic.Move(subject, object), "Move failed");
@@ -264,7 +264,7 @@ window.onload = function() {
         
     var HexagonField;
 
-    CreatureType = {
+    var CreatureType = {
         VECTOR : 0,
         COCOON : 1,
         PLANT : 2,
