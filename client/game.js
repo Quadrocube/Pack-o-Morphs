@@ -309,16 +309,16 @@ window.onload = function() {
         var creature = initCreature;
         
         
-        
         if (objectType === HexType.CREATURE) {
             marker.inputEnabled = true;
             marker.input.enableDrag();
             
             this.OnDragStart = function (sprite, pointer) {
-                alert("Drag start");
+                HexagonField.HighlightOff();
+                HexagonField.Highlight(col, row);
             }
             
-            marker.events.onDragStart.add(OnDragStart, this);
+            marker.events.onDragStart.add(this.OnDragStart, this);
         }
 
 		marker.anchor.setTo(0.5);
@@ -340,6 +340,7 @@ window.onload = function() {
     }
 	
     var Marker;
+    var Creature;
     
     function TTurnState() {
         var TS_NONE = 0;
@@ -418,6 +419,8 @@ window.onload = function() {
         
         HexagonField = new THexagonField();
         Marker = new TFieldObject("marker", HexType.EMPTY, null);
+        Creature = new TFieldObject("marker", HexType.CREATURE, null);
+        Creature.SetNewPosition(10, 11);
         
         ActionBar.create([['first','button1'], ['second', 'button2'], ['third', 'button3']]);
 
