@@ -291,70 +291,6 @@ window.onload = function() {
         EMPTY: 3
     };
 
-    function TCreature(_type, _mov, _hpp) {
-        var type = _type;
-        var MOV = _mov;
-        var HPP = _hpp;
-        
-        var abilities = MySet();
-        var effects = {};
-        
-        this.init_effect = function(effect_name) {
-            if (obj.effects.damage === undefined)
-                obj.effects.damage = 0;
-        };
-    };
-    
-    // string, HexType, TCreature
-    function TFieldObject(sprite_name, type, initCreature) {
-        var marker = Game.add.sprite(0,0,sprite_name);
-        // row = y, col = x
-        var row = 0;
-        var col = 0;
-        var objectType = type;
-        var creature = initCreature;
-        
-        
-        if (objectType === HexType.CREATURE) {
-            marker.inputEnabled = true;
-            marker.input.enableDrag();
-            
-            this.OnDragStart = function (sprite, pointer) {
-                HexagonField.HighlightOff();
-                HexagonField.Highlight(col, row);
-            };
-            
-            this.OnDragStop = function (sprite, pointer) {
-                var hex = GameWorld.FindHex(); 
-                this.SetNewPosition(hex.x, hex.y); 
-                HexagonField.HighlightOff();
-            };
-            
-            marker.events.onDragStart.add(this.OnDragStart, this);
-            marker.events.onDragStop.add(this.OnDragStop, this);
-        }
-
-		marker.anchor.setTo(0.5);
-		marker.visible = false;
-		HexagonField.Add(marker);
-        
-        this.SetNewPosition = function (posX, posY) {
-            //field.Move([col, row], [posY, posX], this);
-            row = posY;
-            col = posX;
-            if (!GameWorld.IsValidCoordinate(posX, posY)) {
-                marker.visible = false;
-		    } else {
-                marker.visible = true;
-                marker.x = GameWorld.GetHexagonWidth() * posX + GameWorld.GetHexagonWidth()/ 2 + (GameWorld.GetHexagonWidth() / 2) * (posY % 2);
-				marker.y = 0.75 * GameWorld.GetHexagonHeight() * posY + GameWorld.GetHexagonHeight() / 2;
-            }
-        };
-    }
-	
-    var Marker;
-    var Creature;
-    
     function TTurnState() {
         var TS_NONE = 0;
         var TS_SELECTED = 1;
@@ -383,11 +319,14 @@ window.onload = function() {
                 endPosition = field;
                 state = TS_DONE;
                 
-                HexagonField.DoAction(creature, action, endPosition);
+                var result = HexagonField.DoAction(creature, action, endPosition);
                 this.ResetState();
+                return result;
             } else {
                 this.ResetState();
             }
+            
+            return true;
         };
         
         this.SelectAction = function (act) {
@@ -401,11 +340,80 @@ window.onload = function() {
     }
     
     var TurnState = new TTurnState();
+
+    function TCreature(_type, _mov, _hpp) {
+        var type = _type;
+        var MOV = _mov;
+        var HPP = _hpp;
+        
+        var abilities = MySet();
+        var effects = {};
+        
+        this.init_effect = function(effect_name) {
+            if (obj.effects.damage === undefined)
+                obj.effects.damage = 0;
+        };
+    };
+    
+    // string, HexType, TCreature
+    function TFieldObject(sprite_name, type, initCreature) {
+        var marker = Game.add.sprite(0,0,sprite_name);
+        // row = y, col = x
+        var row = 0;
+        var col = 0;
+        var objectType = type;
+        var creature = initCreature; 
+        
+        if (objectType === HexType.CREATURE) {
+            marker.inputEnabled = true;
+            marker.input.enableDrag();
+            
+            this.OnDragStart = function (sprite, pointer) {
+                HexagonField.HighlightOff();
+                HexagonField.Highlight(col, row, 2);
+            };
+            
+            this.OnDragStop = function (sprite, pointer) {
+                var hex = GameWorld.FindHex(); 
+                if (TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y))) {
+                    this.SetNewPosition(hex.x, hex.y);    
+                } else {
+                    this.SetNewPosition(col, row);
+                }
+                
+                HexagonField.HighlightOff();
+            };
+            
+            marker.events.onDragStart.add(this.OnDragStart, this);
+            marker.events.onDragStop.add(this.OnDragStop, this);
+        }
+
+		marker.anchor.setTo(0.5);
+		marker.visible = false;
+		HexagonField.Add(marker);
+        
+        this.SetNewPosition = function (posX, posY) {
+            //field.Move([col, row], [posY, posX], this);
+            row = posY;
+            col = posX;
+            if (!GameWorld.IsValidCoordinate(posX, posY)) {
+                marker.visible = false;
+		    } else {
+                marker.visible = true;
+                marker.x = GameWorld.GetHexagonWidth() * posX + GameWorld.GetHexagonWidth()/ 2 + (GameWorld.GetHexagonWidth() / 2) * (posY % 2);
+				marker.y = 0.75 * GameWorld.GetHexagonHeight() * posY + GameWorld.GetHexagonHeight() / 2;
+            }
+        };
+    }
+	
+    var Marker;
+    var Creature;
     
     function mouseDownCallback(e) {
         if (Game.input.mouse.button === Phaser.Mouse.LEFT_BUTTON) { //Left Click
 			var hex = GameWorld.FindHex(); 
-            TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y));
+            var result = TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y));
+            assert(result);
 			Marker.SetNewPosition(hex.x, hex.y); 
 		} else {
 			//Right Click	
