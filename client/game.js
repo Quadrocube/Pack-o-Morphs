@@ -117,21 +117,11 @@ window.onload = function() {
     
     var HexagonField;
     
-    function TMarker() {
-        var marker = Game.add.sprite(0,0,"marker");
+    function TFieldObject(sprite_name) {
+        var marker = Game.add.sprite(0,0,sprite_name);
 		marker.anchor.setTo(0.5);
 		marker.visible = false;
 		HexagonField.Add(marker);
-		
-        var _this = this;
-        Game.input.mouse.mouseDownCallback = function(e) {        
-			if (Game.input.mouse.button == Phaser.Mouse.LEFT_BUTTON) { //Left Click
-				var hex = HexagonField.FindHex(); 
-				_this.SetNewPosition(hex.x, hex.y); 
-			} else {
-				//Right Click	
-			}
-		};
         
         this.SetNewPosition = function (posX, posY) {
             if (!GameWorld.IsValidCoordinate(posX, posY)) {
@@ -152,6 +142,15 @@ window.onload = function() {
 	
     var Marker;
     
+    function mouseDownCallback(e) {
+        if (Game.input.mouse.button == Phaser.Mouse.LEFT_BUTTON) { //Left Click
+			var hex = HexagonField.FindHex(); 
+			Marker.SetNewPosition(hex.x, hex.y); 
+		} else {
+			//Right Click	
+		}    
+    }
+    
 	function onPreload() {
 		Game.load.image("hexagon", "arts/hexagon.png");
 		Game.load.image("marker", "arts/marker.png");
@@ -159,6 +158,8 @@ window.onload = function() {
 
 	function onCreate() {
         HexagonField = new THexagonField();
-        Marker = new TMarker();
+        Marker = new TFieldObject("marker");
+        
+        Game.input.mouse.mouseDownCallback = mouseDownCallback;
 	}
 }
