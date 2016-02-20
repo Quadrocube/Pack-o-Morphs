@@ -1,5 +1,5 @@
 window.onload = function() {	
-    var Game = new Phaser.Game("100%", "100%", Phaser.CANVAS, "", {preload: onPreload, create: onCreate});
+    var Game = new Phaser.Game("100%", "100%", Phaser.CANVAS, "", {preload: onPreload, create: onCreate, update: onUpdate});
 
     function TGameLogic() {
         // return null if assertion failed, else true or result of engagement or whatever
@@ -62,6 +62,8 @@ window.onload = function() {
         }
         
         this.Init = function () {
+        	Game.world.setBounds(-500, -500, 4000, 2000); // constants should be fit for size of field that we need
+
             fieldPosX = (Game.width - this.GetHexagonWidth() * Math.ceil(this.GetGridSizeX() / 2)) / 2;
        	    if (this.GetGridSizeX() % 2 == 0) {
         	   fieldPosX -= this.GetHexagonWidth() / 4;
@@ -303,5 +305,21 @@ window.onload = function() {
         Marker = new TFieldObject("marker", HexType.EMPTY, null);
         
         Game.input.mouse.mouseDownCallback = mouseDownCallback;
+	}
+	
+	function onUpdate() {
+		var camSpeed = 4;
+		
+		if (Game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
+		    Game.camera.x -= camSpeed;
+		} else if (Game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
+		    Game.camera.x += camSpeed;
+		}
+
+		if (Game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
+		    Game.camera.y -= camSpeed;
+		} else if (Game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
+		    Game.camera.y += camSpeed;
+		}
 	}
 }
