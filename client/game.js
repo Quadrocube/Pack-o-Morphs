@@ -65,12 +65,12 @@ window.onload = function() {
         	Game.world.setBounds(-500, -500, 4000, 2000); // constants should be fit for size of field that we need
 
             fieldPosX = (Game.width - this.GetHexagonWidth() * Math.ceil(this.GetGridSizeX() / 2)) / 2;
-       	    if (this.GetGridSizeX() % 2 == 0) {
+       	    if (this.GetGridSizeX() % 2 === 0) {
         	   fieldPosX -= this.GetHexagonWidth() / 4;
             }
             
             fieldPosY = (Game.height - Math.ceil(this.GetGridSizeY() / 2) * this.GetHexagonHeight() - Math.floor(this.GetGridSizeY() / 2)*this.GetHexagonHeight()/2)/2;
-            if (GameWorld.GetGridSizeY() % 2 == 0) {
+            if (GameWorld.GetGridSizeY() % 2 === 0) {
         	   fieldPosY -= this.GetHexagonHeight() / 8;
             }
         }
@@ -88,7 +88,7 @@ window.onload = function() {
             var candidateY = Math.floor((Game.input.worldY- this.GetFieldY()) / this.GetSectorHeight());
             var deltaX = (Game.input.worldX - this.GetFieldX()) % this.GetSectorWidth();
             var deltaY = (Game.input.worldY - this.GetFieldY()) % this.GetSectorHeight(); 
-            if(candidateY%2==0){
+            if(candidateY%2===0){
             	if (deltaY < ((this.GetHexagonHeight() / 4) - deltaX * this.GetGradient())){
                     candidateX--;
                     candidateY--;
@@ -118,7 +118,7 @@ window.onload = function() {
     
     var GameWorld = new TGameWorld();
     
-    ActionType = {
+    var ActionType = {
         MOVE : 0,
         ATTACK : 1,
         RUNHIT : 2,
@@ -134,9 +134,9 @@ window.onload = function() {
 		Game.stage.backgroundColor = "#ffffff";
 	    for (var i = 0; i < GameWorld.GetGridSizeY() / 2; i++) {
 			for (var j = 0; j < GameWorld.GetGridSizeX(); j++) {
-				if (GameWorld.GetGridSizeY() % 2 == 0 
+				if (GameWorld.GetGridSizeY() % 2 === 0 
                     || i + 1 < GameWorld.GetGridSizeY() / 2 
-                    || j % 2==0) {
+                    || j % 2===0) {
 					var hexagonX = GameWorld.GetHexagonWidth() * j / 2;
 					var hexagonY = GameWorld.GetHexagonHeight() * i * 1.5
                                     + (GameWorld.GetHexagonHeight() / 4 * 3) * (j % 2);	
@@ -163,16 +163,16 @@ window.onload = function() {
         };
 
         this.DoAction = function(subject, action, object) {
-            if (action == ActionType.MOVE) {
+            if (action === ActionType.MOVE) {
                 assert(GameWorld.gameLogic.Move(subject, object), "Move failed");
-            } else if (action == ActionType.ATTACK) {
+            } else if (action === ActionType.ATTACK) {
                 var damage = GameWorld.gameLogic.Attack(subject, object);
                 assert(damage, "Attack failed");
-            } else if (action == ActionType.RUNHIT) {
-            } else if (action == ActionType.MORPH) {
-            } else if (action == ActionType.REFRESH) {
-            } else if (action == ActionType.YIELD) {
-            } else if (action == ActionType.SPECIAL) {
+            } else if (action === ActionType.RUNHIT) {
+            } else if (action === ActionType.MORPH) {
+            } else if (action === ActionType.REFRESH) {
+            } else if (action === ActionType.YIELD) {
+            } else if (action === ActionType.SPECIAL) {
             } else {
                 assert(false, "Unknown ActionType");
             }
@@ -181,7 +181,7 @@ window.onload = function() {
     
     var HexagonField;
 
-    CreatureType = {
+    var CreatureType = {
         VECTOR : 0,
         COCOON : 1,
         PLANT : 2,
@@ -193,7 +193,7 @@ window.onload = function() {
         SPIDER: 8
     };
 
-    HexType = {
+    var HexType = {
         CREATURE: 0,
         FOREST: 1,
         EMPTY: 2
@@ -212,7 +212,10 @@ window.onload = function() {
         var row = 0;
         var column = 0;
         var objectType = type;
+        if (objectType === HexType.CREATURE)
+        
         var creature = initCreature;
+       
 
 		marker.anchor.setTo(0.5);
 		marker.visible = false;
@@ -254,10 +257,10 @@ window.onload = function() {
         this.ResetState();
         
         this.SelectField = function (field) {
-            if (state == TS_NONE) {
+            if (state === TS_NONE) {
                 creature = field;
                 state = TS_SELECTED;
-            } else if (state == TS_ACTION) {
+            } else if (state === TS_ACTION) {
                 endPosition = field;
                 state = TS_DONE;
                 
@@ -269,7 +272,7 @@ window.onload = function() {
         };
         
         this.SelectAction = function (act) {
-            if (state == TS_SELECTED) {
+            if (state === TS_SELECTED) {
                 action = act;
                 state = TS_ACTION;
             } else {
@@ -281,7 +284,7 @@ window.onload = function() {
     var TurnState = new TTurnState();
     
     function mouseDownCallback(e) {
-        if (Game.input.mouse.button == Phaser.Mouse.LEFT_BUTTON) { //Left Click
+        if (Game.input.mouse.button === Phaser.Mouse.LEFT_BUTTON) { //Left Click
 			var hex = GameWorld.FindHex(); 
             TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y));
 			Marker.SetNewPosition(hex.x, hex.y); 
