@@ -8,13 +8,13 @@ function ActionBarButtonCallbackFactory(callback) {
 }
 
 function ActionBar(start_posX, start_posY, callback, button_width) {
-    border_margin = 40,
+    this.border_margin = 40;
     this.create = function (ids) {
         n = ids.length;
         var factory = new ActionBarButtonCallbackFactory(callback);
         
         for (var i = 0; i < parseInt(n); i++) {
-            posX = border_margin + (game.world.width - 2 * border_margin)/n*i;
+            posX = this.border_margin + (game.world.width - 2 * this.border_margin)/n*i;
             posY = 0;
             //alert('posx: ' + posX + ', posY: ' + posY);
             game.add.button(posX, posY, ids[i][1], factory.get(ids[i][0]), this);
