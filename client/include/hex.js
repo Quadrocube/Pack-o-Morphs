@@ -105,3 +105,26 @@ function THex(x, y, z) {
         return visited.carry;
     };
 }
+
+// column = x, row = y
+function RowColPair (row, col) {
+    this.row = row;
+    this.col = col;
+} 
+
+function radius_with_blocks(center, radius, blocked) {
+    var blocked_hex = []
+    for (var i = 0; i < blocked.length; i++) {
+        var hex = new THex();
+        blocked_hex.push(hex.from_rowcol(blocked.col, blocked.row));
+    }
+    
+    center_hex = (new THex()).from_rowcol(center.col, center.row);
+    result_hex = center_hex.radius_with_blocks(radius, blocked_hex);
+    
+    result = []
+    for (var j = 0; j < result_hex.length; j++) {
+        result.push(RowColPair(result_hex[i].to_rowcol[0], result_hex[i].to_rowcol[1]));
+    }
+    return result;
+}
