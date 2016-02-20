@@ -10,6 +10,9 @@ window.onload = function() {
         var sectorWidth = hexagonWidth;
         var sectorHeight = hexagonHeight / 4 * 3;
         var gradient = (hexagonHeight / 4) / (hexagonWidth / 2);
+        
+        var fieldSizeX;
+        var fieldSizeY;
     
         this.GetHexagonWidth = function () {
             return hexagonWidth;
@@ -47,61 +50,47 @@ window.onload = function() {
             return posX >= 0 && posY >= 0 
                     && posY <= gridSizeY && posX <= columns[posY % 2] - 1;
         }
-    };
-    
-    var GameWorld = new TGameWorld();
-    
-    function THexagonField() {
-        var hexagonGroup = Game.add.group();
-		Game.stage.backgroundColor = "#ffffff";
-	    for (var i = 0; i < GameWorld.GetGridSizeY() / 2; i++) {
-			for (var j = 0; j < GameWorld.GetGridSizeX(); j++) {
-				if (GameWorld.GetGridSizeY() % 2 == 0 
-                    || i + 1 < GameWorld.GetGridSizeY() / 2 
-                    || j % 2==0) {
-					var hexagonX = GameWorld.GetHexagonWidth() * j / 2;
-					var hexagonY = GameWorld.GetHexagonHeight() * i * 1.5
-                                    + (GameWorld.GetHexagonHeight() / 4 * 3) * (j % 2);	
-					var hexagon = Game.add.sprite(hexagonX,hexagonY,"hexagon");
-					hexagonGroup.add(hexagon);
-				}
-			}
-		}
         
-		hexagonGroup.x = (Game.width - GameWorld.GetHexagonWidth() * Math.ceil(GameWorld.GetGridSizeX() / 2)) / 2;
-       	if (GameWorld.GetGridSizeX() % 2 == 0) {
-        	hexagonGroup.x -= GameWorld.GetHexagonWidth() / 4;
-        }
-       
-		hexagonGroup.y = (Game.height - Math.ceil(GameWorld.GetGridSizeY() / 2) * GameWorld.GetHexagonHeight() - Math.floor(GameWorld.GetGridSizeY() / 2)*GameWorld.GetHexagonHeight()/2)/2;
-        if (GameWorld.GetGridSizeY() % 2 == 0) {
-        	hexagonGroup.y -= GameWorld.GetHexagonHeight() / 8;
+        this.Init = function () {
+            fieldSizeX = (Game.width - this.GetHexagonWidth() * Math.ceil(this.GetGridSizeX() / 2)) / 2;
+       	    if (this.GetGridSizeX() % 2 == 0) {
+        	   fieldSizeX -= this.GetHexagonWidth() / 4;
+            }
+            
+            fieldSizeY = (Game.height - Math.ceil(this.GetGridSizeY() / 2) * this.GetHexagonHeight() - Math.floor(this.GetGridSizeY() / 2)*this.GetHexagonHeight()/2)/2;
+            if (GameWorld.GetGridSizeY() % 2 == 0) {
+        	   fieldSizeY -= this.GetHexagonHeight() / 8;
+            }
         }
         
-        this.Add = function (marker) {
-            hexagonGroup.add(marker);
-        }
+        this.GetFieldX = function () {
+            return fieldSizeX;
+        };
+        
+        this.GetFieldY = function () {
+            return fieldSizeY;
+        };
         
         this.FindHex = function () {
-            var candidateX = Math.floor((Game.input.worldX - hexagonGroup.x) / GameWorld.GetSectorWidth());
-            var candidateY = Math.floor((Game.input.worldY-hexagonGroup.y) / GameWorld.GetSectorHeight());
-            var deltaX = (Game.input.worldX-hexagonGroup.x) % GameWorld.GetSectorWidth();
-            var deltaY = (Game.input.worldY-hexagonGroup.y) % GameWorld.GetSectorHeight(); 
+            var candidateX = Math.floor((Game.input.worldX - this.GetFieldX()) / this.GetSectorWidth());
+            var candidateY = Math.floor((Game.input.worldY- this.GetFieldY()) / this.GetSectorHeight());
+            var deltaX = (Game.input.worldX - this.GetFieldX()) % this.GetSectorWidth();
+            var deltaY = (Game.input.worldY - this.GetFieldY()) % this.GetSectorHeight(); 
             if(candidateY%2==0){
-            	if(deltaY<((GameWorld.GetHexagonHeight()/4)-deltaX*GameWorld.GetGradient())){
+            	if (deltaY < ((this.GetHexagonHeight() / 4) - deltaX * this.GetGradient())){
                     candidateX--;
                     candidateY--;
                 }
-                if(deltaY<((-GameWorld.GetHexagonHeight()/4)+deltaX*GameWorld.GetGradient())){
+                if(deltaY < ((-this.GetHexagonHeight() / 4) + deltaX * this.GetGradient())){
                     candidateY--;
                 }
             } else {
-                if(deltaX>=GameWorld.GetHexagonWidth()/2){
-                    if(deltaY<(GameWorld.GetHexagonHeight()/2-deltaX*GameWorld.GetGradient())){
+                if(deltaX >= this.GetHexagonWidth() / 2){
+                    if(deltaY < (this.GetHexagonHeight() / 2 - deltaX * this.GetGradient())){
                 	   candidateY--;
                     }
                 } else {
-                    if(deltaY<deltaX*GameWorld.GetGradient()){
+                    if(deltaY < deltaX * this.GetGradient()){
                 	   candidateY--;
                     } else {
                        candidateX--;
@@ -112,6 +101,33 @@ window.onload = function() {
                 x: candidateX, 
                 y: candidateY
             };
+        }
+    };
+    
+    var GameWorld = new TGameWorld();
+    
+    function THexagonField() {
+        var hexagonField = Game.add.group();
+		Game.stage.backgroundColor = "#ffffff";
+	    for (var i = 0; i < GameWorld.GetGridSizeY() / 2; i++) {
+			for (var j = 0; j < GameWorld.GetGridSizeX(); j++) {
+				if (GameWorld.GetGridSizeY() % 2 == 0 
+                    || i + 1 < GameWorld.GetGridSizeY() / 2 
+                    || j % 2==0) {
+					var hexagonX = GameWorld.GetHexagonWidth() * j / 2;
+					var hexagonY = GameWorld.GetHexagonHeight() * i * 1.5
+                                    + (GameWorld.GetHexagonHeight() / 4 * 3) * (j % 2);	
+					var hexagon = Game.add.sprite(hexagonX,hexagonY,"hexagon");
+					hexagonField.add(hexagon);
+				}
+			}
+		}
+        
+		hexagonField.x = GameWorld.GetFieldX();
+		hexagonField.y = GameWorld.GetFieldY();
+        
+        this.Add = function (marker) {
+            hexagonField.add(marker);
         }
     }
     
@@ -142,9 +158,18 @@ window.onload = function() {
 	
     var Marker;
     
+    function TMoveState() {
+        var NONE = 0;
+        var SELECTED = 1;
+        var ACTION = 2;
+        var DONE = 3;
+        
+        
+    }
+    
     function mouseDownCallback(e) {
         if (Game.input.mouse.button == Phaser.Mouse.LEFT_BUTTON) { //Left Click
-			var hex = HexagonField.FindHex(); 
+			var hex = GameWorld.FindHex(); 
 			Marker.SetNewPosition(hex.x, hex.y); 
 		} else {
 			//Right Click	
@@ -157,6 +182,8 @@ window.onload = function() {
 	}
 
 	function onCreate() {
+        GameWorld.Init();
+        
         HexagonField = new THexagonField();
         Marker = new TFieldObject("marker");
         
