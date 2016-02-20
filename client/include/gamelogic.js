@@ -1,4 +1,5 @@
-    CreatureType = {
+
+    var CreatureType = {
         VECTOR : 0,
         COCOON : 1,
         PLANT : 2,
@@ -10,10 +11,11 @@
         SPIDER: 8
     };
 
-    HexType = {
+    var HexType = {
         CREATURE: 0,
-        FOREST: 1,
-        EMPTY: 2
+        GRASS: 1,
+        FOREST: 2,
+        EMPTY: 3
     };
     
     function TGameLogic() {
