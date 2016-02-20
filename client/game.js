@@ -194,24 +194,29 @@ window.onload = function() {
 
     function THexagonField() {
         var hexagonField = Game.add.group();
+        var highlightField = Game.add.group();
         var field = [];
 		Game.stage.backgroundColor = "#ffffff";
-	    for (var i = 0; i < GameWorld.GetGridSizeY() / 2; i++) {
-			for (var j = 0; j < GameWorld.GetGridSizeX(); j++) {
-				if (GameWorld.GetGridSizeY() % 2 === 0 
-                    || i + 1 < GameWorld.GetGridSizeY() / 2 
-                    || j % 2===0) {
-					var hexagonX = GameWorld.GetHexagonWidth() * j / 2;
-					var hexagonY = GameWorld.GetHexagonHeight() * i * 1.5
-                                    + (GameWorld.GetHexagonHeight() / 4 * 3) * (j % 2);	
-					var hexagon = Game.add.sprite(hexagonX,hexagonY,"hexagon");
-					hexagonField.add(hexagon);
-				}
-			}
-		}
-        
-		hexagonField.x = GameWorld.GetFieldX();
-		hexagonField.y = GameWorld.GetFieldY();
+        gengrid = function(hexGroup, spriteTag) {
+            for (var i = 0; i < GameWorld.GetGridSizeY() / 2; i++) {
+                for (var j = 0; j < GameWorld.GetGridSizeX(); j++) {
+                    if (GameWorld.GetGridSizeY() % 2 === 0 
+                            || i + 1 < GameWorld.GetGridSizeY() / 2 
+                            || j % 2===0) {
+                        var hexagonX = GameWorld.GetHexagonWidth() * j / 2;
+                        var hexagonY = GameWorld.GetHexagonHeight() * i * 1.5
+                            + (GameWorld.GetHexagonHeight() / 4 * 3) * (j % 2);	
+                        var hexagon = Game.add.sprite(hexagonX,hexagonY,spriteTag);
+                        hexGroup.add(hexagon);
+                    }
+                }
+            }
+
+            hexGroup.x = GameWorld.GetFieldX();
+            hexGroup.y = GameWorld.GetFieldY();
+        }
+        gengrid(hexagonField, "hexagon");
+        gengrid(highlightField, "marker");
 
         this.Move = function(prevPos, newPos, fieldObject) {
             var units;
@@ -234,7 +239,7 @@ window.onload = function() {
             //this.Move(null, [0, 0], fieldObject);
         };
 
-        this.Highlight = function(hex, rad) {
+        this.Highlight = function(posX, posY, rad) {
         };
 
         this.HighlightOff = function() {
@@ -281,8 +286,9 @@ window.onload = function() {
 
     var HexType = {
         CREATURE: 0,
-        FOREST: 1,
-        EMPTY: 2
+        GRASS: 1,
+        FOREST: 2,
+        EMPTY: 3
     };
 
     function TCreature(_type, _mov, _hpp) {
