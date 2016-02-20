@@ -322,12 +322,13 @@ window.onload = function() {
             this.OnDragStart = function (sprite, pointer) {
                 HexagonField.HighlightOff();
                 HexagonField.Highlight(col, row);
-            }
+            };
             
             this.OnDragStop = function (sprite, pointer) {
                 var hex = GameWorld.FindHex(); 
                 this.SetNewPosition(hex.x, hex.y); 
-            }
+                HexagonField.HighlightOff();
+            };
             
             marker.events.onDragStart.add(this.OnDragStart, this);
             marker.events.onDragStop.add(this.OnDragStop, this);
