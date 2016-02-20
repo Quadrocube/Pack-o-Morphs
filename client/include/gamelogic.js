@@ -1,10 +1,20 @@
-    function TAbility(name, args) {
-        this.name = name;
-        this.args = args;
-        this.equals = function (another) {
-            return (this.name === another.name);
-        };
-    }
+    CreatureType = {
+        VECTOR : 0,
+        COCOON : 1,
+        PLANT : 2,
+        SPAWN: 3,
+        DAEMON: 4,
+        TURTLE: 5,
+        RHINO: 6,
+        WASP: 7,
+        SPIDER: 8
+    };
+
+    HexType = {
+        CREATURE: 0,
+        FOREST: 1,
+        EMPTY: 2
+    };
     
     function TGameLogic() {
         // return null if assertion failed, else true or result of engagement or whatever
@@ -14,7 +24,7 @@
             if (subj.creature.effects['drain'] >= subj.creature.MOV)
                 return false;
             // chk: not Hidden
-            if (obj.creature.abilities.has('hidden', [])) {
+            if (obj.creature.type == CreatureType.RHINO) {
                 obj.creature.init_effect('attacked');
                 if (obj.creature.effects['attacked'] == 0) {
                     return false;
@@ -22,8 +32,10 @@
             }
             // chk: distance
             var d = 1;
-            if (subj.creature.abilities.has(TAbility('ranged', [])))
-                d = 1 + subj.creature.abilities.get(TAbility('ranged', [])).args[0];
+            if (subj.creature.type == CreatureType.WASP)
+                d = 2;
+            if (subj.creature.type == CreatureType.SPIDER)
+                d = 3;
             return (rowcol2hex(subj.row, subj.col).distance(rowcol2hex(obj.row, obj.col)) <= d);
         };
         this.attack_landed = function(subj, obj) {
@@ -42,6 +54,22 @@
             }
             return (actual_dice_result > 0);
         };
+        this.chk_death = function(subj, obj) {
+            if (obj.creature.effect['damage'] >= obj.creature.HPP) {
+                // poisoned
+                if (obj.creature.type != CreatureType.WASP) {
+                    if (subj.creature.type != CreatureType.WASP && subj.creature.type != CreatureType.SPIDER) {
+                        subj.creature.init_effect('damage');
+                        subj.creature.effects['damage'] += 1;
+                }
+                
+                if (this.chk_death(subj, obj)) 
+                    return true;
+                // TODO: subj player receives obj.creature.NUT points
+                return true;
+            }
+            return false;
+        }
         this.Attack = function(subj, obj) {
             // chk: attack is valid
             if (!this.assert_can_attack(subj)) {
@@ -58,38 +86,42 @@
                 obj.creature.effects['damage'] += subj.DAM - subj.creature.effect['infest'];
                 subj.creature.effect['infest'] = 0;
                 
-                if (subj.creature.abilities.has(TAbility('leech', []))) {
+                if (subj.creature.type == CreatureType.SPAWN) {
                     subj.creature.init_effect('damage');
                     subj.creature.effect['damage'] = Math.max(0, subj.creature.effect['damage'] - subj.creature.DAM);
                 }
                 
-                if (subj.creature.abilities.has(TAbility('drain', []))) {
+                if (subj.creature.type == CreatureType.DAEMON || subj.creature.type == CreatureType.SPIDER) {
                     obj.creature.init_effect('drain');
                     obj.creature.effects['drain'] = Math.max(obj.creature.effects['drain'] + 1, obj.creature.MOV);
                 }
                 
-                if (subj.creature.abilities.has(TAbility('poison', []))) {
-                    if (!obj.creature.abilities.has(TAbility('poisoned', []))) {
+                if (subj.creature.type == CreatureType.DAEMON) {
+                    if (obj.creature.type != CreatureType.WASP) {
                         obj.creature.init_effect('poison');
                         obj.creature.effect['poison'] += 1;
                     }
                 }
                 
-                if (subj.creature.abilities.has(TAbility('infest', []))) {
+                if (subj.creature.type == CreatureType.WASP) {
                     obj.creature.init_effect('infest');
                     obj.creature.effect['infest'] += 1;
                 }
             }
-            obj.creature.check_death(subj);
+            
+            // chk: death
+            this.chk_death(subj, obj);
+            
+            // regular drain
             subj.creature.init_effect('drain');
             subj.creature.effect['drain'] += 1;
-            subj.creature.check();
             return true;
         };
-        this.Move = function(subj, obj) {
-            var d = 2;
-            if (subj.abilities.has(TAbility('phase', []))) {
-                d = 4;
+        this.Move = function(subj, obj, d) {
+            if (d === undefined)
+                d = 2;
+            if (subj.creature.type == CreatureType.SPAWN) {
+                d *= 2;
             }
             user_d = rowcol2hex(subj.row, subj.col).distance(rowcol2hex(obj.row, obj.col));
             if (user_d > d) {
@@ -98,12 +130,15 @@
             return true;
         };
         
-        this.RunHit = function(subj, obj) {
+        this.RunHit = function(subj, obj_move, obj_hit) {
+            return this.Move(subj, obj_move, 1) + this.Attack(subj, obj_hit)
         };
-        this.Evolve = function(subj, obj) {
+        this.Evolve = function(subj, type, additional_cost) {
+            
         };
-        this.Replicate = function(subj, obj) {
-        }
+        this.Replicate = function(subj, additional_cost) {
+              
+        };
         this.Yield = function(subj, obj) {
         };
     };
