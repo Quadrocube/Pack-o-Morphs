@@ -17,7 +17,7 @@ function Set() {
     }
 }
 
-THex_directions = [
+var THex_directions = [
         new THex(+1, -1,  0), new THex(+1,  0, -1), new THex( 0, +1, -1),
         new THex(-1, +1,  0), new THex(-1,  0, +1), new THex( 0, -1, +1)
 ];
@@ -92,7 +92,7 @@ function THex(x, y, z) {
         for (var k = 1; k <= radius; k++) {
             fringes.push([]);
             for (var i = 0; i < fringes[k-1].length; i++) {
-                cube = fringes[k-1][i];
+                var cube = fringes[k-1][i];
                 for (var dir = 0; dir < 6; dir++) {
                     var neighbour = cube.neigh(dir);
                     if (!(visited.has(neighbour)) && !(blocked.has(neighbour))) {
