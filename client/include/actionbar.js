@@ -7,17 +7,17 @@ function TActionBarButtonCallbackFactory(callback) {
     }
 }
 
-function TActionBar(Game, start_posX, start_posY, callback, button_width) {
+function TActionBar(Game, GameWorld, callback, button_width) {
     this.border_margin = 40;
     this.create = function (ids) {
         var n = ids.length;
         var factory = new TActionBarButtonCallbackFactory(callback);
-        
+        var start_posX = Game.width / 2 - button_width * n / 2;
         for (var i = 0; i < parseInt(n); i++) {
-            var posX = this.border_margin + (Game.world.width - 2 * this.border_margin)/n*i;
-            var posY = 0;
+            var posX = start_posX + button_width * i;
+            var posY = Game.height - button_width;
             //alert('posx: ' + posX + ', posY: ' + posY);
-            var button = Game.add.button(posX, posY, ids[i][1], factory.get(ids[i][0]), this)
+            var button = Game.add.button(posX, posY, ids[i][1], factory.get(ids[i][0]), this);
             button.fixedToCamera = true;
         }
     }
