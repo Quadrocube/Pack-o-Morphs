@@ -10,14 +10,15 @@ function TActionBarButtonCallbackFactory(callback) {
 function TActionBar(Game, start_posX, start_posY, callback, button_width) {
     this.border_margin = 40;
     this.create = function (ids) {
-        n = ids.length;
+        var n = ids.length;
         var factory = new TActionBarButtonCallbackFactory(callback);
         
         for (var i = 0; i < parseInt(n); i++) {
-            posX = this.border_margin + (Game.world.width - 2 * this.border_margin)/n*i;
-            posY = 0;
+            var posX = this.border_margin + (Game.world.width - 2 * this.border_margin)/n*i;
+            var posY = 0;
             //alert('posx: ' + posX + ', posY: ' + posY);
-            game.add.button(posX, posY, ids[i][1], factory.get(ids[i][0]), this);
+            var button = Game.add.button(posX, posY, ids[i][1], factory.get(ids[i][0]), this)
+            button.fixedToCamera = true;
         }
     }
 }

@@ -371,6 +371,10 @@ window.onload = function() {
 	function onPreload() {
 		Game.load.image("hexagon", "arts/hexagon.png");
 		Game.load.image("marker", "arts/marker.png");
+        Game.load.image('button1', 'arts/ab-button.png');
+        Game.load.image('button2', 'arts/ab-button2.png');
+        Game.load.image('button3', 'arts/ab-button3.png');
+
 	}
 
 	function onCreate() {
