@@ -151,7 +151,7 @@ window.onload = function() {
         }
 
         this.HighlightOff = function(hex) {
-        }
+        };
 
         this.DoAction = function(subject, action, object) {
             if (action == ActionType.MOVE) {
@@ -162,7 +162,7 @@ window.onload = function() {
             } else if (action == ActionType.REFRESH) {
             } else (action == ActionType.YIELD) {
             }
-        }
+        };
     }
     
     var HexagonField;
@@ -213,7 +213,7 @@ window.onload = function() {
             creature = undefined;
             action = undefined;
             endPosition = undefined;
-        }
+        };
         
         this.ResetState();
         
@@ -230,7 +230,7 @@ window.onload = function() {
             } else {
                 this.ResetState();
             }
-        }
+        };
         
         this.SelectAction = function (act) {
             if (state == TS_SELECTED) {
@@ -239,7 +239,7 @@ window.onload = function() {
             } else {
                 this.ResetState();
             }
-        }
+        };
     }
     
     function mouseDownCallback(e) {
