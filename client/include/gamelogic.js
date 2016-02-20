@@ -1,9 +1,9 @@
     function TAbility(name, args) {
         this.name = name;
-        this.args = [];
+        this.args = args;
         this.equals = function (another) {
             return (this.name === another.name);
-        }
+        };
     }
     
     function TGameLogic() {
@@ -25,7 +25,7 @@
             if (subj.creature.abilities.has(TAbility('ranged', [])))
                 d = 1 + subj.creature.abilities.get(TAbility('ranged', [])).args[0];
             return (rowcol2hex(subj.row, subj.col).distance(rowcol2hex(obj.row, obj.col)) <= d);
-        }
+        };
         this.attack_landed = function(subj, obj) {
             var dF = subj.creature.ATT - obj.creature.DEF;
             var d2 = function() {
@@ -41,7 +41,7 @@
                     actual_dice_result *= d2();
             }
             return (actual_dice_result > 0);
-        }
+        };
         this.Attack = function(subj, obj) {
             // chk: attack is valid
             if (!this.assert_can_attack(subj)) {
@@ -87,9 +87,26 @@
             return true;
         };
         this.Move = function(subj, obj) {
-            // Rooting
+            var d = 2;
+            if (subj.abilities.has(TAbility('phase', []))) {
+                d = 4;
+            }
+            user_d = rowcol2hex(subj.row, subj.col).distance(rowcol2hex(obj.row, obj.col));
+            if (user_d > d) {
+                return null;
+            }
+            return true;
         };
-    }
+        
+        this.RunHit = function(subj, obj) {
+        };
+        this.Evolve = function(subj, obj) {
+        };
+        this.Replicate = function(subj, obj) {
+        }
+        this.Yield = function(subj, obj) {
+        };
+    };
     
      function TCreature(_type, _mov, _hpp) {
         var type = _type;
