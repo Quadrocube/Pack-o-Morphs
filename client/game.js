@@ -131,6 +131,7 @@ window.onload = function() {
 
     function THexagonField() {
         var hexagonField = Game.add.group();
+        var field = [];
 		Game.stage.backgroundColor = "#ffffff";
 	    for (var i = 0; i < GameWorld.GetGridSizeY() / 2; i++) {
 			for (var j = 0; j < GameWorld.GetGridSizeX(); j++) {
@@ -148,18 +149,37 @@ window.onload = function() {
         
 		hexagonField.x = GameWorld.GetFieldX();
 		hexagonField.y = GameWorld.GetFieldY();
+
+        this.Move(prevPos, newPos, fieldObject) {
+            if (!prevPos) {
+                field.push({key: newPos, value: fieldObject});
+            } else {
+                units = field[prevPos];
+                ind = units.indexOf(fieldObject);
+                units.splice(ind, 1);
+                units = field[newPos];
+                units.push(fieldObject);
+                units.sort((a, b) => {return a.objectType - b.objectType;});
+            }
+        };
         
-        this.Add = function (marker) {
-            hexagonField.add(marker);
-        }
+        this.Add = function (fieldObject) {
+            hexagonField.add(fieldObject.marker);
+            this.Move(null, [0, 0], fieldObject);
+        };
 
         this.Highlight = function(hex, rad) {
-        }
+        };
 
         this.HighlightOff = function() {
         };
 
         this.GetAt = function(posX, posY) {
+            var units = field[[posX, posY]];
+            if (units && units.length > 0) {
+                return units[0];
+            }
+            return null;
         };
 
         this.DoAction = function(subject, action, object) {
@@ -208,9 +228,9 @@ window.onload = function() {
     // string, HexType, TCreature
     function TFieldObject(sprite_name, type, initCreature) {
         var marker = Game.add.sprite(0,0,sprite_name);
-        // row = y, column = x
+        // row = y, col = x
         var row = 0;
-        var column = 0;
+        var col = 0;
         var objectType = type;
         var creature = initCreature;
 
@@ -219,8 +239,9 @@ window.onload = function() {
 		HexagonField.Add(marker);
         
         this.SetNewPosition = function (posX, posY) {
+            field.Move([col, row], [posY, posX], this);
             row = posY;
-            column = posX;
+            col = posX;
             if (!GameWorld.IsValidCoordinate(posX, posY)) {
                 marker.visible = false;
 		    } else {
