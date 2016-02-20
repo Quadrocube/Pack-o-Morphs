@@ -1,6 +1,13 @@
 window.onload = function() {	
     var Game = new Phaser.Game("100%", "100%", Phaser.CANVAS, "", {preload: onPreload, create: onCreate});
 
+    function TGameLogic() {
+        // return null if assertion failed, else true or result of engagement or whatever
+        this.Attack = function(subj, obj) {
+            assert(); // Distance is 1, etc...
+        }
+    }
+
     function TGameWorld() {
         var hexagonWidth = 35;
         var hexagonHeight = 40;
@@ -10,6 +17,7 @@ window.onload = function() {
         var sectorWidth = hexagonWidth;
         var sectorHeight = hexagonHeight / 4 * 3;
         var gradient = (hexagonHeight / 4) / (hexagonWidth / 2);
+        var gameLogic = TGameLogic();
         
         var fieldSizeX;
         var fieldSizeY;
@@ -147,6 +155,7 @@ window.onload = function() {
 
         this.DoAction = function(subject, action, object) {
             if (action == ActionType.MOVE) {
+                assert(!GameWorld.gameLogic.Move(), "Move failed");
             } else if (action == ActionType.ATTACK) {
             } else if (action == ActionType.RUNHIT) {
             } else if (action == ActionType.MORPH) {
@@ -160,11 +169,16 @@ window.onload = function() {
     
     function TFieldObject(sprite_name) {
         var marker = Game.add.sprite(0,0,sprite_name);
+        // row = y, column = x
+        var row = 0;
+        var column = 0;
 		marker.anchor.setTo(0.5);
 		marker.visible = false;
 		HexagonField.Add(marker);
         
         this.SetNewPosition = function (posX, posY) {
+            row = posY;
+            column = posX;
             if (!GameWorld.IsValidCoordinate(posX, posY)) {
                 marker.visible = false;
 		    } else {
