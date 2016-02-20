@@ -181,7 +181,7 @@ window.onload = function() {
     
     var GameWorld = new TGameWorld();
     
-    ActionType = {
+    var ActionType = {
         MOVE : 0,
         ATTACK : 1,
         RUNHIT : 2,
@@ -214,16 +214,19 @@ window.onload = function() {
 		hexagonField.y = GameWorld.GetFieldY();
 
         this.Move = function(prevPos, newPos, fieldObject) {
-            if (!prevPos) {
-                field.push({key: newPos, value: fieldObject});
-            } else {
-                units = field[prevPos];
+            var units;
+            if (prevPos) {
+                units = field[prevPos[0] + ":" + prevPos[1]];
                 ind = units.indexOf(fieldObject);
                 units.splice(ind, 1);
-                units = field[newPos];
-                units.push(fieldObject);
-                units.sort((a, b) => {return a.objectType - b.objectType;});
+            } 
+            var ind = newPos[0] + ":" + newPos[1];
+            if (field[ind] === undefined) {
+                field[ind] = [];
             }
+            units = field[ind]
+            units.push(fieldObject);
+            units.sort((a, b) => {return a.objectType - b.objectType;});
         };
         
         this.Add = function (fieldObject) {
@@ -238,13 +241,13 @@ window.onload = function() {
         };
 
         this.GetAt = function(posX, posY) {
-            var units = field[[posX, posY]];
+            var units = field[posX + ":" + posY];
             if (units && units.length > 0) {
                 return units[0];
             }
             return null;
         };
-
+        
         this.DoAction = function(subject, action, object) {
             if (action === ActionType.MOVE) {
                 assert(GameWorld.gameLogic.Move(subject, object), "Move failed");
@@ -264,7 +267,7 @@ window.onload = function() {
         
     var HexagonField;
 
-    CreatureType = {
+    var CreatureType = {
         VECTOR : 0,
         COCOON : 1,
         PLANT : 2,
@@ -304,9 +307,18 @@ window.onload = function() {
         var col = 0;
         var objectType = type;
         var creature = initCreature;
+        
+        
         if (objectType === HexType.CREATURE) {
             marker.inputEnabled = true;
             marker.input.enableDrag();
+            
+            this.OnDragStart = function (sprite, pointer) {
+                HexagonField.HighlightOff();
+                HexagonField.Highlight(col, row);
+            }
+            
+            marker.events.onDragStart.add(this.OnDragStart, this);
         }
 
 		marker.anchor.setTo(0.5);
@@ -328,6 +340,7 @@ window.onload = function() {
     }
 	
     var Marker;
+    var Creature;
     
     function TTurnState() {
         var TS_NONE = 0;
@@ -406,6 +419,8 @@ window.onload = function() {
         
         HexagonField = new THexagonField();
         Marker = new TFieldObject("marker", HexType.EMPTY, null);
+        Creature = new TFieldObject("marker", HexType.CREATURE, null);
+        Creature.SetNewPosition(10, 11);
         
         ActionBar.create([['first','button1'], ['second', 'button2'], ['third', 'button3']]);
 
