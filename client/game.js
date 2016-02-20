@@ -4,7 +4,7 @@ window.onload = function() {
     function TAbility(name, args) {
         this.name = name;
         this.args = [];
-        this.equals = function (another) {
+        this.equals = function (another1) {
             return (this.name === another.name);
         }
     }
@@ -263,7 +263,7 @@ window.onload = function() {
         SPIDER: 8
     };
 
-    HexType = {
+    var HexType = {
         CREATURE: 0,
         FOREST: 1,
         EMPTY: 2
@@ -291,6 +291,10 @@ window.onload = function() {
         var column = 0;
         var objectType = type;
         var creature = initCreature;
+        if (objectType === HexType.CREATURE) {
+            marker.inputEnabled = true;
+            marker.input.enableDrag();
+        }
 
 		marker.anchor.setTo(0.5);
 		marker.visible = false;
