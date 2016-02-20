@@ -11,8 +11,8 @@ window.onload = function() {
         var sectorHeight = hexagonHeight / 4 * 3;
         var gradient = (hexagonHeight / 4) / (hexagonWidth / 2);
         
-        var fieldSizeX;
-        var fieldSizeY;
+        var fieldPosX;
+        var fieldPosY;
     
         this.GetHexagonWidth = function () {
             return hexagonWidth;
@@ -52,23 +52,23 @@ window.onload = function() {
         }
         
         this.Init = function () {
-            fieldSizeX = (Game.width - this.GetHexagonWidth() * Math.ceil(this.GetGridSizeX() / 2)) / 2;
+            fieldPosX = (Game.width - this.GetHexagonWidth() * Math.ceil(this.GetGridSizeX() / 2)) / 2;
        	    if (this.GetGridSizeX() % 2 == 0) {
-        	   fieldSizeX -= this.GetHexagonWidth() / 4;
+        	   fieldPosX -= this.GetHexagonWidth() / 4;
             }
             
-            fieldSizeY = (Game.height - Math.ceil(this.GetGridSizeY() / 2) * this.GetHexagonHeight() - Math.floor(this.GetGridSizeY() / 2)*this.GetHexagonHeight()/2)/2;
+            fieldPosY = (Game.height - Math.ceil(this.GetGridSizeY() / 2) * this.GetHexagonHeight() - Math.floor(this.GetGridSizeY() / 2)*this.GetHexagonHeight()/2)/2;
             if (GameWorld.GetGridSizeY() % 2 == 0) {
-        	   fieldSizeY -= this.GetHexagonHeight() / 8;
+        	   fieldPosY -= this.GetHexagonHeight() / 8;
             }
         }
         
         this.GetFieldX = function () {
-            return fieldSizeX;
+            return fieldPosX;
         };
         
         this.GetFieldY = function () {
-            return fieldSizeY;
+            return fieldPosY;
         };
         
         this.FindHex = function () {
