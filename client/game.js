@@ -284,9 +284,12 @@ window.onload = function() {
         };
     }
     
+    var TurnState = new TTurnState();
+    
     function mouseDownCallback(e) {
         if (Game.input.mouse.button == Phaser.Mouse.LEFT_BUTTON) { //Left Click
 			var hex = GameWorld.FindHex(); 
+            TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y));
 			Marker.SetNewPosition(hex.x, hex.y); 
 		} else {
 			//Right Click	
