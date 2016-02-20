@@ -183,13 +183,49 @@ window.onload = function() {
 	
     var Marker;
     
-    function TMoveState() {
-        var NONE = 0;
-        var SELECTED = 1;
-        var ACTION = 2;
-        var DONE = 3;
+    function TTurnState() {
+        var TS_NONE = 0;
+        var TS_SELECTED = 1;
+        var TS_ACTION = 2;
+        var TS_DONE = 3;
         
+        var state;
+        var creature;
+        var action;
+        var endPosition;
         
+        this.ResetState = function () {
+            state = TS_NONE;
+            creature = undefined;
+            action = undefined;
+            endPosition = undefined;
+        }
+        
+        this.ResetState();
+        
+        this.SelectField = function (field) {
+            if (state == TS_NONE) {
+                creature = field;
+                state = TS_SELECTED;
+            } else if (state == TS_ACTION) {
+                endPosition = field;
+                state = TS_DONE;
+                
+                HexagonField.DoAction(creature, action, endPosition);
+                this.ResetState();
+            } else {
+                this.ResetState();
+            }
+        }
+        
+        this.SelectAction = function (act) {
+            if (state == TS_SELECTED) {
+                action = act;
+                state = TS_ACTION;
+            } else {
+                this.ResetState();
+            }
+        }
     }
     
     function mouseDownCallback(e) {
