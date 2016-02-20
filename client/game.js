@@ -216,7 +216,7 @@ window.onload = function() {
 		hexagonField.x = GameWorld.GetFieldX();
 		hexagonField.y = GameWorld.GetFieldY();
 
-        this.Move(prevPos, newPos, fieldObject) {
+        this.Move = function(prevPos, newPos, fieldObject) {
             if (!prevPos) {
                 field.push({key: newPos, value: fieldObject});
             } else {
@@ -230,8 +230,8 @@ window.onload = function() {
         };
         
         this.Add = function (fieldObject) {
-            hexagonField.add(fieldObject.marker);
-            this.Move(null, [0, 0], fieldObject);
+            hexagonField.add(fieldObject);
+            //this.Move(null, [0, 0], fieldObject);
         };
 
         this.Highlight = function(hex, rad) {
@@ -283,7 +283,7 @@ window.onload = function() {
         SPIDER: 8
     };
 
-    HexType = {
+    var HexType = {
         CREATURE: 0,
         FOREST: 1,
         EMPTY: 2
@@ -321,7 +321,7 @@ window.onload = function() {
 		HexagonField.Add(marker);
         
         this.SetNewPosition = function (posX, posY) {
-            field.Move([col, row], [posY, posX], this);
+            //field.Move([col, row], [posY, posX], this);
             row = posY;
             col = posX;
             if (!GameWorld.IsValidCoordinate(posX, posY)) {
