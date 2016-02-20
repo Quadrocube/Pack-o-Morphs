@@ -82,6 +82,7 @@ window.onload = function() {
         var sectorHeight = hexagonHeight / 4 * 3;
         var gradient = (hexagonHeight / 4) / (hexagonWidth / 2);
         var gameLogic = TGameLogic();
+        var actionBar;
         
         var fieldPosX;
         var fieldPosY;
@@ -135,7 +136,10 @@ window.onload = function() {
             if (GameWorld.GetGridSizeY() % 2 === 0) {
         	   fieldPosY -= this.GetHexagonHeight() / 8;
             }
+            actionBar = new TActionBar(Game, 0, 0, AlertManager, 128);
+            actionBar.create([['first','button1'], ['second', 'button2'], ['third', 'button3']]);
         }
+        
         
         this.GetFieldX = function () {
             return fieldPosX;
@@ -239,6 +243,10 @@ window.onload = function() {
                 assert(false, "Unknown ActionType");
             }
         };
+    }
+    
+    function AlertManager (id) {
+        alert('Clicked on ' + id);
     }
     
     var HexagonField;
