@@ -318,7 +318,13 @@ window.onload = function() {
                 HexagonField.Highlight(col, row);
             }
             
+            this.OnDragStop = function (sprite, pointer) {
+                var hex = GameWorld.FindHex(); 
+                this.SetNewPosition(hex.x, hex.y); 
+            }
+            
             marker.events.onDragStart.add(this.OnDragStart, this);
+            marker.events.onDragStop.add(this.OnDragStop, this);
         }
 
 		marker.anchor.setTo(0.5);
