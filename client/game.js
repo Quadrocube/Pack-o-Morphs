@@ -217,16 +217,19 @@ window.onload = function() {
 		hexagonField.y = GameWorld.GetFieldY();
 
         this.Move = function(prevPos, newPos, fieldObject) {
-            if (!prevPos) {
-                field.push({key: newPos, value: fieldObject});
-            } else {
-                units = field[prevPos];
+            var units;
+            if (prevPos) {
+                units = field[prevPos[0] + ":" + prevPos[1]];
                 ind = units.indexOf(fieldObject);
                 units.splice(ind, 1);
-                units = field[newPos];
-                units.push(fieldObject);
-                units.sort((a, b) => {return a.objectType - b.objectType;});
+            } 
+            var ind = newPos[0] + ":" + newPos[1];
+            if (field[ind] === undefined) {
+                field[ind] = [];
             }
+            units = field[ind]
+            units.push(fieldObject);
+            units.sort((a, b) => {return a.objectType - b.objectType;});
         };
         
         this.Add = function (fieldObject) {
@@ -241,7 +244,7 @@ window.onload = function() {
         };
 
         this.GetAt = function(posX, posY) {
-            var units = field[[posX, posY]];
+            var units = field[posX + ":" + posY];
             if (units && units.length > 0) {
                 return units[0];
             }
