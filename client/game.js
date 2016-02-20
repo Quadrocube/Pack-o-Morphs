@@ -304,9 +304,18 @@ window.onload = function() {
         var col = 0;
         var objectType = type;
         var creature = initCreature;
+        
+        
+        
         if (objectType === HexType.CREATURE) {
             marker.inputEnabled = true;
             marker.input.enableDrag();
+            
+            this.OnDragStart = function (sprite, pointer) {
+                alert("Drag start");
+            }
+            
+            marker.events.onDragStart.add(OnDragStart, this);
         }
 
 		marker.anchor.setTo(0.5);
