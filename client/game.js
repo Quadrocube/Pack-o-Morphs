@@ -120,9 +120,11 @@ window.onload = function() {
         MOVE : 0,
         ATTACK : 1,
         RUNHIT : 2,
-        MORPH: 3,
-        REFRESH: 4,
-        YIELD: 5
+        REPLICATE: 3,
+        MORPH: 4,
+        REFRESH: 5,
+        YIELD: 6,
+        SPECIAL: 7
     }
 
     function THexagonField() {
@@ -152,28 +154,57 @@ window.onload = function() {
         this.Highlight = function(hex, rad) {
         }
 
-        this.HighlightOff = function(hex) {
+        this.HighlightOff = function() {
+        };
+
+        this.GetAt = function(posX, posY) {
         };
 
         this.DoAction = function(subject, action, object) {
             if (action == ActionType.MOVE) {
-                assert(!GameWorld.gameLogic.Move(), "Move failed");
+                assert(GameWorld.gameLogic.Move(), "Move failed");
             } else if (action == ActionType.ATTACK) {
+                var damage = GameWorld.gameLogic.Attack(subject, object);
+                assert(GameWorld.gameLogic.Move(), "Attack failed");
             } else if (action == ActionType.RUNHIT) {
             } else if (action == ActionType.MORPH) {
             } else if (action == ActionType.REFRESH) {
             } else if (action == ActionType.YIELD) {
+            } else if (action == ActionType.SPECIAL) {
+            } else {
+                assert(false, "Unknown ActionType");
             }
         };
     }
     
     var HexagonField;
+
+    CreatureType = {
+        VECTOR : 0,
+        COCOON : 1,
+        PLANT : 2,
+        SPAWN: 3,
+        DAEMON: 4,
+        TURTLE: 5,
+        RHINO: 6,
+        WASP: 7,
+        SPIDER: 8
+    }
+
+    function TCreature {
+        var type;
+        var MOV;
+        var HPP;
+    };
     
-    function TFieldObject(sprite_name) {
+    function TFieldObject(sprite_name, type, initCreature) {
         var marker = Game.add.sprite(0,0,sprite_name);
         // row = y, column = x
         var row = 0;
         var column = 0;
+        var objectType = type;
+        var creature = initCreature;
+
 		marker.anchor.setTo(0.5);
 		marker.visible = false;
 		HexagonField.Add(marker);
