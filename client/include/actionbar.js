@@ -7,9 +7,8 @@ function ActionBarButtonCallbackFactory(callback) {
     }
 }
 
-function ActionBar(start_posX, start_posY, callback) {
+function ActionBar(start_posX, start_posY, callback, button_width) {
     border_margin = 40,
-    button_width = 128,
     this.create = function (ids) {
         n = ids.length;
         var factory = new ActionBarButtonCallbackFactory(callback);
@@ -23,6 +22,14 @@ function ActionBar(start_posX, start_posY, callback) {
     }
 }
 
-//var actionbar = new ActionBar(0,0, AlertManager);
-//actionbar.button_width = 128;
-//actionbar.create([['first','button1'], ['second', 'button2'], ['third', 'button3']]);
+/*
+function AlertManager (id) {
+    alert('Clicked on ' + id);
+}
+
+*/
+/* Usage:
+
+ var actionbar = new ActionBar(0,0, AlertManager, 128);
+ actionbar.create([['first','button1'], ['second', 'button2'], ['third', 'button3']]);
+*/
