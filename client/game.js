@@ -395,7 +395,7 @@ window.onload = function() {
 
 	}
 
-    var ActionBar = new TActionBar(Game, 0, 0, AlertManager, 128);
+    var ActionBar = new TActionBar(Game, GameWorld, AlertManager, 128);
 
     function AlertManager (id) {
         alert('Clicked on ' + id);
