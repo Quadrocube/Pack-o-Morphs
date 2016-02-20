@@ -62,25 +62,36 @@
                         subj.creature.init_effect('damage');
                         subj.creature.effects['damage'] += 1;
                 }
-                
-                if (this.chk_death(subj, obj)) 
-                    return true;
-                // TODO: subj player receives obj.creature.NUT points
-                return true;
+                subj_death = this.chk_death(subj, obj);
+                if (subj_death != {})
+                    return {'subj': 'dead', 'obj': 'dead'};
+                return {'obj': 'dead'};
             }
-            return false;
+            return {};
         }
+        /*
+            returns:
+                {'error': error}
+                OR
+                {'landed': ?att landed, 'death': death}
+                    death is dict with:
+                        'obj': 'dead' if obj is dead
+                        'subj': 'dead' ...
+        */
         this.Attack = function(subj, obj) {
             // chk: attack is valid
             if (!this.assert_can_attack(subj)) {
-                return false;
+                return {'error': 'invalid attack'};
             }
             
             obj.creature.init_effect('attacked');
             obj.creature.effects['attacked'] = 1;
             
             // chk: attack lands
+            landed = false;
             if (this.attack_landed(subj, obj)) {
+                landed = true;
+                
                 obj.creature.init_effect('damage');
                 subj.creature.init_effect('infest');
                 obj.creature.effects['damage'] += subj.DAM - subj.creature.effect['infest'];
@@ -110,13 +121,19 @@
             }
             
             // chk: death
-            this.chk_death(subj, obj);
+            death = this.chk_death(subj, obj);
             
             // regular drain
             subj.creature.init_effect('drain');
             subj.creature.effect['drain'] += 1;
-            return true;
+            return {'landed': landed, 'death': death};
         };
+        /*
+            returns:
+                {'error': error}
+                OR
+                {}
+        */
         this.Move = function(subj, obj, d) {
             if (d === undefined)
                 d = 2;
@@ -125,34 +142,63 @@
             }
             user_d = rowcol2hex(subj.row, subj.col).distance(rowcol2hex(obj.row, obj.col));
             if (user_d > d) {
-                return null;
+                return {'error': 'too far'};
             }
-            return true;
+            return {};
         };
         
+        /*
+            returns:
+                {'error': error}
+                OR
+                see this.Attack
+        */
+        this.Mo
         this.RunHit = function(subj, obj_move, obj_hit) {
-            return this.Move(subj, obj_move, 1) + this.Attack(subj, obj_hit)
+            d = this.Move(subj, obj_move, 1);
+            if (d != {})
+                return d;
+            return this.Attack(subj, obj_hit)
         };
-        this.Evolve = function(subj, type, additional_cost) {
-            
+        /*
+            returns:
+                {'error': error}
+                OR
+                {}
+        */
+        this.Morph = function(subj, additional_cost) {
+            if (subj.creature.player.NUT < 2 + additional_cost) {
+                return {'error': 'not enough NUT'};
+            return {}
         };
-        this.Replicate = function(subj, additional_cost) {
-              
-        };
+        /*
+            returns {}
+        */
         this.Yield = function(subj, obj) {
+            return {}
         };
     };
     
-     function TCreature(_type, _mov, _hpp) {
+    function TPlayer(id, _nut) {
+        var id = id;
+        var NUT = _nut;
+    }
+    
+     function TCreature(_type, _att, _def, _dam, _hpp, _mov, _nut, _player) {
         var type = _type;
-        var MOV = _mov;
+        var ATT = _att;
+        var DEF = _def;
+        var DAM = _dam;
         var HPP = _hpp;
+        var MOV = _mov;
+        var NUT = _nut;
         
-        var abilities = MySet();
         var effects = {};
-        
         this.init_effect = function(effect_name) {
             if (obj.effects.damage === undefined)
                 obj.effects.damage = 0;
         };
+        
+        var player = _player;
     };
+};
