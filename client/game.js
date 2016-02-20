@@ -1,10 +1,72 @@
 window.onload = function() {	
     var Game = new Phaser.Game("100%", "100%", Phaser.CANVAS, "", {preload: onPreload, create: onCreate, update: onUpdate});
 
+    function TAbility(name, args) {
+        this.name = name;
+        this.args = [];
+        this.equals = function (another) {
+            return (this.name == another.name);
+        }
+    }
     function TGameLogic() {
         // return null if assertion failed, else true or result of engagement or whatever
+        
+        this.assert_can_attack = function(subj, obj) {
+            // chk: there is enough MOV points left
+            if (subj.creature.effects['drain'] >= subj.creature.MOV)
+                return false;
+            // chk: distance
+            var d = 1;
+            if (subj.creature.abilities.has(TAbility('ranged', [])))
+                d = 1 + subj.creature.abilities.get(TAbility('ranged', [])).args[0];
+            return (rowcol2hex(subj.row, subj.col).distance(rowcol2hex(obj.row, obj.col)) <= d);
+        }
+        this.attack_landed = function(subj, obj) {
+            dF = subj.creature.ATT - obj.creature.DEF;
+            d2 = function() {
+                var rand = 1 - 0.5 + Math.random() * 2
+                rand = Math.round(rand);
+                return rand - 1;
+            }
+            r = !(dF>=0);
+            for (var i = 0; i < n; i++) {
+                if (dF>=0)
+                    r += d2();
+                else
+                    r *= d2();
+            }
+            return (r > 0);
+        }
         this.Attack = function(subj, obj) {
-            //assert(); // Distance is 1, etc...
+            // chk: attack is valid
+            if (!this.assert_can_attack(subj)) {
+                return false;
+            }
+            // chk: attack lands
+            if (this.attack_landed(subj, obj)) {
+                obj.creature.init_effect('damage');
+                obj.creature.effects['damage'] += subj.DAM;
+                
+                if (subj.creature.abilities.has(TAbility('leech', []))) {
+                    subj.creature.init_effect('damage');
+                    subj.creature.effect['damage'] = Math.max(0, subj.creature.effect['damage'] - subj.creature.DAM);
+                }
+                
+                if (subj.creature.abilities.has(TAbility('drain', []))) {
+                    obj.creature.init_effect('drain');
+                    obj.creature.effects['drain'] = Math.max(obj.creature.effects['drain'] + 1, obj.creature.MOV);
+                }
+                
+                if (subj.creature.abilities.has(TAbility('poison', []))) {
+                    subj.creature.init_effect('damage');
+                    subj.creature.effect['damage'] = Math.max(0, subj.creature.effect['damage'] - subj.creature.DAM);
+                }
+            }
+            obj.creature.check();
+            subj.creature.init_effect('drain');
+            subj.creature.effect['drain'] += 1;
+            subj.creature.check();
+            return true;
         };
         this.Move = function(subj, obj) {
         };
@@ -203,6 +265,14 @@ window.onload = function() {
         var type = _type;
         var MOV = _mov;
         var HPP = _hpp;
+        
+        var abilities = MySet();
+        var effects = {};
+        
+        this.init_effect = function(effect_name) {
+            if (obj.effects.damage === undefined)
+                obj.effects.damage = 0;
+        };
     };
     
     // string, HexType, TCreature

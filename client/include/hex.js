@@ -8,6 +8,13 @@ function Set() {
         }
         return false;
     }
+    this.get = function(obj) {
+        for (i = 0; i < this.carry.length; i++) {
+            if (this.carry[i].equals(obj))
+                return this.carry[i];
+        }
+        return null;
+    }
     this.add = function (obj) {
         if (!this.has(obj)) {
             this.carry.push(obj);
