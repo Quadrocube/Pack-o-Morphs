@@ -311,6 +311,10 @@ window.onload = function() {
         var col = 0;
         var objectType = type;
         var creature = initCreature;
+        if (objectType === HexType.CREATURE) {
+            marker.inputEnabled = true;
+            marker.input.enableDrag();
+        }
 
 		marker.anchor.setTo(0.5);
 		marker.visible = false;
@@ -392,6 +396,10 @@ window.onload = function() {
 	function onPreload() {
 		Game.load.image("hexagon", "arts/hexagon.png");
 		Game.load.image("marker", "arts/marker.png");
+        Game.load.image('button1', 'arts/ab-button.png');
+        Game.load.image('button2', 'arts/ab-button2.png');
+        Game.load.image('button3', 'arts/ab-button3.png');
+
 	}
 
 	function onCreate() {
