@@ -227,14 +227,6 @@ window.onload = function() {
                 marker.visible = true;
                 marker.x = GameWorld.GetHexagonWidth() * posX + GameWorld.GetHexagonWidth()/ 2 + (GameWorld.GetHexagonWidth() / 2) * (posY % 2);
 				marker.y = 0.75 * GameWorld.GetHexagonHeight() * posY + GameWorld.GetHexagonHeight() / 2;
-			    /*marker.x = GameWorld.GetHexagonWidth() * posX;
-                marker.y = GameWorld.GetHexagonHeight() / 4 * 3 * posY 
-                            + GameWorld.GetHexagonHeight() / 2;
-                if (posY % 2 == 0) {
-                    marker.x += GameWorld.GetHexagonWidth() / 2;
-                } else {
-                    marker.x += GameWorld.GetHexagonWidth();
-                }*/
             }
         };
     }
