@@ -9,6 +9,37 @@
         WASP: 7,
         SPIDER: 8
     };
+    
+    var CreatureAction = {
+        FEED : 0,
+        MORPH : 1,
+        BREED : 2,
+        SPEC_ABILITY : 3,
+        EAT_GRASS : 4    
+    };
+    
+    function getCreatureAction(creatureType) {
+        if (creatureType === CreatureType.VECTOR) {
+            
+        } else if (creatureType === CreatureType.COCOON) {
+            
+        } else if (creatureType === CreatureType.PLANT) {
+            
+        } else if (creatureType === CreatureType.SPAWN) {
+            
+        } else if (creatureType === CreatureType.DAEMON) {
+            
+        } else if (creatureType === CreatureType.TURTLE) {
+            
+        } else if (creatureType === CreatureType.RHINO) {
+            
+        } else if (creatureType === CreatureType.WASP) {
+            
+        } else if (creatureType === CreatureType.SPIDER) {
+             
+        }
+        return null;
+    }
 
     var HexType = {
         CREATURE: 0,
