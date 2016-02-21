@@ -163,8 +163,6 @@ window.onload = function() {
         this.highlightGroup = Game.add.group();
         this.creatureGroup = Game.add.group();
         this.obstaclesGroup = Game.add.group();
-        this.creatureGroup.inputEnabled = true;
-        this.creatureGroup.input.enableDrag();
         
         this.InitGroup = function(groupName) {
             this[groupName].x = GameWorld.GetFieldX();
@@ -217,6 +215,18 @@ window.onload = function() {
                 this.hexField[_col+":"+_row] = {"row": _row, "col": _col, "objectType": HexType.EMPTY, "creature": null};
             }
         }
+        
+        this.creaturesDraggable = true;
+        this.toggleDraggable = function() {
+            for (var creatureSprite of this.creatureGroup.children) {
+                if (this.creaturesDraggable) {
+                    creatureSprite.input.disableDrag();
+                } else {
+                    creatureSprite.input.enableDrag();
+                }
+            }
+            this.creaturesDraggable = !this.creaturesDraggable;
+        };
 
         this.Move = function(prevPos, newPos, fieldObject) {
             var units;
@@ -486,7 +496,10 @@ window.onload = function() {
         this.creature = initCreature; 
         
         if (this.objectType === HexType.CREATURE) {
-           this.OnDragStart = function (sprite, pointer) {
+            
+            this.marker.inputEnabled = true;
+            this.marker.input.enableDrag();
+            this.OnDragStart = function (sprite, pointer) {
                 var hex = GameWorld.FindHex(); 
                 if (TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y)) === true) {
                     if (TurnState.SelectAction(ActionType.MOVE) === true) {
