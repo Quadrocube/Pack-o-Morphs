@@ -639,11 +639,14 @@ window.onload = function() {
                 var hex = GameWorld.FindHex(); 
                 if (!GameWorld.IsValidCoordinate(hex.x, hex.y)) { // out of field 
                    this.SetNewPosition(this.col, this.row); 
+                   TurnState.SelectField(this.col, this.row);
                 } else if (TurnState.SelectAction(ActionType.MOVE) === true &&
                            TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y)) === true) {
                    this.SetNewPosition(hex.x, hex.y);
+                   TurnState.SelectField(hex.x, hex.y);
                 } else {
-                   this.SetNewPosition(this.col, this.row);                
+                   this.SetNewPosition(this.col, this.row); 
+                   TurnState.SelectField(this.col, this.row);               
                 }
                 
                 HexagonField.HighlightOff();
