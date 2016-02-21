@@ -141,8 +141,8 @@
         // subj = {row: 0, col: 0, creature: CreaturesExamples.SPIDER}; obj = {row: 0, col: 2, creature: CreaturesExamples.RHINO}; (new TGameLogic()).Attack(subj, obj);
         this.Attack = function(subj, obj) {
             // chk: attack is valid
-            assert = this.assert_can_attack(subj, obj);
-            if (assert.error !== undefined) {
+            var cassert = this.assert_can_attack(subj, obj);
+            if (cassert.error !== undefined) {
                 return {'error': assert.error};
             }
             
@@ -221,6 +221,8 @@
                 {}
         */
         this.Move = function(subj, obj) {
+            if (subj.creature.type === CreatureType.COCOON) 
+                return {'error': 'cocoon is immovable'};
             var d = 2;
             if (subj.creature.type === CreatureType.SPAWN) {
                 d *= 2;
@@ -281,6 +283,7 @@
     
     function TCreature(_type, _att, _def, _dam, _hpp, _mov, _nut) {
         this.type = _type;
+        
         this.ATT = parseInt(_att);
         this.DEF = parseInt(_def);
         this.DAM = parseInt(_dam);
@@ -299,14 +302,6 @@
         this.Refresh = function() {
             this.effects = {};
         }
-        this.Morph = function(target, additional_cost) {
-            // TODO
-            console.log('morph');
-        }
-        this.Replicate = function(target, additional_cost) {
-            // TODO
-            console.log('replicate');
-        }
         //return this;
     };
     
@@ -320,5 +315,16 @@
         RHINO: new TCreature(CreatureType.RHINO, 2, 3, 3, 7, 3, 3),
         WASP: new TCreature(CreatureType.WASP, 4, 4, 2, 4, 4, 2),
         SPIDER: new TCreature(CreatureType.SPIDER, 4, 4, 2, 4, 4, 2),
-        ONEHIT: new TCreature(CreatureType.COCOON, 6, 0, 2, 1, 5, 1) 
+//        ONEHIT: new TCreature(CreatureType.COCOON, 6, 0, 2, 1, 5, 1) 
     };
+    
+    function newCreature(_type) {
+        var result = undefined;
+        for (creature_n in CreaturesExamples) {
+            if (CreaturesExamples[creature_n].type === _type) {
+                result = jQuery.extend(true, {}, CreaturesExamples[creature_n]);
+                break;
+            }
+        }
+        return result;
+    }

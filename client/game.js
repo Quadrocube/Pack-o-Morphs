@@ -15,7 +15,7 @@ window.onload = function() {
         var sectorWidth = hexagonWidth;
         var sectorHeight = hexagonHeight / 4 * 3;
         var gradient = (hexagonHeight / 4) / (hexagonWidth / 2);
-        var gameLogic = new TGameLogic();
+        this.gameLogic = new TGameLogic();
         
         var fieldPosX;
         var fieldPosY;
@@ -140,7 +140,7 @@ window.onload = function() {
             } else if (type === HexType.CREATURE) {
                 assert(creature, "WUT creature");
                 if (creature.type === CreatureType.COCOON) {
-                    return 'hex_canoon';
+                    return 'hex_cocoon';
                 } else if (creature.type === CreatureType.PLANT) {
                     return 'hex_plant';
                 } else if (creature.type === CreatureType.DAEMON) {
@@ -385,8 +385,9 @@ window.onload = function() {
                 args = ['carapace': true]
         */
         this.DoAction = function(subject, action, object, args) {
+            logic = GameWorld.gameLogic;
             if (action === ActionType.MOVE) {
-                var response = (new TGameLogic()).Move(subject, object);
+                var response = logic.Move(subject, object);
                 if (response !== undefined && response.error !== undefined) {
                     // something bad happened
                     console.log('ERROR in DoAction.MOVE: ' + response['error']);
@@ -394,7 +395,7 @@ window.onload = function() {
                 }
                 return true;
             } else if (action === ActionType.ATTACK) {
-                var response = TGameLogic.Attack(subject, object);
+                var response = logic.Attack(subject, object);
                 if (response.error !== undefined) {
                     // something bad happened
                     console.log('ERROR in DoAction.ATTACK: ' + response['error']);
@@ -430,8 +431,8 @@ window.onload = function() {
                     return false;
                 }
                 
-                var response = TGameLogic.Morph(subject, args.additional_cost);
-                if (response.error !== undefined) {
+                var response = logic.Morph(subject, args.additional_cost);
+                if (response !== undefined && response.error !== undefined) {
                     // something bad happened
                     console.log('ERROR in DoAction.MORPH: ' + response['error']);
                     return false;
@@ -451,16 +452,29 @@ window.onload = function() {
                     target = CreatureType.WASP;
                 else if (args.target === 'spider')
                     target = CreatureType.SPIDER;
-                subject.morph(target, args.additional_cost);
+                HexagonField.Remove(subject);
+                
+                creature = newCreature(CreatureType.COCOON);
+                creature.init_effect('morph');
+                creature.effects['morph'] = {'target':target, 'turns': 3 - args.additional_cost};
+                
+                fieldObject = new TFieldObject(HexType.CREATURE, creature);
+                console.log(fieldObject);
+                fieldObject.SetNewPosition(subject.col, subject.row);
+                delete subject;
                 return true;
             } else if (action === ActionType.REPLICATE) {
-                var response = TGameLogic.Morph(subject, args.additional_cost);
-                if (response.error !== undefined) {
+                if (args === undefined || args.additional_cost === undefined) {
+                    console.log('ERROR in DoAction.REPLICATE: Presentation error');
+                    return false;
+                }
+                var response = logic.Morph(subject, args.additional_cost);
+                if (response !== undefined && response.error !== undefined) {
                     // something bad happened
                     console.log('ERROR in DoAction.REPLICATE: ' + response['error']);
                     return false;
                 }
-                subject.replicate(target, args.additional_cost);
+                HexagonField.Replicate(subject, args.additional_cost);
                 return true;
             } else if (action === ActionType.REFRESH) {
                 // SPEND nutrition
@@ -566,11 +580,16 @@ window.onload = function() {
     function TFieldObject(type, initCreature) {
         var sprite_name = GameWorld.getSpriteName(type, initCreature);
         this.marker = Game.add.sprite(0,0,sprite_name);
+        this.marker.visible = true;
         // row = y, col = x
         this.col = 0;
         this.row = 0;
         this.objectType = type;
         this.creature = initCreature; 
+        
+        this.colrow = function () {
+            return [this.col, this.row];
+        }
         
         if (this.objectType === HexType.CREATURE) {
             
@@ -659,7 +678,7 @@ window.onload = function() {
         Game.load.spritesheet('button_morph', 'arts/buttons/button_morph_spritesheet.png', 128, 128);
         Game.load.spritesheet('button_yield', 'arts/buttons/button_yield_spritesheet.png', 128, 128);
         Game.load.image('button_morph_vector', 'arts/button_size/amoeba1.png');
-        Game.load.image('button_morph_canoon', 'arts/button_size/amoeba2.png');
+        Game.load.image('button_morph_cocoon', 'arts/button_size/amoeba2.png');
         Game.load.image('button_morph_plant', 'arts/button_size/amoeba3.png');
         Game.load.image('button_morph_spawn', 'arts/button_size/amoeba4.png');
         Game.load.image('button_morph_daemon', 'arts/button_size/amoeba5.png');
@@ -669,7 +688,7 @@ window.onload = function() {
         Game.load.image('button_morph_spider', 'arts/button_size/amoeba9.png');
         Game.load.image('button_morph_cancel', 'arts/button_size/cancel.png');
         Game.load.image('hex_vector', 'arts/small/amoeba.png');
-        Game.load.image('hex_canoon', 'arts/small/amoeba2.png');
+        Game.load.image('hex_cocoon', 'arts/small/amoeba2.png');
         Game.load.image('hex_plant', 'arts/small/amoeba3.png');
         Game.load.image('hex_spawn', 'arts/small/amoeba4.png');
         Game.load.image('hex_daemon', 'arts/small/amoeba5.png');
@@ -682,7 +701,7 @@ window.onload = function() {
         } else if (id === 'morph') {
             ActionBar.update(getMorphList());
         } else if (id === 'replicate') {
-            HexagonField.DoAction(TurnState.activeObject, ActionType.REPLICATE);
+            HexagonField.DoAction(TurnState.activeObject, ActionType.REPLICATE, undefined, {'additional_cost': 0});
         } else if (id === 'yield') {
             HexagonField.DoAction(TurnState.activeObject, ActionType.YIELD);
         } else if (id === 'spec_ability') {
@@ -691,8 +710,8 @@ window.onload = function() {
             ActionBar.update(getCreatureActions(TurnState.activeObject.creature));
         } else if (id.substring(0, 6) == 'morph_') {
             var target = id.substring(6);
-            console.log(target);
-            HexagonField.DoAction(TurnState.activeObject, ActionType.MORPH, undefined, {'target': target});
+            HexagonField.DoAction(TurnState.activeObject, ActionType.MORPH, undefined, {'target': target, 'additional_cost': 0});
+             ActionBar.update([]);
         } else {
             console.log('ERROR: something other has been clickd, id=' + id);
         }
