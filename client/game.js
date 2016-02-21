@@ -175,6 +175,11 @@ window.onload = function() {
         gengrid(hexagonField, "hexagon", true);
         var highHexes = gengrid(highlightField, "marker", false);
         var lastHighlight = [];
+        for (var _row = 0; _row < GameWorld.GetGridSizeY; ++_row) {
+            for (var _col = 0; _col < GameWorld.GetGridSizeX / 2; ++_col) {
+                field[_col+":"+_row] = [{"row": _row, "col": _col, "objectType": HexType.EMPTY, "creature": null}];
+            }
+        }
 
         logg = function(object) {
             var output = '';
@@ -236,7 +241,6 @@ window.onload = function() {
             if (units && units.length > 0) {
                 return units[0];
             }
-            return null;
         };
         
         /* The main link between TGameLogic and other code.
@@ -330,7 +334,6 @@ window.onload = function() {
         var TS_NONE = 0;
         var TS_SELECTED = 1;
         var TS_ACTION = 2;
-        var TS_DONE = 3;
         
         var state;
         var creature;
@@ -347,20 +350,17 @@ window.onload = function() {
         this.ResetState();
         
         this.SelectField = function (field) {
-            if (state === TS_NONE) {
+            if (state === TS_NONE || state === TS_SELECTED) {
                 creature = field;
                 state = TS_SELECTED;
             } else if (state === TS_ACTION) {
                 endPosition = field;
-                state = TS_DONE;
-                
                 var result = HexagonField.DoAction(creature, action, endPosition);
                 this.ResetState();
                 return result;
             } else {
-                this.ResetState();
+                assert(false, "WUT TurnState");
             }
-            
             return true;
         };
         
@@ -368,27 +368,15 @@ window.onload = function() {
             if (state === TS_SELECTED) {
                 action = act;
                 state = TS_ACTION;
+                return true;
             } else {
                 this.ResetState();
+                return false;
             }
         };
     }
     
     var TurnState = new TTurnState();
-
-    function TCreature(_type, _mov, _hpp) {
-        var type = _type;
-        var MOV = _mov;
-        var HPP = _hpp;
-        
-        var abilities = MySet();
-        var effects = {};
-        
-        this.init_effect = function(effect_name) {
-            if (obj.effects.damage === undefined)
-                obj.effects.damage = 0;
-        };
-    };
     
     // string, HexType, TCreature
     function TFieldObject(sprite_name, type, initCreature) {
@@ -404,14 +392,18 @@ window.onload = function() {
             this.marker.input.enableDrag();
             
             this.OnDragStart = function (sprite, pointer) {
-                HexagonField.HighlightOff();
-                HexagonField.Highlight(this.col, this.row, 2);
+                var hex = GameWorld.FindHex(); 
+                if (TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y)) === true) {
+                    if (TurnState.SelectAction(ActionType.MOVE) === true) {
+                        HexagonField.HighlightOff();
+                        HexagonField.Highlight(this.col, this.row, 2);
+                    }
+                }
             };
             
             this.OnDragStop = function (sprite, pointer) {
                 var hex = GameWorld.FindHex(); 
-                // WUT
-                if (TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y))) {
+                if (TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y)) === true) {
                     this.SetNewPosition(hex.x, hex.y);    
                 } else {
                     this.SetNewPosition(this.col, this.row);
@@ -470,7 +462,9 @@ window.onload = function() {
 	}
 
     var ActionBar = new TActionBar(Game, GameWorld, AlertManager, 128);
-
+    
+    var InfoBar = new TInfoBar(Game, GameWorld);
+    
     function AlertManager (id) {
         alert('Clicked on ' + id);
     }
@@ -479,10 +473,15 @@ window.onload = function() {
         GameWorld.Init();
         
         HexagonField = new THexagonField();
-        Creature = new TFieldObject("marker", HexType.CREATURE, null);
+        var RealCreature = new TCreature(CreatureType.COCOON, 1, 2, 3, 4, 5, 6, null);
+        Creature = new TFieldObject("marker", HexType.CREATURE, RealCreature);
                         
         ActionBar.create([['first','button1'], ['second', 'button2'], ['third', 'button3']]);
-
+        
+        InfoBar.create("Hey you!\nHahahahahah!");
+        
+        InfoBar.displayInfoCreature(RealCreature);
+        
         Game.input.mouse.mouseDownCallback = mouseDownCallback;
 	}
 	
