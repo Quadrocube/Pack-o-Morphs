@@ -317,7 +317,7 @@ window.onload = function() {
                             return true;
                         }
                         // REMOVE obj
-                        if (subject.creature.type === CreatureType.SPAWN || subject.creature.type === CreatureType.DAEMON) {
+                        if (subject.creature.type !== CreatureType.WASP || subject.creature.type !== CreatureType.SPIDER) {
                             // GET nutrition
                         }
                         return true;
