@@ -200,7 +200,6 @@ window.onload = function() {
         this.Highlight = function(posX, posY, rad) {
             // add obstacles
             this.HighlightOff();
-            rad = 1;
             lastHighlight = radius_with_blocks(makeColRowPair(posX, posY), rad, []);
             for (var i = 0; i < lastHighlight.length; i++) {
                 var x = lastHighlight[i].col;

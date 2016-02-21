@@ -2,14 +2,14 @@
 function MySet() {
     this.carry = [];
     this.has = function(obj) {
-        for (i = 0; i < this.carry.length; i++) {
+        for (var i = 0; i < this.carry.length; i++) {
             if (this.carry[i].equals(obj))
                 return true;
         }
         return false;
     }
     this.get = function(obj) {
-        for (i = 0; i < this.carry.length; i++) {
+        for (var i = 0; i < this.carry.length; i++) {
             if (this.carry[i].equals(obj))
                 return this.carry[i];
         }
