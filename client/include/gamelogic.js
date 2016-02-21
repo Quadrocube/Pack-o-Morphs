@@ -62,13 +62,13 @@
         this.chk_death = function(subj, obj) {
             if (obj.creature.effect['damage'] >= obj.creature.HPP) {
                 // poisoned
-                if (obj.creature.type != CreatureType.WASP) {
-                    if (subj.creature.type != CreatureType.WASP && subj.creature.type != CreatureType.SPIDER) {
+                if (obj.creature.type !== CreatureType.WASP) {
+                    if (subj.creature.type !== CreatureType.WASP && subj.creature.type !== CreatureType.SPIDER) {
                         subj.creature.init_effect('damage');
                         subj.creature.effects['damage'] += 1;
                     }
-                    var subj_death = this.chk_death(subj, obj);
-                    if (subj_death != {})
+                    var subj_death = this.chk_death(obj, subj);
+                    if (subj_death.obj !== undefined)
                         return {'subj': 'dead', 'obj': 'dead'};
                     return {'obj': 'dead'};
                 }
