@@ -7,3 +7,11 @@ function assert(condition, message) {
         throw message; // Fallback
     }
 }
+
+function logg(object) {
+    var output = '';
+    for (var property in object) {
+        output += property + ': ' + object[property]+'; ';
+    }
+    console.log(output);
+}
