@@ -13,32 +13,32 @@
     var CreatureAction = {
         FEED : 0,
         MORPH : 1,
-        BREED : 2,
+        REPLICATE : 2,
         SPEC_ABILITY : 3,
-        EAT_GRASS : 4    
+        YIELD : 4    
     };
     
     function getCreatureAction(creatureType) {
         if (creatureType === CreatureType.VECTOR) {
-            
+            return [CreatureAction.FEED, CreatureAction.MORPH, CreatureAction.REPLICATE, CreatureAction.YIELD];
         } else if (creatureType === CreatureType.COCOON) {
-            
+            return [];
         } else if (creatureType === CreatureType.PLANT) {
-            
+            return [];
         } else if (creatureType === CreatureType.SPAWN) {
-            
+            return [CreatureAction.FEED, CreatureAction.MORPH, CreatureAction.REPLICATE];
         } else if (creatureType === CreatureType.DAEMON) {
-            
+            return [CreatureAction.FEED, CreatureAction.MORPH, CreatureAction.REPLICATE];
         } else if (creatureType === CreatureType.TURTLE) {
-            
+            return [CreatureAction.FEED, CreatureAction.MORPH, CreatureAction.REPLICATE, CreatureAction.YIELD, CreatureAction.SPEC_ABILITY];
         } else if (creatureType === CreatureType.RHINO) {
-            
+            return [CreatureAction.FEED, CreatureAction.MORPH, CreatureAction.REPLICATE, CreatureAction.YIELD];
         } else if (creatureType === CreatureType.WASP) {
-            
+            return [CreatureAction.FEED, CreatureAction.MORPH, CreatureAction.REPLICATE, CreatureAction.YIELD];
         } else if (creatureType === CreatureType.SPIDER) {
-             
+            return [CreatureAction.FEED, CreatureAction.MORPH, CreatureAction.REPLICATE, CreatureAction.YIELD];
         }
-        return null;
+        return [];
     }
 
     var HexType = {
