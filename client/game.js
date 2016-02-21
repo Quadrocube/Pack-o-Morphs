@@ -573,6 +573,7 @@ window.onload = function() {
                 if (result) {
                     this._ResetState();
                     this.state = TS_OPPONENT_MOVE;
+                    ActionBar.lock();
                     HexagonField.toggleDraggable();
                 } else {
                     this._CancelMove();
@@ -602,6 +603,7 @@ window.onload = function() {
         this.MyTurn = function () {
             assert(this.state === TS_OPPONENT_MOVE, "MyTurn() called on my turn");
             HexagonField.toggleDraggable();
+            ActionBar.unlock();
             this._ResetState();
         }
     }
