@@ -36,7 +36,7 @@ function TActionBar(Game, GameWorld, callback, buttonWidth) {
                 || ids[i][1] === 'button_feed'
                 || ids[i][1] === 'button_yield'
                 || ids[i][1] === 'button_morph') {
-                button = Game.add.button(posX, posY, ids[i][1], factory.get(ids[i][0]), this, 0, 1, 0, 1);           
+                button = Game.add.button(posX, posY, ids[i][1], factory.get(ids[i][0]), this, 0, 1, 1);           
                 } else {
                     button = Game.add.button(posX, posY, ids[i][1], factory.get(ids[i][0]), this);
                 }
