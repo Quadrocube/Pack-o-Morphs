@@ -63,7 +63,7 @@
                         subj.creature.init_effect('damage');
                         subj.creature.effects['damage'] += 1;
                     }
-                    subj_death = this.chk_death(subj, obj);
+                    var subj_death = this.chk_death(subj, obj);
                     if (subj_death != {})
                         return {'subj': 'dead', 'obj': 'dead'};
                     return {'obj': 'dead'};
@@ -142,7 +142,7 @@
             if (subj.creature.type == CreatureType.SPAWN) {
                 d *= 2;
             }
-            user_d = rowcol2hex(subj.row, subj.col).distance(rowcol2hex(obj.row, obj.col));
+            var user_d = rowcol2hex(subj.row, subj.col).distance(rowcol2hex(obj.row, obj.col));
             if (user_d > d) {
                 return {'error': 'too far'};
             }
@@ -156,7 +156,7 @@
                 see this.Attack
         */
         this.RunHit = function(subj, obj_move, obj_hit) {
-            d = this.Move(subj, obj_move, 1);
+            var d = this.Move(subj, obj_move, 1);
             if (d != {})
                 return d;
             return this.Attack(subj, obj_hit);
@@ -170,6 +170,7 @@
         this.Morph = function(subj, additional_cost) {
             if (subj.creature.player.NUT < 2 + additional_cost) {
                 return {'error': 'not enough NUT'};
+            }
             return {};
         };
         /*
@@ -181,25 +182,26 @@
     };
     
     function TPlayer(id, _nut) {
-        var id = id;
-        var NUT = _nut;
-    }
+        this.id = id;
+        this.NUT = _nut;
+        return this;
+    };
     
-     function TCreature(_type, _att, _def, _dam, _hpp, _mov, _nut, _player) {
-        var type = _type;
-        var ATT = _att;
-        var DEF = _def;
-        var DAM = _dam;
-        var HPP = _hpp;
-        var MOV = _mov;
-        var NUT = _nut;
+    function TCreature(_type, _att, _def, _dam, _hpp, _mov, _nut, _player) {
+        this.type = _type;
+        this.ATT = _att;
+        this.DEF = _def;
+        this.DAM = _dam;
+        this.HPP = _hpp;
+        this.MOV = _mov;
+        this.NUT = _nut;
         
-        var effects = {};
+        this.effects = {};
         this.init_effect = function(effect_name) {
-            if (obj.effects.damage === undefined)
-                obj.effects.damage = 0;
+            if (this.effects.damage === undefined)
+                this.effects.damage = 0;
         };
         
-        var player = _player;
+        this.player = _player;
+        //return this;
     };
-};
