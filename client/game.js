@@ -445,13 +445,20 @@ window.onload = function() {
 	
     var Creature;
     
+    var ActionBar = new TActionBar(Game, GameWorld, AlertManager, 128);
+    
+    var InfoBar = new TInfoBar(Game, GameWorld);
+    
     function mouseDownCallback(e) {
         if (Game.input.mouse.button === Phaser.Mouse.LEFT_BUTTON) { //Left Click
             if (Game.input.y <= window.innerHeight - GameWorld.GetActionBarHeight()) { 
                 var hex = GameWorld.FindHex(); 
+                var activeField = HexagonField.GetAt(hex.x, hex.y);
+                logg(activeField.creature);
+                InfoBar.displayInfoCreature(activeField.creature);
                 //var result = TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y));
                 //assert(result);
-                Creature.SetNewPosition(hex.x, hex.y);
+                //Creature.SetNewPosition(hex.x, hex.y);
             } // else we click on the action bar
 		} else {
 			//Right Click	
@@ -466,10 +473,6 @@ window.onload = function() {
         Game.load.image('button3', 'arts/ab-button3.png');
 
 	}
-
-    var ActionBar = new TActionBar(Game, GameWorld, AlertManager, 128);
-    
-    var InfoBar = new TInfoBar(Game, GameWorld);
     
     function AlertManager (id) {
         alert('Clicked on ' + id);
@@ -481,6 +484,7 @@ window.onload = function() {
         HexagonField = new THexagonField();
         var RealCreature = new TCreature(CreatureType.COCOON, 1, 2, 3, 4, 5, 6, null);
         Creature = new TFieldObject("marker", HexType.CREATURE, RealCreature);
+        Creature.SetNewPosition(10, 11);
                         
         ActionBar.create([['first','button1'], ['second', 'button2'], ['third', 'button3']]);
         

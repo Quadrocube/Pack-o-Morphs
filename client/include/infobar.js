@@ -22,14 +22,25 @@ function TInfoBar(Game, GameWorld) {
         this.textHandler.fixedToCamera = true;            
     }
     this.displayInfoCreature = function(creature) {
-        var stats = 'type: ' + creature.type + '\n'
-                    + 'att: ' + creature.ATT + '\n'
-                    + 'def: ' + creature.DEF + '\n'
-                    + 'dam: ' + creature.DAM + '\n'
-                    + 'hpp: ' + creature.HPP + '\n'
-                    + 'mov: ' + creature.MOV + '\n'
-                    + 'nut: ' + creature.NUT + '\n';
-                    
+        var stats = "";
+        
+        if (creature == null) {
+            stats = 'type: ' + '0' + '\n'
+                  + 'att: ' + '0' + '\n'
+                  + 'def: ' + '0' + '\n'
+                  + 'dam: ' + '0' + '\n'
+                  + 'hpp: ' + '0' + '\n'
+                  + 'mov: ' + '0' + '\n'
+                  + 'nut: ' + '0' + '\n';
+        } else {
+            stats = 'type: ' + creature.type + '\n'
+                  + 'att: ' + creature.ATT + '\n'
+                  + 'def: ' + creature.DEF + '\n'
+                  + 'dam: ' + creature.DAM + '\n'
+                  + 'hpp: ' + creature.HPP + '\n'
+                  + 'mov: ' + creature.MOV + '\n'
+                  + 'nut: ' + creature.NUT + '\n';
+        }         
                     
         this.textHandler.setText(stats);
         
