@@ -251,7 +251,14 @@ window.onload = function() {
                 subject is creature, object is hex
             ATTACK:
                 subject and object are creatures
-            
+            MORPH or REPLICATE:
+                subject is creature, args = [additional_cost: X]
+            REFRESH:
+                subject is creature
+            YIELD:
+                subject is creature, object is bush
+            SPECIAL:
+                args = ['carapace': true]
         */
         this.DoAction = function(subject, action, object, args) {
             if (action === ActionType.MOVE) {
