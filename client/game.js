@@ -534,6 +534,16 @@ window.onload = function() {
         
         this._ResetState();
         
+        this.CancelMove = function () {
+            if (this.activeObject != null) {
+                this.state = TS_SELECTED;
+            } else {
+                this.state = TS_NONE;
+            }
+            this.action = undefined;
+            this.endPosition = undefined;
+        }
+        
         this.SelectField = function (field) {
             if (this.state === TS_NONE || this.state === TS_SELECTED) {
                 this.activeObject = field;
@@ -596,11 +606,13 @@ window.onload = function() {
                 var hex = GameWorld.FindHex(); 
                 if (!GameWorld.IsValidCoordinate(hex.x, hex.y)) { // out of field 
                    this.SetNewPosition(this.col, this.row); 
+                   TurnState.CancelMove();
                 } else if (TurnState.SelectAction(ActionType.MOVE) === true &&
                            TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y)) === true) {
                    this.SetNewPosition(hex.x, hex.y);
                 } else {
-                   this.SetNewPosition(this.col, this.row);                     
+                   this.SetNewPosition(this.col, this.row);
+                   TurnState.CancelMove();                     
                 }
                 
                 HexagonField.HighlightOff();
