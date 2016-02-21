@@ -542,13 +542,14 @@ window.onload = function() {
         
         this._ResetState = function () {
             this.state = TS_NONE;
+            this.activeObject = undefined;
             this.action = undefined;
             this.endPosition = undefined;
         };
         
         this._ResetState();
         
-        this.CancelMove = function () {
+        this._CancelMove = function () {
             if (this.activeObject != null) {
                 this.state = TS_SELECTED;
             } else {
@@ -569,9 +570,13 @@ window.onload = function() {
             } else if (this.state === TS_ACTION) {
                 this.endPosition = field;
                 var result = HexagonField.DoAction(this.activeObject, this.action, this.endPosition);
-                this._ResetState();
-                this.state = TS_OPPONENT_MOVE;
-                HexagonField.toggleDraggable();
+                if (result) {
+                    this._ResetState();
+                    this.state = TS_OPPONENT_MOVE;
+                    HexagonField.toggleDraggable();
+                } else {
+                    this._CancelMove();
+                }
                 return result;
             } else {
                 assert(false, "WUT TurnState");
@@ -634,13 +639,14 @@ window.onload = function() {
                 var hex = GameWorld.FindHex(); 
                 if (!GameWorld.IsValidCoordinate(hex.x, hex.y)) { // out of field 
                    this.SetNewPosition(this.col, this.row); 
-                   TurnState.CancelMove();
+                   TurnState.SelectField(this.col, this.row);
                 } else if (TurnState.SelectAction(ActionType.MOVE) === true &&
                            TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y)) === true) {
                    this.SetNewPosition(hex.x, hex.y);
+                   TurnState.SelectField(hex.x, hex.y);
                 } else {
-                   this.SetNewPosition(this.col, this.row);
-                   TurnState.CancelMove();                     
+                   this.SetNewPosition(this.col, this.row); 
+                   TurnState.SelectField(this.col, this.row);               
                 }
                 
                 HexagonField.HighlightOff();
