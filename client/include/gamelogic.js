@@ -94,13 +94,13 @@
             // chk: distance
             var d = 1;
             var user_d = (new THex(0, 0, 0)).from_colrow(subj.col, subj.row).distance((new THex(0, 0, 0)).from_colrow(obj.col, obj.row));
+            if (user_d === 0) {
+                return {'error': 'distance is 0'};
+            }
             if (subj.creature.type === CreatureType.WASP)
                 d = 2;
             if (subj.creature.type === CreatureType.SPIDER)
                 d = 3;
-            if (used_d === 0) {
-                return {'error': 'distance is 0'};
-            }
             if (user_d <= d) 
                 return {};
             else
