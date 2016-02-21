@@ -8,21 +8,25 @@ function TActionBarButtonCallbackFactory(callback) {
 }
 
 function TActionBar(Game, GameWorld, callback, buttonWidth) {
-    this.border_margin = 40;
+    this.borderMargin = 40;
     this.create = function (ids) {
+        var n = ids.length;
+        var startPosX = Game.width / 2 - buttonWidth * n / 2;
+        
         var actionBarHeight = GameWorld.GetActionBarHeight();
+        // black rounded rect -- background for buttons
         var graphics = Game.add.graphics(0, 0);
-        graphics.beginFill(0x000000, 0.5); // black rounded rect -- background for buttons
-        var rect = graphics.drawRoundedRect(GameWorld.GetFieldX(), window.innerHeight - actionBarHeight, 
-                                            GameWorld.GetFieldSizeX() , actionBarHeight);
+        graphics.beginFill(0x000000, 0.5); 
+        var actionBarWidth = Math.max(GameWorld.GetFieldSizeX(), buttonWidth * n + this.borderMargin );
+        var actionBarPosX = Math.min(GameWorld.GetFieldX(), startPosX - this.borderMargin / 2);
+        var rect = graphics.drawRoundedRect(actionBarPosX, window.innerHeight - actionBarHeight, 
+                                            actionBarWidth , actionBarHeight);
         rect.fixedToCamera = true;
 
-        var n = ids.length;
         var factory = new TActionBarButtonCallbackFactory(callback);
-        var start_posX = Game.width / 2 - buttonWidth * n / 2;
 
         for (var i = 0; i < parseInt(n); i++) {
-            var posX = start_posX + buttonWidth * i;
+            var posX = startPosX + buttonWidth * i;
             var posY = window.innerHeight - actionBarHeight;
             var button = Game.add.button(posX, posY, ids[i][1], factory.get(ids[i][0]), this);
             button.fixedToCamera = true;
