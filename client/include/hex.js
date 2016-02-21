@@ -39,14 +39,14 @@ function THex(x, y, z) {
         return (this.x == another.x && this.y == another.y && this.z == another.z);
     }
     
-    this.from_rowcol = function (col, row) {
+    this.from_colrow = function (col, row) {
         this.x = col - (row - (row&1)) / 2;
         this.z = row;
         this.y = -this.x - this.z;
         return this;
     }
-    this.to_rowcol = function () {
-        return [this.x + (this.z - (this.z & 1)) / 2, this.z];
+    this.to_colrow = function () {
+        return [this.z, this.x + (this.z - (this.z & 1)) / 2];
     }
     
     this.getx = function () {
@@ -113,25 +113,28 @@ function THex(x, y, z) {
 }
 
 // column = x, row = y
-function RowColPair (row, col) {
+function ColRowPair (col, row) {
     this.row = row;
     this.col = col;
-    return this;
 } 
+
+function makeColRowPair (col, row) {
+    return new ColRowPair (col, row);
+}
 
 function radius_with_blocks(center, radius, blocked) {
     var blocked_hex = []
     for (var i = 0; i < blocked.length; i++) {
         var hex = new THex();
-        blocked_hex.push(hex.from_rowcol(blocked.col, blocked.row));
+        blocked_hex.push(hex.from_colrow(blocked.col, blocked.row));
     }
     
-    center_hex = (new THex()).from_rowcol(center.col, center.row);
-    result_hex = center_hex.radius_with_blocks(radius, blocked_hex);
+    var center_hex = (new THex()).from_colrow(center.col, center.row);
+    var result_hex = center_hex.radius_with_blocks(radius, blocked_hex);
     
-    result = []
+    var result = [];
     for (var j = 0; j < result_hex.length; j++) {
-        result.push(new RowColPair(result_hex[j].to_rowcol()[0], result_hex[j].to_rowcol()[1]));
+        result.push(makeColRowPair(result_hex[j].to_colrow()[0], result_hex[j].to_colrow()[1]));
     }
     return result;
 }

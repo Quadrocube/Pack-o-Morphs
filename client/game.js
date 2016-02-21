@@ -1,5 +1,9 @@
 window.onload = function() {	
     var Game = new Phaser.Game("100%", "100%", Phaser.CANVAS, "", {preload: onPreload, create: onCreate, update: onUpdate});
+    
+    // test winbreaks
+    
+    
 
     function TGameWorld() {
         var hexagonWidth = 35;
@@ -196,7 +200,8 @@ window.onload = function() {
         this.Highlight = function(posX, posY, rad) {
             // add obstacles
             this.HighlightOff();
-            lastHighlight = radius_with_blocks({"row": posY, "col": posX}, rad, []);
+            rad = 1;
+            lastHighlight = radius_with_blocks(makeColRowPair(posX, posY), rad, []);
             for (var i = 0; i < lastHighlight.length; i++) {
                 var x = lastHighlight[i].col;
                 var y = lastHighlight[i].row;
