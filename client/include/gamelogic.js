@@ -23,21 +23,25 @@
         this.assert_can_attack = function(subj, obj) {
             // chk: there is enough MOV points left
             if (subj.creature.effects['drain'] >= subj.creature.MOV)
-                return false;
+                return {'error': 'subject completely drained'};
             // chk: not Hidden
             if (obj.creature.type === CreatureType.RHINO) {
                 obj.creature.init_effect('attacked');
                 if (obj.creature.effects['attacked'] === 0) {
-                    return false;
+                    return {'error': 'object is Hidden'};
                 }
             }
             // chk: distance
             var d = 1;
+            var user_d = (new THex(0, 0, 0)).from_colrow(subj.col, subj.row).distance((new THex(0, 0, 0)).from_colrow(obj.col, obj.row));
             if (subj.creature.type === CreatureType.WASP)
                 d = 2;
             if (subj.creature.type === CreatureType.SPIDER)
                 d = 3;
-            return ((new THex(0, 0, 0)).from_colrow(subj.col, subj.row).distance((new THex(0, 0, 0)).from_colrow(obj.col, obj.row)) <= d);
+            if (user_d <= d) 
+                return {};
+            else
+                return {'error': 'distance is too great d=' + user_d + ' vs range=' + d };
         };
         this.attack_landed = function(subj, obj) {
             var dF = subj.creature.ATT - obj.creature.DEF;
@@ -60,7 +64,7 @@
             return (actual_dice_result > 0);
         };
         this.chk_death = function(subj, obj) {
-            if (obj.creature.effect['damage'] >= obj.creature.HPP) {
+            if (obj.creature.effects['damage'] >= obj.creature.HPP) {
                 // poisoned
                 if (obj.creature.type !== CreatureType.WASP) {
                     if (subj.creature.type !== CreatureType.WASP && subj.creature.type !== CreatureType.SPIDER) {
@@ -68,12 +72,12 @@
                         subj.creature.effects['damage'] += 1;
                     }
                     var subj_death = this.chk_death(obj, subj);
-                    if (subj_death.obj !== undefined)
+                    if (subj_death['obj'] !== undefined)
                         return {'subj': 'dead', 'obj': 'dead'};
-                    return {'obj': 'dead'};
                 }
-                return {};
+                return {'obj': 'dead'};
             }
+            return {};
         };
         /*
             returns:
@@ -84,14 +88,17 @@
                         'obj': 'dead' if obj is dead
                         'subj': 'dead' ...
         */
+        // testing string:
+        // subj = {row: 0, col: 0, creature: CreaturesExamples.SPIDER}; obj = {row: 0, col: 2, creature: CreaturesExamples.RHINO}; (new TGameLogic()).Attack(subj, obj);
         this.Attack = function(subj, obj) {
             // chk: attack is valid
-            if (!this.assert_can_attack(subj)) {
-                return {'error': 'invalid attack'};
+            assert = this.assert_can_attack(subj, obj);
+            if (assert.error !== undefined) {
+                return {'error': assert.error};
             }
             
-            obj.creature.init_effect('attacked');
-            obj.creature.effects['attacked'] = 1;
+            subj.creature.init_effect('attacked');
+            subj.creature.effects['attacked'] = 1;
             
             // chk: attack lands
             var landed = false;
@@ -100,12 +107,12 @@
                 
                 obj.creature.init_effect('damage');
                 subj.creature.init_effect('infest');
-                obj.creature.effects['damage'] += subj.DAM - subj.creature.effect['infest'];
-                subj.creature.effect['infest'] = 0;
+                obj.creature.effects['damage'] += subj.creature.DAM - subj.creature.effects['infest'];
+                subj.creature.effects['infest'] = 0;
                 
                 if (subj.creature.type === CreatureType.SPAWN) {
                     subj.creature.init_effect('damage');
-                    subj.creature.effect['damage'] = Math.max(0, subj.creature.effect['damage'] - subj.creature.DAM);
+                    subj.creature.effect['damage'] = Math.max(0, subj.creature.effects['damage'] - subj.creature.DAM);
                 }
                 
                 if (subj.creature.type === CreatureType.DAEMON || subj.creature.type === CreatureType.SPIDER) {
@@ -116,13 +123,13 @@
                 if (subj.creature.type === CreatureType.DAEMON) {
                     if (obj.creature.type != CreatureType.WASP) {
                         obj.creature.init_effect('poison');
-                        obj.creature.effect['poison'] += 1;
+                        obj.creature.effecs['poison'] += 1;
                     }
                 }
                 
                 if (subj.creature.type === CreatureType.WASP) {
                     obj.creature.init_effect('infest');
-                    obj.creature.effect['infest'] += 1;
+                    obj.creature.effects['infest'] += 1;
                 }
             }
             
@@ -131,7 +138,11 @@
             
             // regular drain
             subj.creature.init_effect('drain');
-            subj.creature.effect['drain'] += 1;
+            subj.creature.effects['drain'] += 1;
+            console.log('---');
+            console.log(subj);
+            console.log(obj);
+            console.log('---');
             return {'landed': landed, 'death': death};
         };
         /*
@@ -142,12 +153,21 @@
         */
         this.Move = function(subj, obj) {
             var d = 2;
+            var neigh = subj.GetCreaturesInRadius(subj.col, subj.row, 1);
+            for (var creature in neigh) {
+                if (creature.creature.type == CreatureType.TURTLE) {
+                    d = 1;
+                }
+            }
             if (subj.creature.type === CreatureType.SPAWN) {
                 d *= 2;
             }
             var user_d = (new THex(0, 0, 0)).from_colrow(subj.col, subj.row).distance((new THex(0, 0, 0)).from_colrow(obj.col, obj.row));
-            if (user_d > d || user_d === 0) {
-                return {'error': 'too far'};
+            if (user_d > d) {
+                return {'error': 'too far d=' + user_d};
+            }
+            if (user_d === 0) {
+                return {'error': '0 movement'};
             }
             return {};
         };
@@ -171,9 +191,9 @@
                 {}
         */
         this.Morph = function(subj, additional_cost) {
-            if (subj.creature.player.NUT < 2 + additional_cost) {
-                return {'error': 'not enough NUT'};
-            }
+            //if (subj.creature.player.NUT < 2 + additional_cost) {
+            //    return {'error': 'not enough NUT'};
+            //}
             return {};
         };
         /*
@@ -190,21 +210,33 @@
         return this;
     };
     
-    function TCreature(_type, _att, _def, _dam, _hpp, _mov, _nut, _player) {
+    function TCreature(_type, _att, _def, _dam, _hpp, _mov, _nut) {
         this.type = _type;
-        this.ATT = _att;
-        this.DEF = _def;
-        this.DAM = _dam;
-        this.HPP = _hpp;
-        this.MOV = _mov;
-        this.NUT = _nut;
+        this.ATT = parseInt(_att);
+        this.DEF = parseInt(_def);
+        this.DAM = parseInt(_dam);
+        this.HPP = parseInt(_hpp);
+        this.MOV = parseInt(_mov);
+        this.NUT = parseInt(_nut);
         
         this.effects = {};
         this.init_effect = function(effect_name) {
-            if (this.effects.damage === undefined)
-                this.effects.damage = 0;
+            if (this.effects === undefined) 
+                this.effects = {};
+            if (this.effects[effect_name] === undefined)
+                this.effects[effect_name] = 0;
         };
-        
-        this.player = _player;
         //return this;
+    };
+    
+    var CreaturesExamples = {
+        VECTOR: new TCreature(CreatureType.VECTOR, 3, 3, 2, 3, 6, 2),
+        COCOON: new TCreature(CreatureType.COCOON, 0, 2, 0, 3, 0, 2),
+        PLANT: new TCreature(CreatureType.PLANT, 0, 5, 0, 3, 0, 2),
+        SPAWN: new TCreature(CreatureType.SPAWN, 5, 3, 3, 3, 5, 2),
+        DAEMON: new TCreature(CreatureType.DAEMON, 6, 2, 4, 4, 5, 2),
+        TURTLE: new TCreature(CreatureType.TURTLE, 4, 3, 3, 5, 3, 2),
+        RHINO: new TCreature(CreatureType.RHINO, 2, 3, 3, 7, 3, 3),
+        WASP: new TCreature(CreatureType.WASP, 4, 4, 2, 4, 4, 2),
+        SPIDER: new TCreature(CreatureType.SPIDER, 4, 4, 2, 4, 4, 2) 
     };
