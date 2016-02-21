@@ -175,6 +175,11 @@ window.onload = function() {
         gengrid(hexagonField, "hexagon", true);
         var highHexes = gengrid(highlightField, "marker", false);
         var lastHighlight = [];
+        for (var _row = 0; _row < GameWorld.GetGridSizeY; ++_row) {
+            for (var _col = 0; _col < GameWorld.GetGridSizeX / 2; ++_col) {
+                field[_col+":"+_row] = [{"row": _row, "col": _col, "objectType": HexType.EMPTY, "creature": null}];
+            }
+        }
 
         logg = function(object) {
             var output = '';
@@ -236,15 +241,12 @@ window.onload = function() {
             if (units && units.length > 0) {
                 return units[0];
             }
-            return null;
         };
         
         this.DoAction = function(subject, action, object) {
             if (action === ActionType.MOVE) {
-                assert(GameWorld.gameLogic.Move(subject, object), "Move failed");
+                return true;
             } else if (action === ActionType.ATTACK) {
-                var damage = GameWorld.gameLogic.Attack(subject, object);
-                assert(damage, "Attack failed");
             } else if (action === ActionType.RUNHIT) {
             } else if (action === ActionType.MORPH) {
             } else if (action === ActionType.REFRESH) {
@@ -262,7 +264,6 @@ window.onload = function() {
         var TS_NONE = 0;
         var TS_SELECTED = 1;
         var TS_ACTION = 2;
-        var TS_DONE = 3;
         
         var state;
         var creature;
@@ -279,20 +280,17 @@ window.onload = function() {
         this.ResetState();
         
         this.SelectField = function (field) {
-            if (state === TS_NONE) {
+            if (state === TS_NONE || state === TS_SELECTED) {
                 creature = field;
                 state = TS_SELECTED;
             } else if (state === TS_ACTION) {
                 endPosition = field;
-                state = TS_DONE;
-                
                 var result = HexagonField.DoAction(creature, action, endPosition);
                 this.ResetState();
                 return result;
             } else {
-                this.ResetState();
+                assert(false, "WUT TurnState");
             }
-            
             return true;
         };
         
@@ -300,8 +298,10 @@ window.onload = function() {
             if (state === TS_SELECTED) {
                 action = act;
                 state = TS_ACTION;
+                return true;
             } else {
                 this.ResetState();
+                return false;
             }
         };
     }
@@ -336,14 +336,18 @@ window.onload = function() {
             this.marker.input.enableDrag();
             
             this.OnDragStart = function (sprite, pointer) {
-                HexagonField.HighlightOff();
-                HexagonField.Highlight(this.col, this.row, 2);
+                var hex = GameWorld.FindHex(); 
+                if (TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y)) === true) {
+                    if (TurnState.SelectAction(ActionType.MOVE) === true) {
+                        HexagonField.HighlightOff();
+                        HexagonField.Highlight(this.col, this.row, 2);
+                    }
+                }
             };
             
             this.OnDragStop = function (sprite, pointer) {
                 var hex = GameWorld.FindHex(); 
-                // WUT
-                if (TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y))) {
+                if (TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y)) === true) {
                     this.SetNewPosition(hex.x, hex.y);    
                 } else {
                     this.SetNewPosition(this.col, this.row);
