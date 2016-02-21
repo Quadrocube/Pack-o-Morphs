@@ -175,8 +175,8 @@ window.onload = function() {
         gengrid(hexagonField, "hexagon", true);
         var highHexes = gengrid(highlightField, "marker", false);
         var lastHighlight = [];
-        for (var _row = 0; _row < GameWorld.GetGridSizeY; ++_row) {
-            for (var _col = 0; _col < GameWorld.GetGridSizeX / 2; ++_col) {
+        for (var _row = 0; _row < GameWorld.GetGridSizeY(); ++_row) {
+            for (var _col = 0; _col < GameWorld.GetGridSizeX() / 2; ++_col) {
                 field[_col+":"+_row] = [{"row": _row, "col": _col, "objectType": HexType.EMPTY, "creature": null}];
             }
         }
@@ -241,6 +241,7 @@ window.onload = function() {
             if (units && units.length > 0) {
                 return units[0];
             }
+            assert(false, "GetAt is BUUUUUSTED");
         };
         
         /* The main link between TGameLogic and other code.
