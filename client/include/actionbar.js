@@ -10,8 +10,13 @@ function TActionBarButtonCallbackFactory(callback) {
 function TActionBar(Game, GameWorld, callback, buttonWidth) {
     this.borderMargin = 40;
     this.buttons = [];
+    this.isLock = false;
     
     this.create = function (ids) {
+        if (this.isLock) {
+            return;
+        }
+        
         var n = ids.length;
         var startPosX = Game.width / 2 - buttonWidth * n / 2;
         
@@ -46,6 +51,10 @@ function TActionBar(Game, GameWorld, callback, buttonWidth) {
     }
     
     this.update = function (actionList) {
+        if (this.isLock) {
+            return;
+        }
+        
         this.graphics.destroy();
         this.buttons.forEach(function (item, i, arr) {
             item.destroy();
@@ -57,6 +66,14 @@ function TActionBar(Game, GameWorld, callback, buttonWidth) {
             ids.push(GameWorld.GetCreatureActionFuncAndButton(item));
         });
         this.create(ids);
+    }
+    
+    this.lock = function () {
+        this.isLock = true;
+    }
+    
+    this.unlock = function () {
+        this.isLock = false;
     }
 }
 
