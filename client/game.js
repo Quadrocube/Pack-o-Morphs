@@ -140,7 +140,26 @@ window.onload = function() {
                 return ['spec_ability', 'button_spec_ability'];
             } else if (creatureAction === CreatureAction.YIELD) {
                 return ['yield', 'button_yield'];
+            } else if (creatureAction === CreatureAction.MORPH_VECTOR) {
+                return ['morph_vector', 'button_morph_vector'];
+            } else if (creatureAction === CreatureAction.MORPH_PLANT) {
+                return ['morph_plant', 'button_morph_plant'];
+            } else if (creatureAction === CreatureAction.MORPH_SPAWN) {
+                return ['morph_spawn', 'button_morph_spawn'];
+            } else if (creatureAction === CreatureAction.MORPH_DAEMON) {
+                return ['morph_daemon', 'button_morph_daemon'];
+            } else if (creatureAction === CreatureAction.MORPH_TURTLE) {
+                return ['morph_turtle', 'button_morph_turtle'];
+            } else if (creatureAction === CreatureAction.MORPH_RHINO) {
+                return ['morph_rpino', 'button_morph_rpino'];
+            } else if (creatureAction === CreatureAction.MORPH_WASP) {
+                return ['morph_wasp', 'button_morph_wasp'];
+            } else if (creatureAction === CreatureAction.MORPH_SPIDER) {
+                return ['morph_spider', 'button_morph_spider'];
+            } else if (creatureAction === CreatureAction.MORPH_CANCEL) {
+                return ['morph_cancel', 'button_morph_cancel'];
             }
+            
             return [];
         };
     };
@@ -604,6 +623,16 @@ window.onload = function() {
         Game.load.image('button_replicate', 'arts/button_replicate.png');
         Game.load.image('button_spec_ability', 'arts/button_spec_ability.png');
         Game.load.image('button_yield', 'arts/button_yield.png');
+        Game.load.image('button_morph_vector', 'arts/button_size/amoeba1.png');
+        Game.load.image('button_morph_canoon', 'arts/button_size/amoeba2.png');
+        Game.load.image('button_morph_plant', 'arts/button_size/amoeba3.png');
+        Game.load.image('button_morph_spawn', 'arts/button_size/amoeba4.png');
+        Game.load.image('button_morph_daemon', 'arts/button_size/amoeba5.png');
+        Game.load.image('button_morph_turtle', 'arts/button_size/amoeba6.png');
+        Game.load.image('button_morph_rpino', 'arts/button_size/amoeba7.png');
+        Game.load.image('button_morph_wasp', 'arts/button_size/amoeba8.png');
+        Game.load.image('button_morph_spider', 'arts/button_size/amoeba9.png');
+        Game.load.image('button_morph_cancel', 'arts/button_size/cancel.png');
 	}
     
     function AlertManager (id) {
