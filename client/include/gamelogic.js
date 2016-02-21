@@ -15,7 +15,18 @@
         MORPH : 1,
         REPLICATE : 2,
         SPEC_ABILITY : 3,
-        YIELD : 4    
+        YIELD : 4,
+        
+        MORPH_VECTOR : 10,
+        MORPH_COCOON : 11,
+        MORPH_PLANT : 12,
+        MORPH_SPAWN: 13,
+        MORPH_DAEMON: 14,
+        MORPH_TURTLE: 15,
+        MORPH_RHINO: 16,
+        MORPH_WASP: 17,
+        MORPH_SPIDER: 18,
+        MORPH_CANCEL: 19
     };
     
     function getCreatureActions(creature) {
@@ -45,6 +56,17 @@
         }
         return [];
     };
+
+    function getMorphList() {
+        return [CreatureAction.MORPH_VECTOR, 
+                CreatureAction.MORPH_SPAWN,
+                CreatureAction.MORPH_DAEMON,
+                CreatureAction.MORPH_TURTLE,
+                CreatureAction.MORPH_RHINO,
+                CreatureAction.MORPH_WASP,
+                CreatureAction.MORPH_SPIDER,
+                CreatureAction.MORPH_CANCEL];
+    }
 
     var HexType = {
         CREATURE: 0,
@@ -216,7 +238,7 @@
             if (user_d === 0) {
                 return {'error': '0 movement'};
             }
-            return {};
+            return undefined;
         };
         
         /*
@@ -241,13 +263,13 @@
             //if (subj.creature.player.NUT < 2 + additional_cost) {
             //    return {'error': 'not enough NUT'};
             //}
-            return {};
+            return undefined;
         };
         /*
             returns {}
         */
         this.Yield = function(subj, obj) {
-            return {};
+            return undefined;
         };
     };
     
@@ -273,6 +295,18 @@
             if (this.effects[effect_name] === undefined)
                 this.effects[effect_name] = 0;
         };
+        
+        this.Refresh = function() {
+            this.effects = {};
+        }
+        this.Morph = function(target, additional_cost) {
+            // TODO
+            console.log('morph');
+        }
+        this.Replicate = function(target, additional_cost) {
+            // TODO
+            console.log('replicate');
+        }
         //return this;
     };
     

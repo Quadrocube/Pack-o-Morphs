@@ -140,7 +140,26 @@ window.onload = function() {
                 return ['spec_ability', 'button_spec_ability'];
             } else if (creatureAction === CreatureAction.YIELD) {
                 return ['yield', 'button_yield'];
+            } else if (creatureAction === CreatureAction.MORPH_VECTOR) {
+                return ['morph_vector', 'button_morph_vector'];
+            } else if (creatureAction === CreatureAction.MORPH_PLANT) {
+                return ['morph_plant', 'button_morph_plant'];
+            } else if (creatureAction === CreatureAction.MORPH_SPAWN) {
+                return ['morph_spawn', 'button_morph_spawn'];
+            } else if (creatureAction === CreatureAction.MORPH_DAEMON) {
+                return ['morph_daemon', 'button_morph_daemon'];
+            } else if (creatureAction === CreatureAction.MORPH_TURTLE) {
+                return ['morph_turtle', 'button_morph_turtle'];
+            } else if (creatureAction === CreatureAction.MORPH_RHINO) {
+                return ['morph_rhino', 'button_morph_rhino'];
+            } else if (creatureAction === CreatureAction.MORPH_WASP) {
+                return ['morph_wasp', 'button_morph_wasp'];
+            } else if (creatureAction === CreatureAction.MORPH_SPIDER) {
+                return ['morph_spider', 'button_morph_spider'];
+            } else if (creatureAction === CreatureAction.MORPH_CANCEL) {
+                return ['morph_cancel', 'button_morph_cancel'];
             }
+            
             return [];
         };
     };
@@ -159,9 +178,32 @@ window.onload = function() {
     }
 
     function THexagonField() {
-        var hexagonField = Game.add.group();
-        var highlightField = Game.add.group();
-        var field = [];
+        this.hexagonGroup = Game.add.group();
+        this.highlightGroup = Game.add.group();
+        this.creatureGroup = Game.add.group();
+        this.obstaclesGroup = Game.add.group();
+        
+        this.InitGroup = function(groupName) {
+            this[groupName].x = GameWorld.GetFieldX();
+            this[groupName].y = GameWorld.GetFieldY();    
+        };
+        
+        this.ResetGroup = function(groupName, fieldName) {
+            this[groupName].destroy();
+            this[groupName] = Game.add.group();
+            this.InitGroup(groupName);
+            if (fieldName) {
+                delete this[fieldName];
+                this[fieldName] = [];
+            }
+        };
+        
+        for (var groupName of ["hexagonGroup", "highlightGroup", "creatureGroup", "obstaclesGroup"]) {
+            this.InitGroup(groupName);
+        }
+        
+        this.hexField = [];
+        this.creatureField = [];
 		Game.stage.backgroundColor = "#ffffff";
         gengrid = function(hexGroup, spriteTag, visible) {
             var totalHexes = Math.floor(GameWorld.GetGridSizeX()/2) * GameWorld.GetGridSizeY();
@@ -182,33 +224,42 @@ window.onload = function() {
                     }
                 }
             }
-
-            hexGroup.x = GameWorld.GetFieldX();
-            hexGroup.y = GameWorld.GetFieldY();
             return hexes;
         };
-        gengrid(hexagonField, "hexagon", true);
-        var highHexes = gengrid(highlightField, "marker", false);
-        var lastHighlight = [];
+        gengrid(this.hexagonGroup, "hexagon", true);
+        this.highHexes = gengrid(this.highlightGroup, "marker", false);
+        this.lastHighlight = [];
         for (var _row = 0; _row < GameWorld.GetGridSizeY(); ++_row) {
             for (var _col = 0; _col < GameWorld.GetGridSizeX() / 2; ++_col) {
-                field[_col+":"+_row] = [{"row": _row, "col": _col, "objectType": HexType.EMPTY, "creature": null}];
+                this.hexField[_col+":"+_row] = {"row": _row, "col": _col, "objectType": HexType.EMPTY, "creature": null};
             }
         }
+        
+        this.creaturesDraggable = true;
+        this.toggleDraggable = function() {
+            for (var creatureSprite of this.creatureGroup.children) {
+                if (this.creaturesDraggable) {
+                    creatureSprite.input.disableDrag();
+                } else {
+                    creatureSprite.input.enableDrag();
+                }
+            }
+            this.creaturesDraggable = !this.creaturesDraggable;
+        };
 
         this.Move = function(prevPos, newPos, fieldObject) {
             var units;
             if (prevPos) {
-                units = field[prevPos[0] + ":" + prevPos[1]];
+                units = this.creatureField[prevPos[0] + ":" + prevPos[1]];
                 ind = units.indexOf(fieldObject);
                 units.splice(ind, 1);
             }
             if (newPos) {
                 var ind = newPos[0] + ":" + newPos[1];
-                if (field[ind] === undefined) {
-                    field[ind] = [];
+                if (this.creatureField[ind] === undefined) {
+                    this.creatureField[ind] = [];
                 }
-                units = field[ind];
+                units = this.creatureField[ind];
                 units.push(fieldObject);
                 units.sort((a, b) => {return a.objectType - b.objectType;});
             }
@@ -217,10 +268,14 @@ window.onload = function() {
         this.Remove = function(fieldObject) {
             fieldObject.marker.destroy();
             this.Move([fieldObject.col, fieldObject.row], null, fieldObject);
-        }
+        };
         
         this.Add = function (fieldObject) {
-            hexagonField.add(fieldObject.marker);
+            if (fieldObject.objectType == HexType.CREATURE) {
+                this.creatureGroup.add(fieldObject.marker);
+            } else {
+                this.obstaclesGroup.add(fieldObject.marker);
+            }
             this.Move(null, [0, 0], fieldObject);
         };
 
@@ -245,34 +300,36 @@ window.onload = function() {
         this.Highlight = function(posX, posY, rad) {
             // add obstacles
             this.HighlightOff();
-            lastHighlight = radius_with_blocks(makeColRowPair(posX, posY), rad, this.GetCreaturesInRadius(posX, posY, rad));
-            for (var i = 0; i < lastHighlight.length; i++) {
-                var x = lastHighlight[i].col;
-                var y = lastHighlight[i].row;
+            this.lastHighlight = radius_with_blocks(makeColRowPair(posX, posY), rad, this.GetCreaturesInRadius(posX, posY, rad));
+            for (var i = 0; i < this.lastHighlight.length; i++) {
+                var x = this.lastHighlight[i].col;
+                var y = this.lastHighlight[i].row;
                 if (GameWorld.IsValidCoordinate(x, y)) {
-                    highHexes[GameWorld.ColRow2Ind(x, y)].visible = true;
+                    this.highHexes[GameWorld.ColRow2Ind(x, y)].visible = true;
                 }
             }
         };
 
         this.HighlightOff = function() {
-            for (var i = 0; i < lastHighlight.length; ++i) {
-                var x = lastHighlight[i].col;
-                var y = lastHighlight[i].row;
+            for (var i = 0; i < this.lastHighlight.length; ++i) {
+                var x = this.lastHighlight[i].col;
+                var y = this.lastHighlight[i].row;
                 if (GameWorld.IsValidCoordinate(x, y)) {
-                    highHexes[GameWorld.ColRow2Ind(x, y)].visible = false;
+                    this.highHexes[GameWorld.ColRow2Ind(x, y)].visible = false;
                 }
-                delete lastHighlight[i];
+                delete this.lastHighlight[i];
             }
-            lastHighlight = [];
+            this.lastHighlight = [];
         };
 
         this.GetAt = function(posX, posY) {
-            var units = field[posX + ":" + posY];
+            var key = posX + ":" + posY;
+            var units = this.creatureField[key];
             if (units && units.length > 0) {
                 return units[0];
+            } else {
+                return this.hexField[key];
             }
-            assert(false, "GetAt is BUUUUUSTED");
         };
         
         /* The main link between TGameLogic and other code.
@@ -283,9 +340,9 @@ window.onload = function() {
             ATTACK:
                 subject and object are creatures
             MORPH or REPLICATE:
-                subject is creature, args = [additional_cost: X]
+                subject is creature, args = [target: creature, additional_cost: X]
             REFRESH:
-                subject is creature
+                subject is creature, args = [additional_cost: X]
             YIELD:
                 subject is creature, object is bush
             SPECIAL:
@@ -294,7 +351,7 @@ window.onload = function() {
         this.DoAction = function(subject, action, object, args) {
             if (action === ActionType.MOVE) {
                 var response = (new TGameLogic()).Move(subject, object);
-                if (response.error !== undefined) {
+                if (response !== undefined && response.error !== undefined) {
                     // something bad happened
                     console.log('ERROR in DoAction.MOVE: ' + response['error']);
                     return false;
@@ -313,10 +370,11 @@ window.onload = function() {
                         // obj is dead
                         if (response.death.subj !== undefined) {
                             // both are dead, nothing happens
-                            // REMOVE both
+                            HexagonField.Remove(subject);
+                            HexagonField.Remove(object);
                             return true;
                         }
-                        // REMOVE obj
+                        HexagonField.Remove(object);
                         if (subject.creature.type !== CreatureType.WASP || subject.creature.type !== CreatureType.SPIDER) {
                             // GET nutrition
                         }
@@ -331,13 +389,33 @@ window.onload = function() {
                 return false;
             } else if (action === ActionType.RUNHIT) {
             } else if (action === ActionType.MORPH) {
+                if (args === undefined || args.target === undefined || args.additional_cost === undefined) {
+                    console.log('ERROR in DoAction.MORPH: Presentation error');
+                    return false;
+                }
+                
                 var response = TGameLogic.Morph(subject, args.additional_cost);
                 if (response.error !== undefined) {
                     // something bad happened
                     console.log('ERROR in DoAction.MORPH: ' + response['error']);
                     return false;
                 }
-                // INIT morphing
+                var target;
+                if (args.target === 'vector') 
+                    target = CreatureType.VECTOR;
+                else if (args.target === 'spawn')
+                    target = CreatureType.SPAWN;
+                else if (args.target === 'daemon')
+                    target = CreatureType.DAEMON;
+                else if (args.target === 'turtle')
+                    target = CreatureType.TURTLE;
+                else if (args.target === 'rhino')
+                    target = CreatureType.RHINO;
+                else if (args.target === 'wasp')
+                    target = CreatureType.WASP;
+                else if (args.target === 'spider')
+                    target = CreatureType.SPIDER;
+                subject.morph(target, args.additional_cost);
                 return true;
             } else if (action === ActionType.REPLICATE) {
                 var response = TGameLogic.Morph(subject, args.additional_cost);
@@ -346,13 +424,13 @@ window.onload = function() {
                     console.log('ERROR in DoAction.REPLICATE: ' + response['error']);
                     return false;
                 }
-                // INIT replicating
+                subject.replicate(target, args.additional_cost);
                 return true;
             } else if (action === ActionType.REFRESH) {
-                // REFRESH subject creature
-            } else if (action === ActionType.YIELD) {
                 // SPEND nutrition
-                // REFRESH subject creature
+                subject.creature.Refresh();
+            } else if (action === ActionType.YIELD) {
+                // ADD nutrition
             } else if (action === ActionType.SPECIAL) {
                 if (args.carapace !== undefined) {
                     if (subject.creature.effects['carapace'] !== undefined) {
@@ -364,6 +442,37 @@ window.onload = function() {
             } else {
                 return false;
             }
+        };
+        
+        this.getAllObjects = function() {
+            var objects = [];
+            for (var key in this.creatureField) {
+                var objs = this.creatureField[key];
+                for (var obj of objs) {
+                    objects.push(obj);
+                }
+            }
+            return objects;
+        };
+        
+        this.Dump2JSON = function() {
+            var jsonGameState = {};
+            jsonGameState.objects = [];
+            for (var obj of this.getAllObjects()) {
+                jsonGameState.objects
+                    .push({"s": obj.sprite_name, "t": obj.objectType, "c": obj.creature});
+            }
+            //jsonGameState.players = 
+            return jsonGameState;
+        };
+        
+        this.Load4JSON = function(jsonGameState) {
+            this.ResetGroup("creatureGroup", "creatureField");
+            this.ResetGroup("obstaclesGroup", null);
+            for (var object of jsonGameState.objects) {
+                new TFieldObject(object.s, object.t, object.c);
+            }
+            // jsonGameState.players...
         };
     }
         
@@ -427,9 +536,9 @@ window.onload = function() {
         this.creature = initCreature; 
         
         if (this.objectType === HexType.CREATURE) {
+            
             this.marker.inputEnabled = true;
             this.marker.input.enableDrag();
-            
             this.OnDragStart = function (sprite, pointer) {
                 var hex = GameWorld.FindHex(); 
                 if (TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y)) === true) {
@@ -495,10 +604,12 @@ window.onload = function() {
                 var activeField = HexagonField.GetAt(hex.x, hex.y);
                 InfoBar.displayInfoCreature(activeField.creature);
                 ActionBar.update(getCreatureActions(activeField.creature));
-                //var result = TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y));
-                //assert(result);
+                var result = TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y));
+                assert(result, 'can not select');
                 //Creature.SetNewPosition(hex.x, hex.y);
-            } // else we click on the action bar
+            } else { // else we click on the action bar
+                
+            }
 		} else {
 			//Right Click	
 		}    
@@ -512,10 +623,38 @@ window.onload = function() {
         Game.load.spritesheet('button_feed', 'arts/buttons/button_feed_spritesheet.png', 128, 128);
         Game.load.spritesheet('button_morph', 'arts/buttons/button_morph_spritesheet.png', 128, 128);
         Game.load.spritesheet('button_yield', 'arts/buttons/button_yield_spritesheet.png', 128, 128);
+        Game.load.image('button_morph_vector', 'arts/button_size/amoeba1.png');
+        Game.load.image('button_morph_canoon', 'arts/button_size/amoeba2.png');
+        Game.load.image('button_morph_plant', 'arts/button_size/amoeba3.png');
+        Game.load.image('button_morph_spawn', 'arts/button_size/amoeba4.png');
+        Game.load.image('button_morph_daemon', 'arts/button_size/amoeba5.png');
+        Game.load.image('button_morph_turtle', 'arts/button_size/amoeba6.png');
+        Game.load.image('button_morph_rhino', 'arts/button_size/amoeba7.png');
+        Game.load.image('button_morph_wasp', 'arts/button_size/amoeba8.png');
+        Game.load.image('button_morph_spider', 'arts/button_size/amoeba9.png');
+        Game.load.image('button_morph_cancel', 'arts/button_size/cancel.png');
 	}
     
     function AlertManager (id) {
-        alert('Clicked on ' + id);
+        if (id === 'feed') {
+            HexagonField.DoAction(TurnState.creature, ActionType.REFRESH);
+        } else if (id === 'morph') {
+            ActionBar.update(getMorphList());
+        } else if (id === 'replicate') {
+            HexagonField.DoAction(TurnState.creature, ActionType.REPLICATE);
+        } else if (id === 'yield') {
+            HexagonField.DoAction(TurnState.creature, ActionType.YIELD);
+        } else if (id === 'spec_ability') {
+            HexagonField.DoAction(TurnState.creature, ActionType.SPECIAL);
+        } else if (id === 'morph_cancel') {
+            ActionBar.update(getCreatureActions(TurnState.creature));
+        } else if (id.substring(0, 6) == 'morph_') {
+            var target = id.substring(6);
+            console.log(target);
+            HexagonField.DoAction(TurnState.creature, ActionType.MORPH, undefined, {'target': target});
+        } else {
+            console.log('ERROR: something other has been clickd, id=' + id);
+        }
     }
 
 	function onCreate() {
