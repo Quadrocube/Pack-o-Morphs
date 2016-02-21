@@ -557,6 +557,7 @@ window.onload = function() {
                 var result = HexagonField.DoAction(this.activeObject, this.action, this.endPosition);
                 this._ResetState();
                 this.state = TS_OPPONENT_MOVE;
+                HexagonField.toggleDraggable();
                 return result;
             } else {
                 assert(false, "WUT TurnState");
@@ -580,9 +581,9 @@ window.onload = function() {
         };
         
         this.MyTurn = function () {
-            if (this.state === TS_OPPONENT_MOVE) {
-                this._ResetState();
-            }
+            assert(this.state === TS_OPPONENT_MOVE, "MyTurn() called on my turn");
+            HexagonField.toggleDraggable();
+            this._ResetState();
         }
     }
     
@@ -667,8 +668,7 @@ window.onload = function() {
                 var activeField = HexagonField.GetAt(hex.x, hex.y);
                 InfoBar.displayInfoCreature(activeField.creature);
                 ActionBar.update(getCreatureActions(activeField.creature));
-                var result = TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y));
-                assert(result, 'can not select');
+                TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y));
                 //Creature.SetNewPosition(hex.x, hex.y);
             } else { // else we click on the action bar
                 
