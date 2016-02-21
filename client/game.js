@@ -533,28 +533,44 @@ window.onload = function() {
         var TS_NONE = 0;
         var TS_SELECTED = 1;
         var TS_ACTION = 2;
+        var TS_OPPONENT_MOVE = 3;
         
         this.state = TS_NONE;
         this.activeObject = undefined;
         this.action = undefined;
         this.endPosition = undefined;
         
-        this.ResetState = function () {
+        this._ResetState = function () {
             this.state = TS_NONE;
             this.action = undefined;
             this.endPosition = undefined;
         };
         
-        this.ResetState();
+        this._ResetState();
+        
+        this.CancelMove = function () {
+            if (this.activeObject != null) {
+                this.state = TS_SELECTED;
+            } else {
+                this.state = TS_NONE;
+            }
+            this.action = undefined;
+            this.endPosition = undefined;
+        }
         
         this.SelectField = function (field) {
+            if (this.state === TS_OPPONENT_MOVE) {
+                return false;
+            }
+            
             if (this.state === TS_NONE || this.state === TS_SELECTED) {
                 this.activeObject = field;
                 this.state = TS_SELECTED;
             } else if (this.state === TS_ACTION) {
                 this.endPosition = field;
                 var result = HexagonField.DoAction(this.activeObject, this.action, this.endPosition);
-                this.ResetState();
+                this._ResetState();
+                this.state = TS_OPPONENT_MOVE;
                 return result;
             } else {
                 assert(false, "WUT TurnState");
@@ -563,15 +579,25 @@ window.onload = function() {
         };
         
         this.SelectAction = function (act) {
+            if (this.state === TS_OPPONENT_MOVE) {
+                return false;
+            }
+            
             if (this.state === TS_SELECTED) {
                 this.action = act;
                 this.state = TS_ACTION;
                 return true;
             } else {
-                this.ResetState();
+                this._ResetState();
                 return false;
             }
         };
+        
+        this.MyTurn = function () {
+            if (this.state === TS_OPPONENT_MOVE) {
+                this._ResetState();
+            }
+        }
     }
     
     var TurnState = new TTurnState();
@@ -607,11 +633,13 @@ window.onload = function() {
                 var hex = GameWorld.FindHex(); 
                 if (!GameWorld.IsValidCoordinate(hex.x, hex.y)) { // out of field 
                    this.SetNewPosition(this.col, this.row); 
+                   TurnState.CancelMove();
                 } else if (TurnState.SelectAction(ActionType.MOVE) === true &&
                            TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y)) === true) {
                    this.SetNewPosition(hex.x, hex.y);
                 } else {
-                   this.SetNewPosition(this.col, this.row);                     
+                   this.SetNewPosition(this.col, this.row);
+                   TurnState.CancelMove();                     
                 }
                 
                 HexagonField.HighlightOff();
