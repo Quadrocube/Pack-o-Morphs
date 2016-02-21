@@ -432,11 +432,8 @@ window.onload = function() {
 				this.marker.y = 0.75 * GameWorld.GetHexagonHeight() * posY + GameWorld.GetHexagonHeight() / 2;
             }
         };
-
-        return this;
     }
 	
-    var Creature;
     var Creature;
     
     function mouseDownCallback(e) {
