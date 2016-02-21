@@ -30,7 +30,16 @@ function TActionBar(Game, GameWorld, callback, buttonWidth) {
         for (var i = 0; i < parseInt(n); i++) {
             var posX = startPosX + buttonWidth * i;
             var posY = window.innerHeight - actionBarHeight;
-            var button = Game.add.button(posX, posY, ids[i][1], factory.get(ids[i][0]), this, 0, 1, 0, 1);
+            var button;
+            if(ids[i][1] === 'button_replicate' 
+                || ids[i][1] === 'button_spec_ability' 
+                || ids[i][1] === 'button_feed'
+                || ids[i][1] === 'button_yield'
+                || ids[i][1] === 'button_morph') {
+                button = Game.add.button(posX, posY, ids[i][1], factory.get(ids[i][0]), this, 0, 1, 0, 1);           
+                } else {
+                    button = Game.add.button(posX, posY, ids[i][1], factory.get(ids[i][0]), this);
+                }
             this.buttons.push(button);
             button.fixedToCamera = true;
         }
