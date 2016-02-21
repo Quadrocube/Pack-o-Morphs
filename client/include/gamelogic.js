@@ -37,7 +37,7 @@
                 d = 2;
             if (subj.creature.type == CreatureType.SPIDER)
                 d = 3;
-            return (rowcol2hex(subj.row, subj.col).distance(rowcol2hex(obj.row, obj.col)) <= d);
+            return ((new THex(0, 0, 0)).from_colrow(subj.col, subj.row).distance((new THex(0, 0, 0)).from_colrow(obj.col, obj.row)) <= d);
         };
         this.attack_landed = function(subj, obj) {
             var dF = subj.creature.ATT - obj.creature.DEF;
@@ -46,8 +46,12 @@
                 rand = Math.round(rand);
                 return rand - 1;
             }
-            var actual_dice_result = parseInt(!(dF>=0));
-            for (var i = 0; i < n; i++) {
+            var actual_dice_result;
+            if (!(dF>=0))
+                actual_dice_result = 1;
+            else 
+                actual_dice_result = 0;
+            for (var i = 0; i < dF; i++) {
                 if (dF>=0)
                     actual_dice_result += d2();
                 else
@@ -137,12 +141,14 @@
                 {}
         */
         this.Move = function(subj, obj, d) {
+            console.log('---');
+            console.log(obj);
             if (d === undefined)
                 d = 2;
             if (subj.creature.type == CreatureType.SPAWN) {
                 d *= 2;
             }
-            var user_d = rowcol2hex(subj.row, subj.col).distance(rowcol2hex(obj.row, obj.col));
+            var user_d = (new THex(0, 0, 0)).from_colrow(subj.col, subj.row).distance((new THex(0, 0, 0)).from_colrow(obj.col, obj.row));
             if (user_d > d) {
                 return {'error': 'too far'};
             }
