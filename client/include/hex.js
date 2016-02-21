@@ -38,6 +38,9 @@ function THex(x, y, z) {
     this.equals = function (another) {
         return (this.x == another.x && this.y == another.y && this.z == another.z);
     };
+    this.hash = function () {
+        return 'object THex(' + this.x + ', ' + this.y + ', ' + this.z + ')';
+    };
     
     this.from_colrow = function (col, row) {
         this.x = col - (row - (row&1)) / 2;

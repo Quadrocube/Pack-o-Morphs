@@ -239,19 +239,87 @@ window.onload = function() {
             return null;
         };
         
-        this.DoAction = function(subject, action, object) {
+        /* The main link between TGameLogic and other code.
+            Returns true if everything is all right.
+            Writes an error msg to console.
+            MOVE:  
+                subject is creature, object is hex
+            ATTACK:
+                subject and object are creatures
+            
+        */
+        this.DoAction = function(subject, action, object, args) {
             if (action === ActionType.MOVE) {
-                assert(GameWorld.gameLogic.Move(subject, object), "Move failed");
+                var response = (new TGameLogic()).Move(subject, object);
+                if (response != {}) {
+                    // something bad happened
+                    console.log('ERROR in DoAction.MOVE: ' + response['error']);
+                    return false;
+                }
+                return true;
             } else if (action === ActionType.ATTACK) {
-                var damage = GameWorld.gameLogic.Attack(subject, object);
-                assert(damage, "Attack failed");
+                var response = TGameLogic.Attack(subject, object);
+                if (response.error != undefined) {
+                    // something bad happened
+                    console.log('ERROR in DoAction.ATTACK: ' + response['error']);
+                    return false;
+                }
+                if (response.landed === true && response.death != undefined) {
+                    // attack landed
+                    if (response.death.obj != undefined) {
+                        // obj is dead
+                        if (response.death.subj != undefined) {
+                            // both are dead, nothing happens
+                            // REMOVE both
+                            return true;
+                        }
+                        // REMOVE obj
+                        if (subj.creature.type == CreatureType.SPAWN || subj.creature.type == CreatureType.DAEMON) {
+                            // GET nutrition
+                        }
+                        return true;
+                    } 
+                } 
+                else if (response.landed == false) {
+                    // attack missed
+                    return true;
+                } 
+                console.log('ERROR in DoAction.ATTACK: Presentation error');
+                return false;
             } else if (action === ActionType.RUNHIT) {
             } else if (action === ActionType.MORPH) {
+                var response = TGameLogic.Morph(subject, args.additional_cost);
+                if (response.error != undefined) {
+                    // something bad happened
+                    console.log('ERROR in DoAction.MORPH: ' + response['error']);
+                    return false;
+                }
+                // INIT morphing
+                return true;
+            } else if (action === ActionType.REPLICATE) {
+                var response = TGameLogic.Morph(subject, args.additional_cost);
+                if (response.error != undefined) {
+                    // something bad happened
+                    console.log('ERROR in DoAction.REPLICATE: ' + response['error']);
+                    return false;
+                }
+                // INIT replicating
+                return true;
             } else if (action === ActionType.REFRESH) {
+                // REFRESH subject creature
             } else if (action === ActionType.YIELD) {
+                // SPEND nutrition
+                // REFRESH subject creature
             } else if (action === ActionType.SPECIAL) {
+                if (args.carapace != undefined) {
+                    if (subject.creature.effects['carapace'] != undefined) {
+                        return false;
+                    }
+                    subject.creature.effects['carapace'] = true;
+                    return true;
+                }
             } else {
-                assert(false, "Unknown ActionType");
+                return false;
             }
         };
     }
