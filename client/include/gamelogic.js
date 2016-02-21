@@ -94,22 +94,13 @@
             }
             return (actual_dice_result > 0);
         };
-        this.chk_death = function(subj, obj) {
-            if (obj.creature.effects['damage'] >= obj.creature.HPP) {
-                // poisoned
-                if (obj.creature.type !== CreatureType.WASP) {
-                    if (subj.creature.type !== CreatureType.WASP && subj.creature.type !== CreatureType.SPIDER) {
-                        subj.creature.init_effect('damage');
-                        subj.creature.effects['damage'] += 1;
-                    }
-                    var subj_death = this.chk_death(obj, subj);
-                    if (subj_death['obj'] !== undefined)
-                        return {'subj': 'dead', 'obj': 'dead'};
-                }
-                return {'obj': 'dead'};
+        this.chk_death = function(creature) {
+            console.log(creature);
+            if (creature.creature.effects['damage'] >= creature.creature.HPP) {
+                return {'dead': true};
             }
-            return {};
-        };
+            return undefined;
+        }
         /*
             returns:
                 {'error': error}
@@ -143,7 +134,7 @@
                 
                 if (subj.creature.type === CreatureType.SPAWN) {
                     subj.creature.init_effect('damage');
-                    subj.creature.effect['damage'] = Math.max(0, subj.creature.effects['damage'] - subj.creature.DAM);
+                    subj.creature.effects['damage'] = Math.max(0, subj.creature.effects['damage'] - subj.creature.DAM);
                 }
                 
                 if (subj.creature.type === CreatureType.DAEMON || subj.creature.type === CreatureType.SPIDER) {
@@ -165,8 +156,28 @@
             }
             
             // chk: death
-            var death = this.chk_death(subj, obj);
-            
+            var death_obj = this.chk_death(obj);
+            var death_subj = undefined;
+            if (death_obj !== undefined) {
+                // poisoned
+                if (obj.creature.type === CreatureType.WASP) {
+                    if (subj.creature.type !== CreatureType.WASP && subj.creature.type !== CreatureType.SPIDER) {
+                        subj.creature.init_effect('damage');
+                        subj.creature.effects['damage'] += 1;
+                    }
+                    death_subj = this.chk_death(subj);
+                }
+            }
+            var death = undefined;
+            if (death_obj !== undefined) {
+                death = {};
+                death['obj'] = true;
+            }
+            if (death_subj !== undefined) {
+                if (death === undefined)
+                    death = {};
+                death['subj'] = true;
+            }
             // regular drain
             subj.creature.init_effect('drain');
             subj.creature.effects['drain'] += 1;
@@ -269,5 +280,6 @@
         TURTLE: new TCreature(CreatureType.TURTLE, 4, 3, 3, 5, 3, 2),
         RHINO: new TCreature(CreatureType.RHINO, 2, 3, 3, 7, 3, 3),
         WASP: new TCreature(CreatureType.WASP, 4, 4, 2, 4, 4, 2),
-        SPIDER: new TCreature(CreatureType.SPIDER, 4, 4, 2, 4, 4, 2) 
+        SPIDER: new TCreature(CreatureType.SPIDER, 4, 4, 2, 4, 4, 2),
+        ONEHIT: new TCreature(CreatureType.COCOON, 6, 0, 2, 1, 5, 1) 
     };
