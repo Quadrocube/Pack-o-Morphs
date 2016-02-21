@@ -210,10 +210,28 @@ window.onload = function() {
             this.Move(null, [0, 0], fieldObject);
         };
 
+        this.GetCreaturesInRadius = function(posX, posY, rad) {
+            var neighborHexes = radius_with_blocks(makeColRowPair(posX, posY), rad, []);
+            var neighborCreatures = new Array(neighborHexes.length);
+            var ncreatures = 0;
+            for (var i = 0; i < neighborHexes.length; i++) {
+                var x = neighborHexes[i].col;
+                var y = neighborHexes[i].row;
+                if (GameWorld.IsValidCoordinate(x, y)) {
+                    var hex = this.GetAt(x, y);
+                    if (hex.objectType === HexType.CREATURE) {
+                        neighborCreatures[ncreatures++] = hex;
+                    }
+                }
+            }
+            neighborCreatures.splice(ncreatures, neighborHexes.length);
+            return neighborCreatures;
+        };
+
         this.Highlight = function(posX, posY, rad) {
             // add obstacles
             this.HighlightOff();
-            lastHighlight = radius_with_blocks(makeColRowPair(posX, posY), rad, []);
+            lastHighlight = radius_with_blocks(makeColRowPair(posX, posY), rad, this.GetCreaturesInRadius(posX, posY, rad));
             for (var i = 0; i < lastHighlight.length; i++) {
                 var x = lastHighlight[i].col;
                 var y = lastHighlight[i].row;
