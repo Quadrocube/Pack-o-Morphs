@@ -131,7 +131,7 @@ function radius_with_blocks(center, radius, blocked) {
     
     result = []
     for (var j = 0; j < result_hex.length; j++) {
-        result.push(RowColPair(result_hex[j].to_rowcol()[0], result_hex[j].to_rowcol()[1]));
+        result.push(new RowColPair(result_hex[j].to_rowcol()[0], result_hex[j].to_rowcol()[1]));
     }
     return result;
 }

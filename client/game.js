@@ -75,8 +75,8 @@ window.onload = function() {
     function TGameWorld() {
         var hexagonWidth = 35;
         var hexagonHeight = 40;
-        var gridSizeX = 52;
-        var gridSizeY = 26;
+        var gridSizeX = 10;
+        var gridSizeY = 6;
         var columns = [Math.ceil(gridSizeX / 2),Math.floor(gridSizeX / 2)];
         var sectorWidth = hexagonWidth;
         var sectorHeight = hexagonHeight / 4 * 3;
@@ -123,6 +123,11 @@ window.onload = function() {
                     && posY <= gridSizeY && posX <= columns[posY % 2] - 1;
         }
         
+        this.ColRow2Ind = function(posX, posY) {
+            return this.GetGridSizeX() * Math.floor(posY / 2) + 2 * posX + (posY%2);
+            //return Math.floor(GameWorld.GetGridSizeX() / 2) * posY + posX + posY;
+        };
+
         this.Init = function () {
         	Game.world.setBounds(-500, -500, 4000, 2000); // constants should be fit for size of field that we need
 
@@ -197,7 +202,10 @@ window.onload = function() {
         var highlightField = Game.add.group();
         var field = [];
 		Game.stage.backgroundColor = "#ffffff";
-        gengrid = function(hexGroup, spriteTag) {
+        gengrid = function(hexGroup, spriteTag, visible) {
+            var totalHexes = Math.floor(GameWorld.GetGridSizeX()/2) * GameWorld.GetGridSizeY();
+            var hexes = new Array(totalHexes);
+            var arrlen = 0;
             for (var i = 0; i < GameWorld.GetGridSizeY() / 2; i++) {
                 for (var j = 0; j < GameWorld.GetGridSizeX(); j++) {
                     if (GameWorld.GetGridSizeY() % 2 === 0 
@@ -207,6 +215,8 @@ window.onload = function() {
                         var hexagonY = GameWorld.GetHexagonHeight() * i * 1.5
                             + (GameWorld.GetHexagonHeight() / 4 * 3) * (j % 2);	
                         var hexagon = Game.add.sprite(hexagonX,hexagonY,spriteTag);
+                        hexes[arrlen++] = hexagon;
+                        hexagon.visible = visible;
                         hexGroup.add(hexagon);
                     }
                 }
@@ -214,9 +224,11 @@ window.onload = function() {
 
             hexGroup.x = GameWorld.GetFieldX();
             hexGroup.y = GameWorld.GetFieldY();
-        }
-        gengrid(hexagonField, "hexagon");
-        gengrid(highlightField, "marker");
+            return hexes;
+        };
+        gengrid(hexagonField, "hexagon", true);
+        var highHexes = gengrid(highlightField, "marker", false);
+        var lastHighlight = [];
 
         this.Move = function(prevPos, newPos, fieldObject) {
             var units;
@@ -240,9 +252,23 @@ window.onload = function() {
         };
 
         this.Highlight = function(posX, posY, rad) {
+            // Check out-of-fields, add obstacles
+            this.HighlightOff();
+            lastHighlight = radius_with_blocks({"row": posY, "col": posX}, rad, []);
+            for (var i = 0; i < lastHighlight.length; i++) {
+                var x = lastHighlight[i].col;
+                var y = lastHighlight[i].row;
+                console.log("x: " + x + ", y: " + y + ", ind: " + GameWorld.ColRow2Ind(x, y));
+                highHexes[GameWorld.ColRow2Ind(lastHighlight[i].col, lastHighlight[i].row)].visible = true;
+            }
         };
 
         this.HighlightOff = function() {
+            for (var i = 0; i < lastHighlight.length; ++i) {
+                highHexes[GameWorld.ColRow2Ind(lastHighlight[i].col, lastHighlight[i].row)].visible = false;
+                delete lastHighlight[i];
+            }
+            lastHighlight = [];
         };
 
         this.GetAt = function(posX, posY) {
@@ -398,8 +424,11 @@ window.onload = function() {
     function mouseDownCallback(e) {
         if (Game.input.mouse.button === Phaser.Mouse.LEFT_BUTTON) { //Left Click
 			var hex = GameWorld.FindHex(); 
-            TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y));
-			Marker.SetNewPosition(hex.x, hex.y); 
+            alert("pushed at " + hex.x + ", " + hex.y);
+
+            HexagonField.Highlight(hex.x, hex.y, 2);
+            //TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y));
+			//Marker.SetNewPosition(hex.x, hex.y); 
 		} else {
 			//Right Click	
 		}    
