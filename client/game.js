@@ -392,7 +392,9 @@ window.onload = function() {
 	}
 
     var ActionBar = new TActionBar(Game, GameWorld, AlertManager, 128);
-
+    
+    var InfoBar = new TInfoBar(Game, GameWorld);
+    
     function AlertManager (id) {
         alert('Clicked on ' + id);
     }
@@ -406,7 +408,9 @@ window.onload = function() {
         Creature.SetNewPosition(10, 11);
                         
         ActionBar.create([['first','button1'], ['second', 'button2'], ['third', 'button3']]);
-
+        
+        InfoBar.create("Hey you!\nHahahahahah!");
+        
         Game.input.mouse.mouseDownCallback = mouseDownCallback;
 	}
 	
