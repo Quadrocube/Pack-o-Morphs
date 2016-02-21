@@ -70,10 +70,16 @@ function TActionBar(Game, GameWorld, callback, buttonWidth) {
     
     this.lock = function () {
         this.isLock = true;
+        this.buttons.forEach(function (item, i, arr) {
+            item.inputEnabled = false;
+        });
     }
     
     this.unlock = function () {
         this.isLock = false;
+        this.buttons.forEach(function (item, i, arr) {
+            item.inputEnabled = true;
+        });
     }
 }
 
