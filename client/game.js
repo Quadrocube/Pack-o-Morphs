@@ -298,10 +298,11 @@ window.onload = function() {
                         // obj is dead
                         if (response.death.subj !== undefined) {
                             // both are dead, nothing happens
-                            // REMOVE both
+                            HexagonField.Remove(subject);
+                            HexagonField.Remove(object);
                             return true;
                         }
-                        // REMOVE obj
+                        HexagonField.Remove(object);
                         if (subject.creature.type !== CreatureType.WASP || subject.creature.type !== CreatureType.SPIDER) {
                             // GET nutrition
                         }
@@ -334,10 +335,10 @@ window.onload = function() {
                 // INIT replicating
                 return true;
             } else if (action === ActionType.REFRESH) {
-                // REFRESH subject creature
-            } else if (action === ActionType.YIELD) {
                 // SPEND nutrition
-                // REFRESH subject creature
+                subject.creature.Refresh();
+            } else if (action === ActionType.YIELD) {
+                // ADD nutrition
             } else if (action === ActionType.SPECIAL) {
                 if (args.carapace !== undefined) {
                     if (subject.creature.effects['carapace'] !== undefined) {

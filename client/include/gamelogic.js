@@ -268,6 +268,10 @@
             if (this.effects[effect_name] === undefined)
                 this.effects[effect_name] = 0;
         };
+        
+        this.Refresh = function() {
+            this.effects = {};
+        }
         //return this;
     };
     
