@@ -644,7 +644,7 @@ window.onload = function() {
             HexagonField.DoAction(TurnState.creature, ActionType.REPLICATE);
         } else if (id === 'yield') {
             HexagonField.DoAction(TurnState.creature, ActionType.YIELD);
-        } else if (id === 'spec_ability')
+        } else if (id === 'spec_ability') {
             HexagonField.DoAction(TurnState.creature, ActionType.SPECIAL);
         } else if (id === 'morph_cancel') {
             ActionBar.update(getCreatureActions(TurnState.creature));
