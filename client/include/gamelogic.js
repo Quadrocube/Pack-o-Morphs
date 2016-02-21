@@ -1,4 +1,3 @@
-
     var CreatureType = {
         VECTOR : 0,
         COCOON : 1,
@@ -63,14 +62,15 @@
                     if (subj.creature.type != CreatureType.WASP && subj.creature.type != CreatureType.SPIDER) {
                         subj.creature.init_effect('damage');
                         subj.creature.effects['damage'] += 1;
+                    }
+                    subj_death = this.chk_death(subj, obj);
+                    if (subj_death != {})
+                        return {'subj': 'dead', 'obj': 'dead'};
+                    return {'obj': 'dead'};
                 }
-                subj_death = this.chk_death(subj, obj);
-                if (subj_death != {})
-                    return {'subj': 'dead', 'obj': 'dead'};
-                return {'obj': 'dead'};
+                return {};
             }
-            return {};
-        }
+        };
         /*
             returns:
                 {'error': error}
@@ -90,7 +90,7 @@
             obj.creature.effects['attacked'] = 1;
             
             // chk: attack lands
-            landed = false;
+            var landed = false;
             if (this.attack_landed(subj, obj)) {
                 landed = true;
                 
@@ -123,7 +123,7 @@
             }
             
             // chk: death
-            death = this.chk_death(subj, obj);
+            var death = this.chk_death(subj, obj);
             
             // regular drain
             subj.creature.init_effect('drain');

@@ -126,7 +126,7 @@ window.onload = function() {
         var highlightField = Game.add.group();
         var field = [];
 		Game.stage.backgroundColor = "#ffffff";
-        gengrid = function(hexGroup, spriteTag) {
+        var gengrid = function(hexGroup, spriteTag) {
             for (var i = 0; i < GameWorld.GetGridSizeY() / 2; i++) {
                 for (var j = 0; j < GameWorld.GetGridSizeX(); j++) {
                     if (GameWorld.GetGridSizeY() % 2 === 0 
