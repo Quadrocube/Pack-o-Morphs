@@ -482,19 +482,20 @@ window.onload = function() {
         var TS_NONE = 0;
         var TS_SELECTED = 1;
         var TS_ACTION = 2;
+        var TS_OPPONENT_MOVE = 3;
         
         this.state = TS_NONE;
         this.activeObject = undefined;
         this.action = undefined;
         this.endPosition = undefined;
         
-        this.ResetState = function () {
+        this._ResetState = function () {
             this.state = TS_NONE;
             this.action = undefined;
             this.endPosition = undefined;
         };
         
-        this.ResetState();
+        this._ResetState();
         
         this.SelectField = function (field) {
             if (this.state === TS_NONE || this.state === TS_SELECTED) {
@@ -503,7 +504,8 @@ window.onload = function() {
             } else if (this.state === TS_ACTION) {
                 this.endPosition = field;
                 var result = HexagonField.DoAction(this.activeObject, this.action, this.endPosition);
-                this.ResetState();
+                this._ResetState();
+                this.state = TS_OPPONENT_MOVE;
                 return result;
             } else {
                 assert(false, "WUT TurnState");
@@ -517,10 +519,16 @@ window.onload = function() {
                 this.state = TS_ACTION;
                 return true;
             } else {
-                this.ResetState();
+                this._ResetState();
                 return false;
             }
         };
+        
+        this.MyTurn = function () {
+            if (this.state === TS_OPPONENT_MOVE) {
+                this._ResetState();
+            }
+        }
     }
     
     var TurnState = new TTurnState();
