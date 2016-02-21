@@ -307,20 +307,6 @@ window.onload = function() {
     }
     
     var TurnState = new TTurnState();
-
-    function TCreature(_type, _mov, _hpp) {
-        var type = _type;
-        var MOV = _mov;
-        var HPP = _hpp;
-        
-        var abilities = MySet();
-        var effects = {};
-        
-        this.init_effect = function(effect_name) {
-            if (obj.effects.damage === undefined)
-                obj.effects.damage = 0;
-        };
-    };
     
     // string, HexType, TCreature
     function TFieldObject(sprite_name, type, initCreature) {
@@ -406,7 +392,9 @@ window.onload = function() {
 	}
 
     var ActionBar = new TActionBar(Game, GameWorld, AlertManager, 128);
-
+    
+    var InfoBar = new TInfoBar(Game, GameWorld);
+    
     function AlertManager (id) {
         alert('Clicked on ' + id);
     }
@@ -415,10 +403,15 @@ window.onload = function() {
         GameWorld.Init();
         
         HexagonField = new THexagonField();
-        Creature = new TFieldObject("marker", HexType.CREATURE, null);
+        var RealCreature = new TCreature(CreatureType.COCOON, 1, 2, 3, 4, 5, 6, null);
+        Creature = new TFieldObject("marker", HexType.CREATURE, RealCreature);
                         
         ActionBar.create([['first','button1'], ['second', 'button2'], ['third', 'button3']]);
-
+        
+        InfoBar.create("Hey you!\nHahahahahah!");
+        
+        InfoBar.displayInfoCreature(RealCreature);
+        
         Game.input.mouse.mouseDownCallback = mouseDownCallback;
 	}
 	
