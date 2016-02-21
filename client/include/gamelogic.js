@@ -59,7 +59,6 @@
 
     function getMorphList() {
         return [CreatureAction.MORPH_VECTOR, 
-                CreatureAction.MORPH_PLANT, 
                 CreatureAction.MORPH_SPAWN,
                 CreatureAction.MORPH_DAEMON,
                 CreatureAction.MORPH_TURTLE,
