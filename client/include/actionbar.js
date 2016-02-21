@@ -9,17 +9,19 @@ function TActionBarButtonCallbackFactory(callback) {
 
 function TActionBar(Game, GameWorld, callback, buttonWidth) {
     this.borderMargin = 40;
+    this.buttons = [];
+    
     this.create = function (ids) {
         var n = ids.length;
         var startPosX = Game.width / 2 - buttonWidth * n / 2;
         
         var actionBarHeight = GameWorld.GetActionBarHeight();
         // black rounded rect -- background for buttons
-        var graphics = Game.add.graphics(0, 0);
-        graphics.beginFill(0x000000, 0.5); 
+        this.graphics = Game.add.graphics(0, 0);
+        this.graphics.beginFill(0x000000, 0.5); 
         var actionBarWidth = Math.max(GameWorld.GetFieldSizeX(), buttonWidth * n + this.borderMargin );
         var actionBarPosX = Math.min(GameWorld.GetFieldX(), startPosX - this.borderMargin / 2);
-        var rect = graphics.drawRoundedRect(actionBarPosX, window.innerHeight - actionBarHeight, 
+        var rect = this.graphics.drawRoundedRect(actionBarPosX, window.innerHeight - actionBarHeight, 
                                             actionBarWidth , actionBarHeight);
         rect.fixedToCamera = true;
 
@@ -29,12 +31,24 @@ function TActionBar(Game, GameWorld, callback, buttonWidth) {
             var posX = startPosX + buttonWidth * i;
             var posY = window.innerHeight - actionBarHeight;
             var button = Game.add.button(posX, posY, ids[i][1], factory.get(ids[i][0]), this);
+            this.buttons.push(button);
             button.fixedToCamera = true;
         }
     }
     
     this.update = function (actionList) {
+        this.graphics.destroy();
+        this.buttons.forEach(function (item, i, arr) {
+            item.destroy();
+        });
+        this.buttons = [];
         
+        var ids = [];
+        logg(actionList);
+        actionList.forEach(function (item, i, arr) {
+            ids.push(GameWorld.GetCreatureActionFuncAndButton(item));
+        });
+        this.create(ids);
     }
 }
 

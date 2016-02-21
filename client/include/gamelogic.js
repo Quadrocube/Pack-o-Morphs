@@ -18,7 +18,12 @@
         YIELD : 4    
     };
     
-    function getCreatureAction(creatureType) {
+    function getCreatureActions(creature) {
+        if (creature == null) {
+            return [];
+        }
+        
+        var creatureType = creature.type;
         if (creatureType === CreatureType.VECTOR) {
             return [CreatureAction.FEED, CreatureAction.MORPH, CreatureAction.REPLICATE, CreatureAction.YIELD];
         } else if (creatureType === CreatureType.COCOON) {
@@ -39,7 +44,7 @@
             return [CreatureAction.FEED, CreatureAction.MORPH, CreatureAction.REPLICATE, CreatureAction.YIELD];
         }
         return [];
-    }
+    };
 
     var HexType = {
         CREATURE: 0,
