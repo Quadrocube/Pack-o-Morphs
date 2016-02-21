@@ -459,7 +459,6 @@ window.onload = function() {
                 creature.effects['morph'] = {'target':target, 'turns': 3 - args.additional_cost};
                 
                 fieldObject = new TFieldObject(HexType.CREATURE, creature);
-                console.log(fieldObject);
                 fieldObject.SetNewPosition(subject.col, subject.row);
                 delete subject;
                 return true;
@@ -474,7 +473,14 @@ window.onload = function() {
                     console.log('ERROR in DoAction.REPLICATE: ' + response['error']);
                     return false;
                 }
-                HexagonField.Replicate(subject, args.additional_cost);
+                HexagonField.Remove(subject);
+                creature = newCreature(CreatureType.COCOON);
+                creature.init_effect('morph');
+                creature.effects['morph'] = {'target': '__replicate', 'turns': 3 - args.additional_cost};
+                
+                fieldObject = new TFieldObject(HexType.CREATURE, creature);
+                fieldObject.SetNewPosition(subject.col, subject.row);
+                delete subject;
                 return true;
             } else if (action === ActionType.REFRESH) {
                 // SPEND nutrition
@@ -482,16 +488,13 @@ window.onload = function() {
             } else if (action === ActionType.YIELD) {
                 // ADD nutrition
             } else if (action === ActionType.SPECIAL) {
-                if (args.carapace !== undefined) {
-                    if (subject.creature.effects['carapace'] !== undefined) {
-                        return false;
-                    }
-                    subject.creature.effects['carapace'] = true;
-                    return true;
+                if (subject.creature.effects['carapace'] !== undefined) {
+                    return false;
                 }
-            } else {
-                return false;
+                subject.creature.effects['carapace'] = true;
+                return true;
             }
+
         };
         
         this.getAllObjects = function() {
@@ -682,6 +685,7 @@ window.onload = function() {
     }
 	
     var Creature;
+    var Creature2;
     
     var ActionBar = new TActionBar(Game, GameWorld, AlertManager, 128);
     
@@ -731,6 +735,7 @@ window.onload = function() {
 	}
     
     function AlertManager (id) {
+        
         if (id === 'feed') {
             HexagonField.DoAction(TurnState.activeObject, ActionType.REFRESH);
         } else if (id === 'morph') {
@@ -740,7 +745,8 @@ window.onload = function() {
         } else if (id === 'yield') {
             HexagonField.DoAction(TurnState.activeObject, ActionType.YIELD);
         } else if (id === 'spec_ability') {
-            HexagonField.DoAction(TurnState.activeObject, ActionType.SPECIAL);
+            if (!HexagonField.DoAction(TurnState.activeObject, ActionType.SPECIAL))
+                console.log('spec ability is used already');
         } else if (id === 'morph_cancel') {
             ActionBar.update(getCreatureActions(TurnState.activeObject.creature));
         } else if (id.substring(0, 6) == 'morph_') {
@@ -750,15 +756,21 @@ window.onload = function() {
         } else {
             console.log('ERROR: something other has been clickd, id=' + id);
         }
+        ActionBar.update(getCreatureActions(TurnState.activeObject.creature));
     }
 
 	function onCreate() {
         GameWorld.Init();
         
         HexagonField = new THexagonField();
-        var RealCreature = new TCreature(CreatureType.VECTOR, 1, 2, 3, 4, 5, 6, null);
+        // examples of creatures 
+        var RealCreature = newCreature(CreatureType.TURTLE);
         Creature = new TFieldObject(HexType.CREATURE, RealCreature);
         Creature.SetNewPosition(10, 11);
+        
+        var RealCreature2 = newCreature(CreatureType.SPAWN);
+        Creature2 = new TFieldObject(HexType.CREATURE, RealCreature2);
+        Creature2.SetNewPosition(12, 12);
                         
         ActionBar.create([]);
         

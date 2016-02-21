@@ -46,6 +46,8 @@
         } else if (creatureType === CreatureType.DAEMON) {
             return [CreatureAction.FEED, CreatureAction.MORPH, CreatureAction.REPLICATE];
         } else if (creatureType === CreatureType.TURTLE) {
+            if (creature.effects !== undefined && creature.effects['carapace'] !== undefined)
+                return [CreatureAction.FEED, CreatureAction.MORPH, CreatureAction.REPLICATE, CreatureAction.YIELD];
             return [CreatureAction.FEED, CreatureAction.MORPH, CreatureAction.REPLICATE, CreatureAction.YIELD, CreatureAction.SPEC_ABILITY];
         } else if (creatureType === CreatureType.RHINO) {
             return [CreatureAction.FEED, CreatureAction.MORPH, CreatureAction.REPLICATE, CreatureAction.YIELD];
