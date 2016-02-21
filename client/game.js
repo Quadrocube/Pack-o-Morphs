@@ -56,7 +56,6 @@ window.onload = function() {
         
         this.ColRow2Ind = function(posX, posY) {
             return this.GetGridSizeX() * Math.floor(posY / 2) + 2 * posX + (posY%2);
-            //return Math.floor(GameWorld.GetGridSizeX() / 2) * posY + posX + posY;
         };
 
         this.Init = function () {
@@ -320,7 +319,7 @@ window.onload = function() {
             
             this.OnDragStart = function (sprite, pointer) {
                 HexagonField.HighlightOff();
-                HexagonField.Highlight(col, row);
+                HexagonField.Highlight(col, row, 2);
             };
             
             this.OnDragStop = function (sprite, pointer) {
