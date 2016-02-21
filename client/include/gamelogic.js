@@ -140,16 +140,13 @@
                 OR
                 {}
         */
-        this.Move = function(subj, obj, d) {
-            console.log('---');
-            console.log(obj);
-            if (d === undefined)
-                d = 2;
+        this.Move = function(subj, obj) {
+            var d = 2;
             if (subj.creature.type == CreatureType.SPAWN) {
                 d *= 2;
             }
             var user_d = (new THex(0, 0, 0)).from_colrow(subj.col, subj.row).distance((new THex(0, 0, 0)).from_colrow(obj.col, obj.row));
-            if (user_d > d) {
+            if (user_d > d || user_d === 0) {
                 return {'error': 'too far'};
             }
             return {};
