@@ -593,10 +593,12 @@ window.onload = function() {
             if (this.state === TS_OPPONENT_MOVE) {
                 return false;
             }
-            
             if (this.state === TS_SELECTED) {
                 this.action = act;
                 this.state = TS_ACTION;
+                return true;
+            } else if (this.state === TS_ACTION) {
+                this.action = act;
                 return true;
             } else {
                 this._ResetState();
@@ -645,13 +647,20 @@ window.onload = function() {
                 var hex = GameWorld.FindHex(); 
                 if (!GameWorld.IsValidCoordinate(hex.x, hex.y)) { // out of field 
                    this.SetNewPosition(this.col, this.row); 
-                } else if (TurnState.SelectAction(ActionType.MOVE) === true &&
-                           TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y)) === true) {
-                   this.SetNewPosition(hex.x, hex.y);
-                   TurnState.SelectField(this);
                 } else {
-                   this.SetNewPosition(this.col, this.row); 
-                   TurnState.SelectField(this);               
+                    var target = HexagonField.GetAt(hex.x, hex.y);
+                    if (target.objectType === HexType.CREATURE &&
+                        TurnState.SelectAction(ActionType.ATTACK) === true && 
+                        TurnState.SelectField(target) === true) {
+                        // pass, action performed in if-clause
+                    } else if (TurnState.SelectAction(ActionType.MOVE) === true &&
+                               TurnState.SelectField(target) === true) {
+                        this.SetNewPosition(hex.x, hex.y);
+                        TurnState.SelectField(this);
+                    } else {
+                        this.SetNewPosition(this.col, this.row); 
+                        TurnState.SelectField(this);               
+                    }
                 }
                 
                 HexagonField.HighlightOff();
