@@ -25,7 +25,8 @@
         MORPH_TURTLE: 15,
         MORPH_RHINO: 16,
         MORPH_WASP: 17,
-        MORPH_SPIDER: 18
+        MORPH_SPIDER: 18,
+        MORPH_CANCEL: 19
     };
     
     function getCreatureActions(creature) {
@@ -64,7 +65,8 @@
                 CreatureAction.MORPH_TURTLE,
                 CreatureAction.MORPH_RHINO,
                 CreatureAction.MORPH_WASP,
-                CreatureAction.MORPH_SPIDER];
+                CreatureAction.MORPH_SPIDER,
+                CreatureAction.MORPH_CANCEL];
     }
 
     var HexType = {

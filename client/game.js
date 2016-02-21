@@ -156,7 +156,10 @@ window.onload = function() {
                 return ['morph_wasp', 'button_morph_wasp'];
             } else if (creatureAction === CreatureAction.MORPH_SPIDER) {
                 return ['morph_spider', 'button_morph_spider'];
+            } else if (creatureAction === CreatureAction.MORPH_CANCEL) {
+                return ['morph_cancel', 'button_morph_cancel'];
             }
+            
             return [];
         };
     };
@@ -608,6 +611,7 @@ window.onload = function() {
         Game.load.image('button_morph_rpino', 'arts/button_size/amoeba7.png');
         Game.load.image('button_morph_wasp', 'arts/button_size/amoeba8.png');
         Game.load.image('button_morph_spider', 'arts/button_size/amoeba9.png');
+        Game.load.image('button_morph_cancel', 'arts/button_size/cancel.png');
 	}
     
     function AlertManager (id) {
