@@ -1,5 +1,5 @@
 window.onload = function() {
-    var socket = io.connect();
+    //var socket = io.connect();
     var Game = new Phaser.Game("100%", "100%", Phaser.CANVAS, "", {preload: onPreload, create: onCreate, update: onUpdate});
     
     // test winbreaks
@@ -382,7 +382,7 @@ window.onload = function() {
             YIELD:
                 subject is creature, object is bush
             SPECIAL:
-                args = ['carapace': true]
+                subject is TURTLE :)
         */
         this.DoAction = function(subject, action, object, args) {
             logic = GameWorld.gameLogic;
@@ -488,10 +488,11 @@ window.onload = function() {
             } else if (action === ActionType.YIELD) {
                 // ADD nutrition
             } else if (action === ActionType.SPECIAL) {
-                if (subject.creature.effects['carapace'] !== undefined) {
+                var response = logic.Special(subject);
+                if (response !== undefined && response['error'] !== undefined) {
+                    console.log('ERROR in DoAction.REPLICATE: ' + response['error']);
                     return false;
                 }
-                subject.creature.effects['carapace'] = true;
                 return true;
             }
 

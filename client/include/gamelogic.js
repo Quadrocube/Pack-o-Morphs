@@ -98,6 +98,9 @@
                 d = 2;
             if (subj.creature.type === CreatureType.SPIDER)
                 d = 3;
+            if (used_d === 0) {
+                return {'error': 'distance is 0'};
+            }
             if (user_d <= d) 
                 return {};
             else
@@ -242,6 +245,8 @@
             if (user_d === 0) {
                 return {'error': '0 movement'};
             }
+            subj.creature.init_effect('drain');
+            subj.creature.effects['drain'] += 1;
             return undefined;
         };
         
@@ -275,6 +280,17 @@
         this.Yield = function(subj, obj) {
             return undefined;
         };
+        this.Special = function(subject) {
+            if (subject.creature.effects['carapace'] !== undefined) {
+                    return {'error': 'carapace already used this turn'};
+            }
+            subject.creature.effects['carapace'] = true;
+            subject.creature.ATT -= 2;
+            subject.creature.DEF += 2;
+            subject.creature.init_effect('drain');
+            subject.creature.effects['drain'] += 1;
+            return undefined;
+        }
     };
     
     function TPlayer(id, _nut) {
