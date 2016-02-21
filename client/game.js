@@ -507,11 +507,11 @@ window.onload = function() {
 	function onPreload() {
 		Game.load.image("hexagon", "arts/hexagon.png");
 		Game.load.image("marker", "arts/marker.png");
-        Game.load.image('button_feed', 'arts/button_feed.png');
-        Game.load.image('button_morph', 'arts/button_morph.png');
-        Game.load.image('button_replicate', 'arts/button_replicate.png');
-        Game.load.image('button_spec_ability', 'arts/button_spec_ability.png');
-        Game.load.image('button_yield', 'arts/button_yield.png');
+        Game.load.spritesheet('button_replicate', 'arts/buttons/button_replicate_spritesheet.png', 128, 128);
+        Game.load.spritesheet('button_spec_ability', 'arts/buttons/button_spec_ability_spritesheet.png', 128, 128);
+        Game.load.spritesheet('button_feed', 'arts/buttons/button_feed_spritesheet.png', 128, 128);
+        Game.load.spritesheet('button_morph', 'arts/buttons/button_morph_spritesheet.png', 128, 128);
+        Game.load.spritesheet('button_yield', 'arts/buttons/button_yield_spritesheet.png', 128, 128);
 	}
     
     function AlertManager (id) {
