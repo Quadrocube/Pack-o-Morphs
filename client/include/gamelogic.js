@@ -15,7 +15,17 @@
         MORPH : 1,
         REPLICATE : 2,
         SPEC_ABILITY : 3,
-        YIELD : 4    
+        YIELD : 4,
+        
+        MORPH_VECTOR : 10,
+        MORPH_COCOON : 11,
+        MORPH_PLANT : 12,
+        MORPH_SPAWN: 13,
+        MORPH_DAEMON: 14,
+        MORPH_TURTLE: 15,
+        MORPH_RHINO: 16,
+        MORPH_WASP: 17,
+        MORPH_SPIDER: 18
     };
     
     function getCreatureActions(creature) {
@@ -45,6 +55,17 @@
         }
         return [];
     };
+
+    function getMorphList() {
+        return [CreatureAction.MORPH_VECTOR, 
+                CreatureAction.MORPH_PLANT, 
+                CreatureAction.MORPH_SPAWN,
+                CreatureAction.MORPH_DAEMON,
+                CreatureAction.MORPH_TURTLE,
+                CreatureAction.MORPH_RHINO,
+                CreatureAction.MORPH_WASP,
+                CreatureAction.MORPH_SPIDER];
+    }
 
     var HexType = {
         CREATURE: 0,

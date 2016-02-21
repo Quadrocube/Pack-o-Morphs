@@ -565,10 +565,12 @@ window.onload = function() {
                 var activeField = HexagonField.GetAt(hex.x, hex.y);
                 InfoBar.displayInfoCreature(activeField.creature);
                 ActionBar.update(getCreatureActions(activeField.creature));
-                //var result = TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y));
-                //assert(result);
+                var result = TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y));
+                assert(result, 'can not select');
                 //Creature.SetNewPosition(hex.x, hex.y);
-            } // else we click on the action bar
+            } else { // else we click on the action bar
+                
+            }
 		} else {
 			//Right Click	
 		}    
