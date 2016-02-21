@@ -51,7 +51,7 @@ window.onload = function() {
         
         this.IsValidCoordinate = function (posX, posY) {
             return posX >= 0 && posY >= 0 
-                    && posY <= gridSizeY && posX <= columns[posY % 2] - 1;
+                    && posY < gridSizeY && posX <= columns[posY % 2] - 1;
         }
         
         this.ColRow2Ind = function(posX, posY) {
@@ -194,20 +194,26 @@ window.onload = function() {
         };
 
         this.Highlight = function(posX, posY, rad) {
-            // Check out-of-fields, add obstacles
+            // add obstacles
             this.HighlightOff();
             lastHighlight = radius_with_blocks({"row": posY, "col": posX}, rad, []);
             for (var i = 0; i < lastHighlight.length; i++) {
                 var x = lastHighlight[i].col;
                 var y = lastHighlight[i].row;
-                console.log("x: " + x + ", y: " + y + ", ind: " + GameWorld.ColRow2Ind(x, y));
-                highHexes[GameWorld.ColRow2Ind(lastHighlight[i].col, lastHighlight[i].row)].visible = true;
+                if (GameWorld.IsValidCoordinate(x, y)) {
+                    console.log("x: " + x + ", y: " + y + ", ind: " + GameWorld.ColRow2Ind(x, y));
+                    highHexes[GameWorld.ColRow2Ind(x, y)].visible = true;
+                }
             }
         };
 
         this.HighlightOff = function() {
             for (var i = 0; i < lastHighlight.length; ++i) {
-                highHexes[GameWorld.ColRow2Ind(lastHighlight[i].col, lastHighlight[i].row)].visible = false;
+                var x = lastHighlight[i].col;
+                var y = lastHighlight[i].row;
+                if (GameWorld.IsValidCoordinate(x, y)) {
+                    highHexes[GameWorld.ColRow2Ind(x, y)].visible = false;
+                }
                 delete lastHighlight[i];
             }
             lastHighlight = [];
