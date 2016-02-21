@@ -14,6 +14,8 @@ window.onload = function() {
         
         var fieldPosX;
         var fieldPosY;
+        
+        var actionBarHeight = 128; // must be changed if buttons change
     
         this.GetHexagonWidth = function () {
             return hexagonWidth;
@@ -75,6 +77,18 @@ window.onload = function() {
             return fieldPosY;
         };
         
+        this.GetFieldSizeX = function () {
+            var sizeX = this.GetHexagonWidth() * Math.ceil(this.GetGridSizeX() / 2);
+            if (this.GetGridSizeX() % 2 === 0) {
+        	   sizeX += this.GetHexagonWidth() / 2;
+            }
+            return sizeX;
+        };
+        
+        this.GetActionBarHeight = function () {
+            return actionBarHeight;
+        };
+                
         this.FindHex = function () {
             var candidateX = Math.floor((Game.input.worldX - this.GetFieldX()) / this.GetSectorWidth());
             var candidateY = Math.floor((Game.input.worldY- this.GetFieldY()) / this.GetSectorHeight());
@@ -321,10 +335,12 @@ window.onload = function() {
     
     function mouseDownCallback(e) {
         if (Game.input.mouse.button === Phaser.Mouse.LEFT_BUTTON) { //Left Click
-			var hex = GameWorld.FindHex(); 
-            var result = TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y));
-            assert(result);
-			Marker.SetNewPosition(hex.x, hex.y); 
+            if (Game.input.y <= window.innerHeight - GameWorld.GetActionBarHeight()) { 
+                var hex = GameWorld.FindHex(); 
+                var result = TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y));
+                assert(result);
+                Marker.SetNewPosition(hex.x, hex.y);
+            } // else we click on the action bar
 		} else {
 			//Right Click	
 		}    
@@ -352,7 +368,7 @@ window.onload = function() {
         Marker = new TFieldObject("marker", HexType.EMPTY, null);
         Creature = new TFieldObject("marker", HexType.CREATURE, null);
         Creature.SetNewPosition(10, 11);
-        
+                        
         ActionBar.create([['first','button1'], ['second', 'button2'], ['third', 'button3']]);
 
         Game.input.mouse.mouseDownCallback = mouseDownCallback;
