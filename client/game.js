@@ -1,90 +1,21 @@
 window.onload = function() {	
     var Game = new Phaser.Game("100%", "100%", Phaser.CANVAS, "", {preload: onPreload, create: onCreate, update: onUpdate});
 
-    function TAbility(name, args) {
-        this.name = name;
-        this.args = [];
-        this.equals = function (another) {
-            return (this.name === another.name);
-        }
-    }
-    function TGameLogic() {
-        // return null if assertion failed, else true or result of engagement or whatever
-        
-        this.assert_can_attack = function(subj, obj) {
-            // chk: there is enough MOV points left
-            if (subj.creature.effects['drain'] >= subj.creature.MOV)
-                return false;
-            // chk: distance
-            var d = 1;
-            if (subj.creature.abilities.has(TAbility('ranged', [])))
-                d = 1 + subj.creature.abilities.get(TAbility('ranged', [])).args[0];
-            return (rowcol2hex(subj.row, subj.col).distance(rowcol2hex(obj.row, obj.col)) <= d);
-        }
-        this.attack_landed = function(subj, obj) {
-            dF = subj.creature.ATT - obj.creature.DEF;
-            d2 = function() {
-                var rand = 1 - 0.5 + Math.random() * 2
-                rand = Math.round(rand);
-                return rand - 1;
-            }
-            r = !(dF>=0);
-            for (var i = 0; i < n; i++) {
-                if (dF>=0)
-                    r += d2();
-                else
-                    r *= d2();
-            }
-            return (r > 0);
-        }
-        this.Attack = function(subj, obj) {
-            // chk: attack is valid
-            if (!this.assert_can_attack(subj)) {
-                return false;
-            }
-            // chk: attack lands
-            if (this.attack_landed(subj, obj)) {
-                obj.creature.init_effect('damage');
-                obj.creature.effects['damage'] += subj.DAM;
-                
-                if (subj.creature.abilities.has(TAbility('leech', []))) {
-                    subj.creature.init_effect('damage');
-                    subj.creature.effect['damage'] = Math.max(0, subj.creature.effect['damage'] - subj.creature.DAM);
-                }
-                
-                if (subj.creature.abilities.has(TAbility('drain', []))) {
-                    obj.creature.init_effect('drain');
-                    obj.creature.effects['drain'] = Math.max(obj.creature.effects['drain'] + 1, obj.creature.MOV);
-                }
-                
-                if (subj.creature.abilities.has(TAbility('poison', []))) {
-                    subj.creature.init_effect('damage');
-                    subj.creature.effect['damage'] = Math.max(0, subj.creature.effect['damage'] - subj.creature.DAM);
-                }
-            }
-            obj.creature.check();
-            subj.creature.init_effect('drain');
-            subj.creature.effect['drain'] += 1;
-            subj.creature.check();
-            return true;
-        };
-        this.Move = function(subj, obj) {
-        };
-    }
-
     function TGameWorld() {
         var hexagonWidth = 35;
         var hexagonHeight = 40;
-        var gridSizeX = 10;
-        var gridSizeY = 6;
+        var gridSizeX = 52;
+        var gridSizeY = 26;
         var columns = [Math.ceil(gridSizeX / 2),Math.floor(gridSizeX / 2)];
         var sectorWidth = hexagonWidth;
         var sectorHeight = hexagonHeight / 4 * 3;
         var gradient = (hexagonHeight / 4) / (hexagonWidth / 2);
-        var gameLogic = TGameLogic();
+        var gameLogic = new TGameLogic();
         
         var fieldPosX;
         var fieldPosY;
+        
+        var actionBarHeight = 128; // must be changed if buttons change
     
         this.GetHexagonWidth = function () {
             return hexagonWidth;
@@ -151,6 +82,18 @@ window.onload = function() {
             return fieldPosY;
         };
         
+        this.GetFieldSizeX = function () {
+            var sizeX = this.GetHexagonWidth() * Math.ceil(this.GetGridSizeX() / 2);
+            if (this.GetGridSizeX() % 2 === 0) {
+        	   sizeX += this.GetHexagonWidth() / 2;
+            }
+            return sizeX;
+        };
+        
+        this.GetActionBarHeight = function () {
+            return actionBarHeight;
+        };
+                
         this.FindHex = function () {
             var candidateX = Math.floor((Game.input.worldX - this.GetFieldX()) / this.GetSectorWidth());
             var candidateY = Math.floor((Game.input.worldY- this.GetFieldY()) / this.GetSectorHeight());
@@ -298,82 +241,6 @@ window.onload = function() {
         
     var HexagonField;
 
-    var CreatureType = {
-        VECTOR : 0,
-        COCOON : 1,
-        PLANT : 2,
-        SPAWN: 3,
-        DAEMON: 4,
-        TURTLE: 5,
-        RHINO: 6,
-        WASP: 7,
-        SPIDER: 8
-    };
-
-    var HexType = {
-        CREATURE: 0,
-        GRASS: 1,
-        FOREST: 2,
-        EMPTY: 3
-    };
-
-    function TCreature(_type, _mov, _hpp) {
-        var type = _type;
-        var MOV = _mov;
-        var HPP = _hpp;
-        
-        var abilities = MySet();
-        var effects = {};
-        
-        this.init_effect = function(effect_name) {
-            if (obj.effects.damage === undefined)
-                obj.effects.damage = 0;
-        };
-    };
-    
-    // string, HexType, TCreature
-    function TFieldObject(sprite_name, type, initCreature) {
-        var marker = Game.add.sprite(0,0,sprite_name);
-        // row = y, col = x
-        var row = 0;
-        var col = 0;
-        var objectType = type;
-        var creature = initCreature;
-        
-        
-        if (objectType === HexType.CREATURE) {
-            marker.inputEnabled = true;
-            marker.input.enableDrag();
-            
-            this.OnDragStart = function (sprite, pointer) {
-                HexagonField.HighlightOff();
-                HexagonField.Highlight(col, row);
-            }
-            
-            marker.events.onDragStart.add(this.OnDragStart, this);
-        }
-
-		marker.anchor.setTo(0.5);
-		marker.visible = false;
-		HexagonField.Add(marker);
-        
-        this.SetNewPosition = function (posX, posY) {
-            //field.Move([col, row], [posY, posX], this);
-            row = posY;
-            col = posX;
-            if (!GameWorld.IsValidCoordinate(posX, posY)) {
-                marker.visible = false;
-		    } else {
-                marker.visible = true;
-                marker.x = GameWorld.GetHexagonWidth() * posX + GameWorld.GetHexagonWidth()/ 2 + (GameWorld.GetHexagonWidth() / 2) * (posY % 2);
-				marker.y = 0.75 * GameWorld.GetHexagonHeight() * posY + GameWorld.GetHexagonHeight() / 2;
-            }
-        };
-    }
-	
-    var Marker;
-    var Creature;
-    
     function TTurnState() {
         var TS_NONE = 0;
         var TS_SELECTED = 1;
@@ -402,11 +269,14 @@ window.onload = function() {
                 endPosition = field;
                 state = TS_DONE;
                 
-                HexagonField.DoAction(creature, action, endPosition);
+                var result = HexagonField.DoAction(creature, action, endPosition);
                 this.ResetState();
+                return result;
             } else {
                 this.ResetState();
             }
+            
+            return true;
         };
         
         this.SelectAction = function (act) {
@@ -420,15 +290,84 @@ window.onload = function() {
     }
     
     var TurnState = new TTurnState();
+
+    function TCreature(_type, _mov, _hpp) {
+        var type = _type;
+        var MOV = _mov;
+        var HPP = _hpp;
+        
+        var abilities = MySet();
+        var effects = {};
+        
+        this.init_effect = function(effect_name) {
+            if (obj.effects.damage === undefined)
+                obj.effects.damage = 0;
+        };
+    };
+    
+    // string, HexType, TCreature
+    function TFieldObject(sprite_name, type, initCreature) {
+        var marker = Game.add.sprite(0,0,sprite_name);
+        // row = y, col = x
+        var row = 0;
+        var col = 0;
+        var objectType = type;
+        var creature = initCreature; 
+        
+        if (objectType === HexType.CREATURE) {
+            marker.inputEnabled = true;
+            marker.input.enableDrag();
+            
+            this.OnDragStart = function (sprite, pointer) {
+                HexagonField.HighlightOff();
+                HexagonField.Highlight(col, row);
+            };
+            
+            this.OnDragStop = function (sprite, pointer) {
+                var hex = GameWorld.FindHex(); 
+                if (TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y))) {
+                    this.SetNewPosition(hex.x, hex.y);    
+                } else {
+                    this.SetNewPosition(col, row);
+                }
+                
+                HexagonField.HighlightOff();
+            };
+            
+            marker.events.onDragStart.add(this.OnDragStart, this);
+            marker.events.onDragStop.add(this.OnDragStop, this);
+        }
+
+		marker.anchor.setTo(0.5);
+		marker.visible = false;
+		HexagonField.Add(marker);
+        
+        this.SetNewPosition = function (posX, posY) {
+            //field.Move([col, row], [posY, posX], this);
+            row = posY;
+            col = posX;
+            if (!GameWorld.IsValidCoordinate(posX, posY)) {
+                marker.visible = false;
+		    } else {
+                marker.visible = true;
+                marker.x = GameWorld.GetHexagonWidth() * posX + GameWorld.GetHexagonWidth()/ 2 + (GameWorld.GetHexagonWidth() / 2) * (posY % 2);
+				marker.y = 0.75 * GameWorld.GetHexagonHeight() * posY + GameWorld.GetHexagonHeight() / 2;
+            }
+        };
+    }
+	
+    var Marker;
+    var Creature;
     
     function mouseDownCallback(e) {
         if (Game.input.mouse.button === Phaser.Mouse.LEFT_BUTTON) { //Left Click
-			var hex = GameWorld.FindHex(); 
-            alert("pushed at " + hex.x + ", " + hex.y);
-
-            HexagonField.Highlight(hex.x, hex.y, 2);
-            //TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y));
-			//Marker.SetNewPosition(hex.x, hex.y); 
+            if (Game.input.y <= window.innerHeight - GameWorld.GetActionBarHeight()) { 
+                var hex = GameWorld.FindHex(); 
+                //var result = TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y));
+                //assert(result);
+                //Marker.SetNewPosition(hex.x, hex.y);
+                HexagonField.Highlight(hex.x, hex.y, 2);
+            } // else we click on the action bar
 		} else {
 			//Right Click	
 		}    
@@ -456,7 +395,7 @@ window.onload = function() {
         Marker = new TFieldObject("marker", HexType.EMPTY, null);
         Creature = new TFieldObject("marker", HexType.CREATURE, null);
         Creature.SetNewPosition(10, 11);
-        
+                        
         ActionBar.create([['first','button1'], ['second', 'button2'], ['third', 'button3']]);
 
         Game.input.mouse.mouseDownCallback = mouseDownCallback;
