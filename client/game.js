@@ -461,6 +461,10 @@ window.onload = function() {
             
             return this;
         };
+        
+        this.GetCreaturesInRadius = function (radius) {
+            return HexagonField.GetCreaturesInRadius(this.col, this.row, radius);
+        }
     }
 	
     var Creature;

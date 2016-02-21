@@ -184,18 +184,18 @@
         */
         this.Move = function(subj, obj) {
             var d = 2;
-            var neigh = subj.GetCreaturesInRadius(subj.col, subj.row, 1);
-            for (var creature in neigh) {
-                if (creature.creature.type == CreatureType.TURTLE) {
-                    d = 1;
-                }
-            }
             if (subj.creature.type === CreatureType.SPAWN) {
                 d *= 2;
             }
+            var neigh = subj.GetCreaturesInRadius(1);
+            for (var cr in neigh) {
+                if (neigh[cr].creature.type === CreatureType.TURTLE) {
+                    d = 1;
+                }
+            }
             var user_d = (new THex(0, 0, 0)).from_colrow(subj.col, subj.row).distance((new THex(0, 0, 0)).from_colrow(obj.col, obj.row));
             if (user_d > d) {
-                return {'error': 'too far d=' + user_d};
+                return {'error': 'too far d=' + user_d + ' vs permitted=' + d};
             }
             if (user_d === 0) {
                 return {'error': '0 movement'};
