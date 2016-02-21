@@ -44,7 +44,6 @@ function TActionBar(Game, GameWorld, callback, buttonWidth) {
         this.buttons = [];
         
         var ids = [];
-        logg(actionList);
         actionList.forEach(function (item, i, arr) {
             ids.push(GameWorld.GetCreatureActionFuncAndButton(item));
         });
