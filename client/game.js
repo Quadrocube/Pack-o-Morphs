@@ -545,6 +545,10 @@ window.onload = function() {
         }
         
         this.SelectField = function (field) {
+            if (this.state === TS_OPPONENT_MOVE) {
+                return false;
+            }
+            
             if (this.state === TS_NONE || this.state === TS_SELECTED) {
                 this.activeObject = field;
                 this.state = TS_SELECTED;
@@ -561,6 +565,10 @@ window.onload = function() {
         };
         
         this.SelectAction = function (act) {
+            if (this.state === TS_OPPONENT_MOVE) {
+                return false;
+            }
+            
             if (this.state === TS_SELECTED) {
                 this.action = act;
                 this.state = TS_ACTION;
