@@ -155,12 +155,11 @@
                 OR
                 see this.Attack
         */
-        this.Mo
         this.RunHit = function(subj, obj_move, obj_hit) {
             d = this.Move(subj, obj_move, 1);
             if (d != {})
                 return d;
-            return this.Attack(subj, obj_hit)
+            return this.Attack(subj, obj_hit);
         };
         /*
             returns:
@@ -171,13 +170,13 @@
         this.Morph = function(subj, additional_cost) {
             if (subj.creature.player.NUT < 2 + additional_cost) {
                 return {'error': 'not enough NUT'};
-            return {}
+            return {};
         };
         /*
             returns {}
         */
         this.Yield = function(subj, obj) {
-            return {}
+            return {};
         };
     };
     
