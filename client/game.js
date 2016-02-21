@@ -159,9 +159,32 @@ window.onload = function() {
     }
 
     function THexagonField() {
-        var hexagonField = Game.add.group();
-        var highlightField = Game.add.group();
-        var field = [];
+        this.hexagonGroup = Game.add.group();
+        this.highlightGroup = Game.add.group();
+        this.creatureGroup = Game.add.group();
+        this.obstaclesGroup = Game.add.group();
+        
+        this.InitGroup = function(groupName) {
+            this[groupName].x = GameWorld.GetFieldX();
+            this[groupName].y = GameWorld.GetFieldY();    
+        };
+        
+        this.ResetGroup = function(groupName, fieldName) {
+            this[groupName].destroy();
+            this[groupName] = Game.add.group();
+            this.InitGroup(groupName);
+            if (fieldName) {
+                delete this[fieldName];
+                this[fieldName] = [];
+            }
+        };
+        
+        for (var groupName of ["hexagonGroup", "highlightGroup", "creatureGroup", "obstaclesGroup"]) {
+            this.InitGroup(groupName);
+        }
+        
+        this.hexField = [];
+        this.creatureField = [];
 		Game.stage.backgroundColor = "#ffffff";
         gengrid = function(hexGroup, spriteTag, visible) {
             var totalHexes = Math.floor(GameWorld.GetGridSizeX()/2) * GameWorld.GetGridSizeY();
@@ -182,33 +205,42 @@ window.onload = function() {
                     }
                 }
             }
-
-            hexGroup.x = GameWorld.GetFieldX();
-            hexGroup.y = GameWorld.GetFieldY();
             return hexes;
         };
-        gengrid(hexagonField, "hexagon", true);
-        var highHexes = gengrid(highlightField, "marker", false);
-        var lastHighlight = [];
+        gengrid(this.hexagonGroup, "hexagon", true);
+        this.highHexes = gengrid(this.highlightGroup, "marker", false);
+        this.lastHighlight = [];
         for (var _row = 0; _row < GameWorld.GetGridSizeY(); ++_row) {
             for (var _col = 0; _col < GameWorld.GetGridSizeX() / 2; ++_col) {
-                field[_col+":"+_row] = [{"row": _row, "col": _col, "objectType": HexType.EMPTY, "creature": null}];
+                this.hexField[_col+":"+_row] = {"row": _row, "col": _col, "objectType": HexType.EMPTY, "creature": null};
             }
         }
+        
+        this.creaturesDraggable = true;
+        this.toggleDraggable = function() {
+            for (var creatureSprite of this.creatureGroup.children) {
+                if (this.creaturesDraggable) {
+                    creatureSprite.input.disableDrag();
+                } else {
+                    creatureSprite.input.enableDrag();
+                }
+            }
+            this.creaturesDraggable = !this.creaturesDraggable;
+        };
 
         this.Move = function(prevPos, newPos, fieldObject) {
             var units;
             if (prevPos) {
-                units = field[prevPos[0] + ":" + prevPos[1]];
+                units = this.creatureField[prevPos[0] + ":" + prevPos[1]];
                 ind = units.indexOf(fieldObject);
                 units.splice(ind, 1);
             }
             if (newPos) {
                 var ind = newPos[0] + ":" + newPos[1];
-                if (field[ind] === undefined) {
-                    field[ind] = [];
+                if (this.creatureField[ind] === undefined) {
+                    this.creatureField[ind] = [];
                 }
-                units = field[ind];
+                units = this.creatureField[ind];
                 units.push(fieldObject);
                 units.sort((a, b) => {return a.objectType - b.objectType;});
             }
@@ -217,10 +249,14 @@ window.onload = function() {
         this.Remove = function(fieldObject) {
             fieldObject.marker.destroy();
             this.Move([fieldObject.col, fieldObject.row], null, fieldObject);
-        }
+        };
         
         this.Add = function (fieldObject) {
-            hexagonField.add(fieldObject.marker);
+            if (fieldObject.objectType == HexType.CREATURE) {
+                this.creatureGroup.add(fieldObject.marker);
+            } else {
+                this.obstaclesGroup.add(fieldObject.marker);
+            }
             this.Move(null, [0, 0], fieldObject);
         };
 
@@ -245,34 +281,36 @@ window.onload = function() {
         this.Highlight = function(posX, posY, rad) {
             // add obstacles
             this.HighlightOff();
-            lastHighlight = radius_with_blocks(makeColRowPair(posX, posY), rad, this.GetCreaturesInRadius(posX, posY, rad));
-            for (var i = 0; i < lastHighlight.length; i++) {
-                var x = lastHighlight[i].col;
-                var y = lastHighlight[i].row;
+            this.lastHighlight = radius_with_blocks(makeColRowPair(posX, posY), rad, this.GetCreaturesInRadius(posX, posY, rad));
+            for (var i = 0; i < this.lastHighlight.length; i++) {
+                var x = this.lastHighlight[i].col;
+                var y = this.lastHighlight[i].row;
                 if (GameWorld.IsValidCoordinate(x, y)) {
-                    highHexes[GameWorld.ColRow2Ind(x, y)].visible = true;
+                    this.highHexes[GameWorld.ColRow2Ind(x, y)].visible = true;
                 }
             }
         };
 
         this.HighlightOff = function() {
-            for (var i = 0; i < lastHighlight.length; ++i) {
-                var x = lastHighlight[i].col;
-                var y = lastHighlight[i].row;
+            for (var i = 0; i < this.lastHighlight.length; ++i) {
+                var x = this.lastHighlight[i].col;
+                var y = this.lastHighlight[i].row;
                 if (GameWorld.IsValidCoordinate(x, y)) {
-                    highHexes[GameWorld.ColRow2Ind(x, y)].visible = false;
+                    this.highHexes[GameWorld.ColRow2Ind(x, y)].visible = false;
                 }
-                delete lastHighlight[i];
+                delete this.lastHighlight[i];
             }
-            lastHighlight = [];
+            this.lastHighlight = [];
         };
 
         this.GetAt = function(posX, posY) {
-            var units = field[posX + ":" + posY];
+            var key = posX + ":" + posY;
+            var units = this.creatureField[key];
             if (units && units.length > 0) {
                 return units[0];
+            } else {
+                return this.hexField[key];
             }
-            assert(false, "GetAt is BUUUUUSTED");
         };
         
         /* The main link between TGameLogic and other code.
@@ -366,6 +404,37 @@ window.onload = function() {
                 return false;
             }
         };
+        
+        this.getAllObjects = function() {
+            var objects = [];
+            for (var key in this.creatureField) {
+                var objs = this.creatureField[key];
+                for (var obj of objs) {
+                    objects.push(obj);
+                }
+            }
+            return objects;
+        };
+        
+        this.Dump2JSON = function() {
+            var jsonGameState = {};
+            jsonGameState.objects = [];
+            for (var obj of this.getAllObjects()) {
+                jsonGameState.objects
+                    .push({"s": obj.sprite_name, "t": obj.objectType, "c": obj.creature});
+            }
+            //jsonGameState.players = 
+            return jsonGameState;
+        };
+        
+        this.Load4JSON = function(jsonGameState) {
+            this.ResetGroup("creatureGroup", "creatureField");
+            this.ResetGroup("obstaclesGroup", null);
+            for (var object of jsonGameState.objects) {
+                new TFieldObject(object.s, object.t, object.c);
+            }
+            // jsonGameState.players...
+        };
     }
         
     var HexagonField;
@@ -428,9 +497,9 @@ window.onload = function() {
         this.creature = initCreature; 
         
         if (this.objectType === HexType.CREATURE) {
+            
             this.marker.inputEnabled = true;
             this.marker.input.enableDrag();
-            
             this.OnDragStart = function (sprite, pointer) {
                 var hex = GameWorld.FindHex(); 
                 if (TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y)) === true) {
