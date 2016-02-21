@@ -36,7 +36,6 @@ function THex(x, y, z) {
     this.__type__ = "T_hex";
 
     this.equals = function (another) {
-        alert();
         return (this.x == another.x && this.y == another.y && this.z == another.z);
     }
     
@@ -88,8 +87,8 @@ function THex(x, y, z) {
     };
     
     this.radius_with_blocks = function (radius, _blocked) {
-        var visited = new Set();
-        var blocked = new Set();
+        var visited = new MySet();
+        var blocked = new MySet();
         blocked.carry = _blocked;
         
         visited.add(this);
@@ -117,6 +116,7 @@ function THex(x, y, z) {
 function RowColPair (row, col) {
     this.row = row;
     this.col = col;
+    return this;
 } 
 
 function radius_with_blocks(center, radius, blocked) {
@@ -131,7 +131,7 @@ function radius_with_blocks(center, radius, blocked) {
     
     result = []
     for (var j = 0; j < result_hex.length; j++) {
-        result.push(RowColPair(result_hex[i].to_rowcol[0], result_hex[i].to_rowcol[1]));
+        result.push(RowColPair(result_hex[j].to_rowcol()[0], result_hex[j].to_rowcol()[1]));
     }
     return result;
 }
