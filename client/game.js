@@ -10,7 +10,7 @@ window.onload = function() {
         var sectorWidth = hexagonWidth;
         var sectorHeight = hexagonHeight / 4 * 3;
         var gradient = (hexagonHeight / 4) / (hexagonWidth / 2);
-        var gameLogic = TGameLogic();
+        var gameLogic = new TGameLogic();
         
         var fieldPosX;
         var fieldPosY;
