@@ -128,6 +128,21 @@ window.onload = function() {
                 y: candidateY
             };
         }
+        
+        this.GetCreatureActionFuncAndButton = function (creatureAction) {
+            if (creatureAction === CreatureAction.FEED) {
+                return ['feed', 'button_feed'];
+            } else if (creatureAction === CreatureAction.MORPH) {
+                return ['morph', 'button_morph'];
+            } else if (creatureAction === CreatureAction.REPLICATE) {
+                return ['replicate', 'button_replicate'];
+            } else if (creatureAction === CreatureAction.SPEC_ABILITY) {
+                return ['spec_ability', 'button_spec_ability'];
+            } else if (creatureAction === CreatureAction.YIELD) {
+                return ['yield', 'button_yield'];
+            }
+            return [];
+        };
     };
     
     var GameWorld = new TGameWorld();
@@ -302,7 +317,7 @@ window.onload = function() {
                             return true;
                         }
                         // REMOVE obj
-                        if (subject.creature.type === CreatureType.SPAWN || subject.creature.type === CreatureType.DAEMON) {
+                        if (subject.creature.type !== CreatureType.WASP || subject.creature.type !== CreatureType.SPIDER) {
                             // GET nutrition
                         }
                         return true;
@@ -478,8 +493,8 @@ window.onload = function() {
             if (Game.input.y <= window.innerHeight - GameWorld.GetActionBarHeight()) { 
                 var hex = GameWorld.FindHex(); 
                 var activeField = HexagonField.GetAt(hex.x, hex.y);
-                logg(activeField.creature);
                 InfoBar.displayInfoCreature(activeField.creature);
+                ActionBar.update(getCreatureActions(activeField.creature));
                 //var result = TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y));
                 //assert(result);
                 //Creature.SetNewPosition(hex.x, hex.y);
@@ -492,10 +507,11 @@ window.onload = function() {
 	function onPreload() {
 		Game.load.image("hexagon", "arts/hexagon.png");
 		Game.load.image("marker", "arts/marker.png");
-        Game.load.image('button1', 'arts/ab-button.png');
-        Game.load.image('button2', 'arts/ab-button2.png');
-        Game.load.image('button3', 'arts/ab-button3.png');
-
+        Game.load.image('button_feed', 'arts/button_feed.png');
+        Game.load.image('button_morph', 'arts/button_morph.png');
+        Game.load.image('button_replicate', 'arts/button_replicate.png');
+        Game.load.image('button_spec_ability', 'arts/button_spec_ability.png');
+        Game.load.image('button_yield', 'arts/button_yield.png');
 	}
     
     function AlertManager (id) {
@@ -506,11 +522,11 @@ window.onload = function() {
         GameWorld.Init();
         
         HexagonField = new THexagonField();
-        var RealCreature = new TCreature(CreatureType.COCOON, 1, 2, 3, 4, 5, 6, null);
+        var RealCreature = new TCreature(CreatureType.VECTOR, 1, 2, 3, 4, 5, 6, null);
         Creature = new TFieldObject("marker", HexType.CREATURE, RealCreature);
         Creature.SetNewPosition(10, 11);
                         
-        ActionBar.create([['first','button1'], ['second', 'button2'], ['third', 'button3']]);
+        ActionBar.create([]);
         
         InfoBar.create("Hey you!\nHahahahahah!");
         
