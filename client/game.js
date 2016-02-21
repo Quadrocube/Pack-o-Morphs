@@ -203,7 +203,6 @@ window.onload = function() {
             units = field[ind];
             units.push(fieldObject);
             units.sort((a, b) => {return a.objectType - b.objectType;});
-            logg(field);
         };
         
         this.Add = function (fieldObject) {
@@ -263,7 +262,7 @@ window.onload = function() {
         this.DoAction = function(subject, action, object, args) {
             if (action === ActionType.MOVE) {
                 var response = (new TGameLogic()).Move(subject, object);
-                if (response != {}) {
+                if (response.error !== undefined) {
                     // something bad happened
                     console.log('ERROR in DoAction.MOVE: ' + response['error']);
                     return false;
@@ -271,28 +270,28 @@ window.onload = function() {
                 return true;
             } else if (action === ActionType.ATTACK) {
                 var response = TGameLogic.Attack(subject, object);
-                if (response.error != undefined) {
+                if (response.error !== undefined) {
                     // something bad happened
                     console.log('ERROR in DoAction.ATTACK: ' + response['error']);
                     return false;
                 }
-                if (response.landed === true && response.death != undefined) {
+                if (response.landed === true && response.death !== undefined) {
                     // attack landed
-                    if (response.death.obj != undefined) {
+                    if (response.death.obj !== undefined) {
                         // obj is dead
-                        if (response.death.subj != undefined) {
+                        if (response.death.subj !== undefined) {
                             // both are dead, nothing happens
                             // REMOVE both
                             return true;
                         }
                         // REMOVE obj
-                        if (subj.creature.type == CreatureType.SPAWN || subj.creature.type == CreatureType.DAEMON) {
+                        if (subject.creature.type === CreatureType.SPAWN || subject.creature.type === CreatureType.DAEMON) {
                             // GET nutrition
                         }
                         return true;
                     } 
                 } 
-                else if (response.landed == false) {
+                else if (response.landed === false) {
                     // attack missed
                     return true;
                 } 
@@ -301,7 +300,7 @@ window.onload = function() {
             } else if (action === ActionType.RUNHIT) {
             } else if (action === ActionType.MORPH) {
                 var response = TGameLogic.Morph(subject, args.additional_cost);
-                if (response.error != undefined) {
+                if (response.error !== undefined) {
                     // something bad happened
                     console.log('ERROR in DoAction.MORPH: ' + response['error']);
                     return false;
@@ -310,7 +309,7 @@ window.onload = function() {
                 return true;
             } else if (action === ActionType.REPLICATE) {
                 var response = TGameLogic.Morph(subject, args.additional_cost);
-                if (response.error != undefined) {
+                if (response.error !== undefined) {
                     // something bad happened
                     console.log('ERROR in DoAction.REPLICATE: ' + response['error']);
                     return false;
@@ -323,8 +322,8 @@ window.onload = function() {
                 // SPEND nutrition
                 // REFRESH subject creature
             } else if (action === ActionType.SPECIAL) {
-                if (args.carapace != undefined) {
-                    if (subject.creature.effects['carapace'] != undefined) {
+                if (args.carapace !== undefined) {
+                    if (subject.creature.effects['carapace'] !== undefined) {
                         return false;
                     }
                     subject.creature.effects['carapace'] = true;

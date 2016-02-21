@@ -25,17 +25,17 @@
             if (subj.creature.effects['drain'] >= subj.creature.MOV)
                 return false;
             // chk: not Hidden
-            if (obj.creature.type == CreatureType.RHINO) {
+            if (obj.creature.type === CreatureType.RHINO) {
                 obj.creature.init_effect('attacked');
-                if (obj.creature.effects['attacked'] == 0) {
+                if (obj.creature.effects['attacked'] === 0) {
                     return false;
                 }
             }
             // chk: distance
             var d = 1;
-            if (subj.creature.type == CreatureType.WASP)
+            if (subj.creature.type === CreatureType.WASP)
                 d = 2;
-            if (subj.creature.type == CreatureType.SPIDER)
+            if (subj.creature.type === CreatureType.SPIDER)
                 d = 3;
             return ((new THex(0, 0, 0)).from_colrow(subj.col, subj.row).distance((new THex(0, 0, 0)).from_colrow(obj.col, obj.row)) <= d);
         };
@@ -103,24 +103,24 @@
                 obj.creature.effects['damage'] += subj.DAM - subj.creature.effect['infest'];
                 subj.creature.effect['infest'] = 0;
                 
-                if (subj.creature.type == CreatureType.SPAWN) {
+                if (subj.creature.type === CreatureType.SPAWN) {
                     subj.creature.init_effect('damage');
                     subj.creature.effect['damage'] = Math.max(0, subj.creature.effect['damage'] - subj.creature.DAM);
                 }
                 
-                if (subj.creature.type == CreatureType.DAEMON || subj.creature.type == CreatureType.SPIDER) {
+                if (subj.creature.type === CreatureType.DAEMON || subj.creature.type === CreatureType.SPIDER) {
                     obj.creature.init_effect('drain');
                     obj.creature.effects['drain'] = Math.max(obj.creature.effects['drain'] + 1, obj.creature.MOV);
                 }
                 
-                if (subj.creature.type == CreatureType.DAEMON) {
+                if (subj.creature.type === CreatureType.DAEMON) {
                     if (obj.creature.type != CreatureType.WASP) {
                         obj.creature.init_effect('poison');
                         obj.creature.effect['poison'] += 1;
                     }
                 }
                 
-                if (subj.creature.type == CreatureType.WASP) {
+                if (subj.creature.type === CreatureType.WASP) {
                     obj.creature.init_effect('infest');
                     obj.creature.effect['infest'] += 1;
                 }
@@ -142,7 +142,7 @@
         */
         this.Move = function(subj, obj) {
             var d = 2;
-            if (subj.creature.type == CreatureType.SPAWN) {
+            if (subj.creature.type === CreatureType.SPAWN) {
                 d *= 2;
             }
             var user_d = (new THex(0, 0, 0)).from_colrow(subj.col, subj.row).distance((new THex(0, 0, 0)).from_colrow(obj.col, obj.row));
@@ -160,7 +160,7 @@
         */
         this.RunHit = function(subj, obj_move, obj_hit) {
             var d = this.Move(subj, obj_move, 1);
-            if (d != {})
+            if (d.error !== undefined)
                 return d;
             return this.Attack(subj, obj_hit);
         };
