@@ -783,6 +783,10 @@ window.onload = function() {
             if (key.keyCode == Phaser.Keyboard.SPACEBAR) {
                 socket.emit('client_data', HexagonField.Dump2JSON());
             }
+            
+            if (key.keyCode === Phaser.Keyboard.ONE) {
+                TurnState.MyTurn();
+            }
         };
 	}
 	
