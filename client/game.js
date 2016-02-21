@@ -410,10 +410,13 @@ window.onload = function() {
             
             this.OnDragStop = function (sprite, pointer) {
                 var hex = GameWorld.FindHex(); 
-                if (TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y)) === true) {
+                if (!GameWorld.IsValidCoordinate(hex.x, hex.y)) { // out of field 
+                   this.SetNewPosition(this.col, this.row); 
+                   TurnState.ResetState();
+                } else if (TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y)) === true) {
                     this.SetNewPosition(hex.x, hex.y);    
                 } else {
-                    this.SetNewPosition(this.col, this.row);
+                   this.SetNewPosition(this.col, this.row);                     
                 }
                 
                 HexagonField.HighlightOff();
