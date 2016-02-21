@@ -32,6 +32,10 @@ function TActionBar(Game, GameWorld, callback, buttonWidth) {
             button.fixedToCamera = true;
         }
     }
+    
+    this.update = function (actionList) {
+        
+    }
 }
 
 /*

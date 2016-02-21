@@ -128,6 +128,21 @@ window.onload = function() {
                 y: candidateY
             };
         }
+        
+        this.GetCreatureActionButtonSprite = function (creatureAction) {
+            if (creatureAction === CreatureAction.FEED) {
+                
+            } else if (creatureAction === CreatureAction.MORPH) {
+                
+            } else if (creatureAction === CreatureAction.REPLICATE) {
+                
+            } else if (creatureAction === CreatureAction.SPEC_ABILITY) {
+                
+            } else if (creatureAction === CreatureAction.YIELD) {
+                
+            }
+            return [];
+        };
     };
     
     var GameWorld = new TGameWorld();
