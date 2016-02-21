@@ -483,27 +483,26 @@ window.onload = function() {
         var TS_SELECTED = 1;
         var TS_ACTION = 2;
         
-        var state;
-        var creature;
-        var action;
-        var endPosition;
+        this.state = TS_NONE;
+        this.activeObject = undefined;
+        this.action = undefined;
+        this.endPosition = undefined;
         
         this.ResetState = function () {
-            state = TS_NONE;
-            creature = undefined;
-            action = undefined;
-            endPosition = undefined;
+            this.state = TS_NONE;
+            this.action = undefined;
+            this.endPosition = undefined;
         };
         
         this.ResetState();
         
         this.SelectField = function (field) {
-            if (state === TS_NONE || state === TS_SELECTED) {
-                creature = field;
-                state = TS_SELECTED;
-            } else if (state === TS_ACTION) {
-                endPosition = field;
-                var result = HexagonField.DoAction(creature, action, endPosition);
+            if (this.state === TS_NONE || this.state === TS_SELECTED) {
+                this.activeObject = field;
+                this.state = TS_SELECTED;
+            } else if (this.state === TS_ACTION) {
+                this.endPosition = field;
+                var result = HexagonField.DoAction(this.activeObject, this.action, this.endPosition);
                 this.ResetState();
                 return result;
             } else {
@@ -513,9 +512,9 @@ window.onload = function() {
         };
         
         this.SelectAction = function (act) {
-            if (state === TS_SELECTED) {
-                action = act;
-                state = TS_ACTION;
+            if (this.state === TS_SELECTED) {
+                this.action = act;
+                this.state = TS_ACTION;
                 return true;
             } else {
                 this.ResetState();
@@ -542,10 +541,8 @@ window.onload = function() {
             this.OnDragStart = function (sprite, pointer) {
                 var hex = GameWorld.FindHex(); 
                 if (TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y)) === true) {
-                    if (TurnState.SelectAction(ActionType.MOVE) === true) {
-                        HexagonField.HighlightOff();
-                        HexagonField.Highlight(this.col, this.row, 2);
-                    }
+                    HexagonField.HighlightOff();
+                    HexagonField.Highlight(this.col, this.row, 2);
                 }
             };
             
@@ -553,9 +550,9 @@ window.onload = function() {
                 var hex = GameWorld.FindHex(); 
                 if (!GameWorld.IsValidCoordinate(hex.x, hex.y)) { // out of field 
                    this.SetNewPosition(this.col, this.row); 
-                   TurnState.ResetState();
-                } else if (TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y)) === true) {
-                    this.SetNewPosition(hex.x, hex.y);    
+                } else if (TurnState.SelectAction(ActionType.MOVE) === true &&
+                           TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y)) === true) {
+                   this.SetNewPosition(hex.x, hex.y);
                 } else {
                    this.SetNewPosition(this.col, this.row);                     
                 }
@@ -637,21 +634,21 @@ window.onload = function() {
     
     function AlertManager (id) {
         if (id === 'feed') {
-            HexagonField.DoAction(TurnState.creature, ActionType.REFRESH);
+            HexagonField.DoAction(TurnState.activeObject, ActionType.REFRESH);
         } else if (id === 'morph') {
             ActionBar.update(getMorphList());
         } else if (id === 'replicate') {
-            HexagonField.DoAction(TurnState.creature, ActionType.REPLICATE);
+            HexagonField.DoAction(TurnState.activeObject, ActionType.REPLICATE);
         } else if (id === 'yield') {
-            HexagonField.DoAction(TurnState.creature, ActionType.YIELD);
+            HexagonField.DoAction(TurnState.activeObject, ActionType.YIELD);
         } else if (id === 'spec_ability') {
-            HexagonField.DoAction(TurnState.creature, ActionType.SPECIAL);
+            HexagonField.DoAction(TurnState.activeObject, ActionType.SPECIAL);
         } else if (id === 'morph_cancel') {
-            ActionBar.update(getCreatureActions(TurnState.creature));
+            ActionBar.update(getCreatureActions(TurnState.activeObject.creature));
         } else if (id.substring(0, 6) == 'morph_') {
             var target = id.substring(6);
             console.log(target);
-            HexagonField.DoAction(TurnState.creature, ActionType.MORPH, undefined, {'target': target});
+            HexagonField.DoAction(TurnState.activeObject, ActionType.MORPH, undefined, {'target': target});
         } else {
             console.log('ERROR: something other has been clickd, id=' + id);
         }
