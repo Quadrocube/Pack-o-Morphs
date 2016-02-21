@@ -181,29 +181,28 @@ window.onload = function() {
             }
         }
 
-        logg = function(object) {
-            var output = '';
-            for (var property in object) {
-                output += property + ': ' + object[property]+'; ';
-            }
-            console.log(output);
-        };
-
         this.Move = function(prevPos, newPos, fieldObject) {
             var units;
             if (prevPos) {
                 units = field[prevPos[0] + ":" + prevPos[1]];
                 ind = units.indexOf(fieldObject);
                 units.splice(ind, 1);
-            } 
-            var ind = newPos[0] + ":" + newPos[1];
-            if (field[ind] === undefined) {
-                field[ind] = [];
             }
-            units = field[ind];
-            units.push(fieldObject);
-            units.sort((a, b) => {return a.objectType - b.objectType;});
+            if (newPos) {
+                var ind = newPos[0] + ":" + newPos[1];
+                if (field[ind] === undefined) {
+                    field[ind] = [];
+                }
+                units = field[ind];
+                units.push(fieldObject);
+                units.sort((a, b) => {return a.objectType - b.objectType;});
+            }
         };
+        
+        this.Remove = function(fieldObject) {
+            fieldObject.marker.destroy();
+            this.Move([fieldObject.col, fieldObject.row], null, fieldObject);
+        }
         
         this.Add = function (fieldObject) {
             hexagonField.add(fieldObject.marker);
