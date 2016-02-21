@@ -237,7 +237,7 @@
             if (user_d === 0) {
                 return {'error': '0 movement'};
             }
-            return {};
+            return undefined;
         };
         
         /*
@@ -262,13 +262,13 @@
             //if (subj.creature.player.NUT < 2 + additional_cost) {
             //    return {'error': 'not enough NUT'};
             //}
-            return {};
+            return undefined;
         };
         /*
             returns {}
         */
         this.Yield = function(subj, obj) {
-            return {};
+            return undefined;
         };
     };
     
@@ -297,6 +297,14 @@
         
         this.Refresh = function() {
             this.effects = {};
+        }
+        this.Morph = function(target, additional_cost) {
+            // TODO
+            console.log('morph');
+        }
+        this.Replicate = function(target, additional_cost) {
+            // TODO
+            console.log('replicate');
         }
         //return this;
     };

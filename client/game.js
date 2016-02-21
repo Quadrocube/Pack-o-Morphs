@@ -321,9 +321,9 @@ window.onload = function() {
             ATTACK:
                 subject and object are creatures
             MORPH or REPLICATE:
-                subject is creature, args = [additional_cost: X]
+                subject is creature, args = [target: creature, additional_cost: X]
             REFRESH:
-                subject is creature
+                subject is creature, args = [additional_cost: X]
             YIELD:
                 subject is creature, object is bush
             SPECIAL:
@@ -332,7 +332,7 @@ window.onload = function() {
         this.DoAction = function(subject, action, object, args) {
             if (action === ActionType.MOVE) {
                 var response = (new TGameLogic()).Move(subject, object);
-                if (response.error !== undefined) {
+                if (response !== undefined && response.error !== undefined) {
                     // something bad happened
                     console.log('ERROR in DoAction.MOVE: ' + response['error']);
                     return false;
@@ -370,13 +370,33 @@ window.onload = function() {
                 return false;
             } else if (action === ActionType.RUNHIT) {
             } else if (action === ActionType.MORPH) {
+                if (args === undefined || args.target === undefined || args.additional_cost === undefined) {
+                    console.log('ERROR in DoAction.MORPH: Presentation error');
+                    return false;
+                }
+                
                 var response = TGameLogic.Morph(subject, args.additional_cost);
                 if (response.error !== undefined) {
                     // something bad happened
                     console.log('ERROR in DoAction.MORPH: ' + response['error']);
                     return false;
                 }
-                // INIT morphing
+                var target;
+                if (args.target === 'vector') 
+                    target = CreatureType.VECTOR;
+                else if (args.target === 'spawn')
+                    target = CreatureType.SPAWN;
+                else if (args.target === 'daemon')
+                    target = CreatureType.DAEMON;
+                else if (args.target === 'turtle')
+                    target = CreatureType.TURTLE;
+                else if (args.target === 'rhino')
+                    target = CreatureType.RHINO;
+                else if (args.target === 'wasp')
+                    target = CreatureType.WASP;
+                else if (args.target === 'spider')
+                    target = CreatureType.SPIDER;
+                subject.morph(target, args.additional_cost);
                 return true;
             } else if (action === ActionType.REPLICATE) {
                 var response = TGameLogic.Morph(subject, args.additional_cost);
@@ -385,7 +405,7 @@ window.onload = function() {
                     console.log('ERROR in DoAction.REPLICATE: ' + response['error']);
                     return false;
                 }
-                // INIT replicating
+                subject.replicate(target, args.additional_cost);
                 return true;
             } else if (action === ActionType.REFRESH) {
                 // SPEND nutrition
@@ -587,7 +607,25 @@ window.onload = function() {
 	}
     
     function AlertManager (id) {
-        alert('Clicked on ' + id);
+        if (id === 'feed') {
+            HexagonField.DoAction(TurnState.creature, ActionType.REFRESH);
+        } else if (id === 'morph') {
+            ActionBar.update(getMorphList());
+        } else if (id === 'replicate') {
+            HexagonField.DoAction(TurnState.creature, ActionType.REPLICATE);
+        } else if (id === 'yield') {
+            HexagonField.DoAction(TurnState.creature, ActionType.YIELD);
+        } else if (id === 'spec_ability')
+            HexagonField.DoAction(TurnState.creature, ActionType.SPECIAL);
+        } else if (id === 'morph_cancel') {
+            ActionBar.update(getCreatureActions(TurnState.creature));
+        } else if (id.substring(0, 6) == 'morph_') {
+            var target = id.substring(6);
+            console.log(target);
+            HexagonField.DoAction(TurnState.creature, ActionType.MORPH, undefined, {'target': target});
+        } else {
+            console.log('ERROR: something other has been clickd, id=' + id);
+        }
     }
 
 	function onCreate() {
