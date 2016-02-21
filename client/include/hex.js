@@ -37,17 +37,17 @@ function THex(x, y, z) {
 
     this.equals = function (another) {
         return (this.x == another.x && this.y == another.y && this.z == another.z);
-    }
+    };
     
     this.from_colrow = function (col, row) {
         this.x = col - (row - (row&1)) / 2;
         this.z = row;
         this.y = -this.x - this.z;
         return this;
-    }
+    };
     this.to_colrow = function () {
-        return [this.z, this.x + (this.z - (this.z & 1)) / 2];
-    }
+        return [this.x + (this.z - (this.z & 1)) / 2, this.z, ];
+    };
     
     this.getx = function () {
         return this.x;
@@ -125,11 +125,11 @@ function makeColRowPair (col, row) {
 function radius_with_blocks(center, radius, blocked) {
     var blocked_hex = []
     for (var i = 0; i < blocked.length; i++) {
-        var hex = new THex();
+        var hex = new THex(0,0,0);
         blocked_hex.push(hex.from_colrow(blocked.col, blocked.row));
     }
     
-    var center_hex = (new THex()).from_colrow(center.col, center.row);
+    var center_hex = (new THex(0,0,0)).from_colrow(center.col, center.row);
     var result_hex = center_hex.radius_with_blocks(radius, blocked_hex);
     
     var result = [];
