@@ -1,4 +1,5 @@
-window.onload = function() {	
+window.onload = function() {
+    var socket = io.connect();
     var Game = new Phaser.Game("100%", "100%", Phaser.CANVAS, "", {preload: onPreload, create: onCreate, update: onUpdate});
     
     // test winbreaks
@@ -128,6 +129,41 @@ window.onload = function() {
                 y: candidateY
             };
         }
+        
+        this.getSpriteName = function(type, creature) {
+            if (type === HexType.EMPTY) {
+                return "hexagon";
+            } else if (type === HexType.FOREST) {
+                return "marker";
+            } else if (type === HexType.GRASS) {
+                return "marker";
+            } else if (type === HexType.CREATURE) {
+                assert(creature, "WUT creature");
+                if (creature.type === CreatureType.COCOON) {
+                    return 'hex_canoon';
+                } else if (creature.type === CreatureType.PLANT) {
+                    return 'hex_plant';
+                } else if (creature.type === CreatureType.DAEMON) {
+                    return 'hex_daemon';
+                } else if (creature.type === CreatureType.RHINO) {
+                    assert(false, "gemme my sprite now!");
+                } else if (creature.type === CreatureType.SPAWN) {
+                    return 'hex_spawn';
+                } else if (creature.type === CreatureType.SPIDER) {
+                    assert(false, "gemme my sprite now!");
+                } else if (creature.type === CreatureType.TURTLE) {
+                    return 'hex_turtle';
+                } else if (creature.type === CreatureType.VECTOR) {
+                    return 'hex_vector';
+                } else if (creature.type === CreatureType.WASP) {
+                    assert(false, "gemme my sprite now!");
+                } else  {
+                    assert(false, "WUT creature type");
+                }
+            } else {
+                assert(false, "WUT type");
+            }
+        };
         
         this.GetCreatureActionFuncAndButton = function (creatureAction) {
             if (creatureAction === CreatureAction.FEED) {
@@ -460,7 +496,7 @@ window.onload = function() {
             jsonGameState.objects = [];
             for (var obj of this.getAllObjects()) {
                 jsonGameState.objects
-                    .push({"s": obj.sprite_name, "t": obj.objectType, "c": obj.creature});
+                    .push({"l": [obj.col, obj.row], "t": obj.objectType, "c": obj.creature});
             }
             //jsonGameState.players = 
             return jsonGameState;
@@ -470,7 +506,8 @@ window.onload = function() {
             this.ResetGroup("creatureGroup", "creatureField");
             this.ResetGroup("obstaclesGroup", null);
             for (var object of jsonGameState.objects) {
-                new TFieldObject(object.s, object.t, object.c);
+                var obj = new TFieldObject(object.t, object.c);
+                HexagonField.Move([0, 0], object.l, obj);
             }
             // jsonGameState.players...
         };
@@ -526,11 +563,12 @@ window.onload = function() {
     var TurnState = new TTurnState();
     
     // string, HexType, TCreature
-    function TFieldObject(sprite_name, type, initCreature) {
+    function TFieldObject(type, initCreature) {
+        var sprite_name = GameWorld.getSpriteName(type, initCreature);
         this.marker = Game.add.sprite(0,0,sprite_name);
         // row = y, col = x
-        this.row = 0;
         this.col = 0;
+        this.row = 0;
         this.objectType = type;
         this.creature = initCreature; 
         
@@ -630,6 +668,12 @@ window.onload = function() {
         Game.load.image('button_morph_wasp', 'arts/button_size/amoeba8.png');
         Game.load.image('button_morph_spider', 'arts/button_size/amoeba9.png');
         Game.load.image('button_morph_cancel', 'arts/button_size/cancel.png');
+        Game.load.image('hex_vector', 'arts/small/amoeba.png');
+        Game.load.image('hex_canoon', 'arts/small/amoeba2.png');
+        Game.load.image('hex_plant', 'arts/small/amoeba3.png');
+        Game.load.image('hex_spawn', 'arts/small/amoeba4.png');
+        Game.load.image('hex_daemon', 'arts/small/amoeba5.png');
+        Game.load.image('hex_turtle', 'arts/small/amoeba6.png');
 	}
     
     function AlertManager (id) {
@@ -659,7 +703,7 @@ window.onload = function() {
         
         HexagonField = new THexagonField();
         var RealCreature = new TCreature(CreatureType.VECTOR, 1, 2, 3, 4, 5, 6, null);
-        Creature = new TFieldObject("marker", HexType.CREATURE, RealCreature);
+        Creature = new TFieldObject(HexType.CREATURE, RealCreature);
         Creature.SetNewPosition(10, 11);
                         
         ActionBar.create([]);
@@ -669,6 +713,11 @@ window.onload = function() {
         InfoBar.displayInfoCreature(RealCreature);
         
         Game.input.mouse.mouseDownCallback = mouseDownCallback;
+        Game.input.keyboard.onDownCallback = function(key) {
+            if (key.keyCode == Phaser.Keyboard.SPACEBAR) {
+                socket.emit('client_data', HexagonField.Dump2JSON());
+            }
+        };
 	}
 	
 	function onUpdate() {
@@ -685,5 +734,5 @@ window.onload = function() {
 		} else if (Game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
 		    Game.camera.y += camSpeed;
 		}
-	}
+	};
 }
