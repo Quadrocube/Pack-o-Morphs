@@ -898,6 +898,7 @@ window.onload = function() {
         
         socket.on('disconnect', function() {
             loading("Sorry, your opponent has disconnected...", "down");
+            TurnState._PassTurn();
         });
         socket.on('new-turn', function(data) {
             assert(TurnState.state === StateType.TS_OPPONENT_MOVE, "Received new-turn during out turn");
@@ -931,9 +932,11 @@ window.onload = function() {
     function loading (text, direction) {
         var emitterY = Game.world.height;
         var gravity = -500;
+        var color = "#0288D1";
         if (direction === 'down') {
             emitterY = 0;
             gravity = 500;
+            color = "#01579B";
         }
         emitter = Game.add.emitter(Game.world.centerX, emitterY, 200);
 
@@ -951,7 +954,7 @@ window.onload = function() {
 
         emitter.start(false, 5000, 100);
         
-        var style = { font: "32px Comfortaa", fill: "#0288D1", align: "center"};        
+        var style = { font: "32px Comfortaa", fill: color, align: "center"};        
         loadingText = Game.add.text(Game.width / 2, Game.height / 2, text, style);
         loadingText.anchor.set(0.5);
         loadingText.fixedToCamera = true;
