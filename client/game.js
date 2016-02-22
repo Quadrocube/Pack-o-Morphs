@@ -896,7 +896,9 @@ window.onload = function() {
             };
         });
         
-        //socket.on('disconnect');
+        socket.on('disconnect', function() {
+            loading("Sorry, your opponent has disconnected...", "down");
+        });
         socket.on('new-turn', function(data) {
             assert(TurnState.state === StateType.TS_OPPONENT_MOVE, "Received new-turn during out turn");
             HexagonField.Load4JSON(data);
@@ -926,8 +928,14 @@ window.onload = function() {
         loadingText.destroy();    
     }
 
-    function loading() {
-        emitter = Game.add.emitter(Game.world.centerX, Game.world.height, 200);
+    function loading (text, direction) {
+        var emitterY = Game.world.height;
+        var gravity = -500;
+        if (direction === 'down') {
+            emitterY = 0;
+            gravity = 500;
+        }
+        emitter = Game.add.emitter(Game.world.centerX, emitterY, 200);
 
         emitter.width = window.innerWidth - 100;
 
@@ -939,19 +947,19 @@ window.onload = function() {
         emitter.setRotation(0, 0);
         emitter.setAlpha(0.3, 0.8);
         emitter.setScale(0, 0.2, 0, 0.2, 6000, Phaser.Easing.Quintic.Out);
-        emitter.gravity = -500;
+        emitter.gravity = gravity;
 
         emitter.start(false, 5000, 100);
         
         var style = { font: "32px Comfortaa", fill: "#0288D1", align: "center"};        
-        loadingText = Game.add.text(Game.width / 2, Game.height / 2, "Waiting for the opponent...\nTip: you can open the game in other tab and play with yourself :)", style);
+        loadingText = Game.add.text(Game.width / 2, Game.height / 2, text, style);
         loadingText.anchor.set(0.5);
         loadingText.fixedToCamera = true;
     }
 
 	function onCreate() {
         GameWorld.Init();
-        loading();
+        loading("Waiting for the opponent...\nTip: you can open the game in other tab and play with yourself :)", "up");
         Server = new TServer();
 	}
 	
