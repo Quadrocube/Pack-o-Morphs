@@ -5,8 +5,8 @@ window.onload = function() {
     function TGameWorld() {
         var hexagonWidth = 35;
         var hexagonHeight = 40;
-        var gridSizeX = 52;
-        var gridSizeY = 26;
+        var gridSizeX = 2 * 16;
+        var gridSizeY = 20;
         var columns = [Math.ceil(gridSizeX / 2),Math.floor(gridSizeX / 2)];
         var sectorWidth = hexagonWidth;
         var sectorHeight = hexagonHeight / 4 * 3;
