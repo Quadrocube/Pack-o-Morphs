@@ -3,8 +3,6 @@ window.onload = function() {
     var Game = new Phaser.Game("100%", "100%", Phaser.CANVAS, "", {preload: onPreload, create: onCreate, update: onUpdate});
     
     // test winbreaks
-    
-    
 
     function TGameWorld() {
         var hexagonWidth = 35;
@@ -202,10 +200,20 @@ window.onload = function() {
     
     var GameWorld = new TGameWorld();
     
+    var PlayerType = {
+        ME: 0,
+        NOTME: 1
+    };
+    
+    function TPlayer(initNutrition, id) {
+        this.nutrition = initNutrition;
+        this.id = id;
+    };
+    
     var ActionType = {
-        MOVE : 0,
-        ATTACK : 1,
-        RUNHIT : 2,
+        MOVE: 0,
+        ATTACK: 1,
+        RUNHIT: 2,
         REPLICATE: 3,
         MORPH: 4,
         REFRESH: 5,
@@ -640,7 +648,7 @@ window.onload = function() {
                 var hex = GameWorld.FindHex(); 
                 if (TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y)) === true) {
                     HexagonField.HighlightOff();
-                    HexagonField.Highlight(this.col, this.row, 2);
+                    HexagonField.Highlight(this.col, this.row, this.MoveRange());
                 }
             };
             
@@ -653,15 +661,15 @@ window.onload = function() {
                     if (target.objectType === HexType.CREATURE &&
                         TurnState.SelectAction(ActionType.ATTACK) === true && 
                         TurnState.SelectField(target) === true) {
-                        // pass, action performed in if-clause
+                        this.SetNewPosition(this.col, this.row);
                     } else if (TurnState.SelectAction(ActionType.MOVE) === true &&
                                TurnState.SelectField(target) === true) {
                         this.SetNewPosition(hex.x, hex.y);
-                        TurnState.SelectField(this);
                     } else {
                         this.SetNewPosition(this.col, this.row); 
                         TurnState.SelectField(this);               
                     }
+                    TurnState.SelectField(this);
                 }
                 
                 HexagonField.HighlightOff();
