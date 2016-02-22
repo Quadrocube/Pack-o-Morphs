@@ -32,7 +32,7 @@ function TQueue () {
         this.carry.push(val);
     };
     this.pop = function () {
-        this.carry.splice(0,1);
+        return this.carry.splice(0,1)[0];
     };
     this.removeByValue = function (val) {
         var found = undefined;
@@ -53,8 +53,6 @@ var lobbies = {};
 function Lobby(socketOne, socketTwo) {
     this.socketOne = socketOne;
     this.socketTwo = socketTwo;
-    this.socketOne.emit('found-opp', {'order': [0, 1]});
-    this.socketTwo.emit('found-opp', {'order': [1, 0]});
 
     this._getOpp = function(id) {
       if (id === socketOne.id) {
@@ -64,7 +62,7 @@ function Lobby(socketOne, socketTwo) {
       }
     }
     
-    this.disconnect() = function(id) {
+    this.disconnect = function(id) {
       this._getOpp(id).disconnect();
     }
     
@@ -77,6 +75,8 @@ function initSession(playerOneSocket, playerTwoSocket) {
   var lobby = new Lobby(playerOneSocket, playerTwoSocket);
   lobbies[playerOneSocket.id] = lobby;
   lobbies[playerTwoSocket.id] = lobby;
+  playerOneSocket.emit('found-opp', {'order': [0, 1]});
+  playerTwoSocket.emit('found-opp', {'order': [1, 0]});
 };
 
 listener.sockets.on('connection', function(socket){
@@ -86,8 +86,6 @@ listener.sockets.on('connection', function(socket){
     socket.on('manual-field-send', function(data) {
       process.stdout.write("uid " + socket.id + ": " + JSON.stringify(data.objects) + "\n");
     });
-
-    socket.emit('found-opp', {'order': [0, 1]}); // REMOVE!
 
     socket.on('disconnect', function(){
       if (!lobbies[socket.id]) {
@@ -99,22 +97,19 @@ listener.sockets.on('connection', function(socket){
     });
 
     socket.on('new-turn', function(data) {
-      socket.emit('new-turn', data); // REMOVE!
       console.log('new-turn');
-      /*
       if (!lobbies[socket.id]) {
         console.log("Panic! No lobby for user " + socket.id + ", but he is sending us new-turns!");
       } else {
         lobbies[socket.id].send(socket.id, data);
       }
-      */
     });
 
-    /*if (UserQueue.length() > 0) {
+    if (UserQueue.length() > 0) {
       opp = UserQueue.pop();
       initSession(socket, opp);
     } else {
       UserQueue.push(socket);
-    }*/
+    }
 });
 
