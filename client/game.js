@@ -551,6 +551,28 @@ window.onload = function() {
             return objects;
         };
         
+        this.getMeOpponentCreatures = function() {
+            var myCreatures = [];
+            var opponentCreatures = [];
+            for (var key in this.creatureField) {
+                var objs = this.creatureField[key];
+                for (var obj of objs) {
+                    if (obj.objectType === HexType.CREATURE) {
+                        if (obj.creature.player === HexagonField.PlayerId.ME) {
+                            myCreatures.push(obj);
+                        } else {
+                            opponentCreatures.push(obj);
+                        }
+                    }
+                }
+            }
+            
+            return {
+                myCreatures: myCreatures,
+                opponentCreatures: opponentCreatures
+                };
+        }
+        
         this.Dump2JSON = function() {
             var jsonGameState = {};
             jsonGameState.objects = [];
@@ -601,6 +623,10 @@ window.onload = function() {
             this._ResetState();
             this.state = StateType.TS_OPPONENT_MOVE;
             ActionBar.lock();
+            var creatures = HexagonField.getMeOpponentCreatures();
+            StatInfoBar.displayStatInfo(HexagonField.GetMe().nutrition, 
+                                        creatures.myCreatures.length,
+                                        creatures.opponentCreatures.length);
             HexagonField.toggleDraggable();
             if (dontSend === true) {
                 // I hate js handling of undefined, null and stuff
@@ -846,6 +872,7 @@ window.onload = function() {
     var ActionBar = new TActionBar(Game, GameWorld, AlertManager, 128);
     
     var InfoBar = new TInfoBar(Game, GameWorld);
+    var StatInfoBar = new TStatInfoBar(Game, GameWorld);
     
     function mouseDownCallback(e) {
         if (Game.input.y <= window.innerHeight - GameWorld.GetActionBarHeight()) { 
@@ -985,7 +1012,8 @@ window.onload = function() {
         HexagonField = new THexagonField(order);
         creaturesInit();
         ActionBar.create([]);
-        InfoBar.create("");        
+        InfoBar.create("");
+        StatInfoBar.create("");        
         Game.input.mouse.mouseDownCallback = mouseDownCallback;
         TurnState = new TTurnState(order[0] === 0);
     };
@@ -1075,7 +1103,7 @@ window.onload = function() {
 	function onCreate() {
         GameWorld.Init();
         loading("Waiting for the opponent...\nTip: you can open the game in other tab and play with yourself :)", "up");
-        Server = new TServer();
+        Server = new TServerMock();
 	}
 	
 	function onUpdate() {
