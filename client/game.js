@@ -515,10 +515,20 @@ window.onload = function() {
                 delete subject;
                 return true;
             } else if (action === ActionType.REFRESH) {
-                // SPEND nutrition
-                subject.creature.Refresh();
+                if (true) { // ENOUGH nutrition
+                    // SPEND nutrition
+                    subject.creature.Refresh();
+                    return true;
+                } else {
+                    return false;
+                }
             } else if (action === ActionType.YIELD) {
                 // ADD nutrition
+                if (true) { // grass AVAILABLE
+                    return true;
+                } else {
+                    return false;
+                }
             } else if (action === ActionType.SPECIAL) {
                 var response = logic.Special(subject);
                 if (response !== undefined && response['error'] !== undefined) {
@@ -584,19 +594,24 @@ window.onload = function() {
             this.activeObject = undefined;
             this.action = undefined;
             this.endPosition = undefined;
+            ActionBar.update([]);
         };
         
-        this._PassTurn = function() {
+        this._PassTurn = function(dontSend) {
             this._ResetState();
             this.state = StateType.TS_OPPONENT_MOVE;
             ActionBar.lock();
             HexagonField.toggleDraggable();
-            Server.Send('new-turn', HexagonField.Dump2JSON());
+            if (dontSend === true) {
+                // I hate js handling of undefined, null and stuff
+            } else {
+                Server.Send('new-turn', HexagonField.Dump2JSON());
+            }
         }
         
         this._ResetState();
         if (!weStart) {
-            this._PassTurn();
+            this._PassTurn(true);
         }
         
         this._CancelMove = function () {
@@ -621,6 +636,7 @@ window.onload = function() {
                 this.endPosition = field;
                 var result = HexagonField.DoAction(this.activeObject, this.action, this.endPosition);
                 if (result) {
+                    this._ResetState();
                     this._PassTurn();
                 } else {
                     this._CancelMove();
@@ -807,22 +823,35 @@ window.onload = function() {
     function AlertManager (id) {
         
         if (id === 'feed') {
-            HexagonField.DoAction(TurnState.activeObject, ActionType.REFRESH);
+            if (HexagonField.DoAction(TurnState.activeObject, ActionType.REFRESH)) {
+                TurnState._PassTurn();
+            }
         } else if (id === 'morph') {
             ActionBar.update(getMorphList());
         } else if (id === 'replicate') {
-            HexagonField.DoAction(TurnState.activeObject, ActionType.REPLICATE, undefined, {'additional_cost': 0});
+            if (HexagonField.DoAction(TurnState.activeObject, ActionType.REPLICATE, undefined, {'additional_cost': 0})) {
+                TurnState._PassTurn();
+            }
         } else if (id === 'yield') {
-            HexagonField.DoAction(TurnState.activeObject, ActionType.YIELD);
+            if (HexagonField.DoAction(TurnState.activeObject, ActionType.YIELD)) {
+                TurnState._PassTurn();
+            }
         } else if (id === 'spec_ability') {
-            if (!HexagonField.DoAction(TurnState.activeObject, ActionType.SPECIAL))
+            if (!HexagonField.DoAction(TurnState.activeObject, ActionType.SPECIAL)) {
                 console.log('spec ability is used already');
+            } else {
+                TurnState._PassTurn();
+            }
         } else if (id === 'morph_cancel') {
-            ActionBar.update(getCreatureActions(TurnState.activeObject.creature));
+            if (ActionBar.update(getCreatureActions(TurnState.activeObject.creature))) {
+                TurnState._PassTurn();
+            }
         } else if (id.substring(0, 6) == 'morph_') {
             var target = id.substring(6);
-            HexagonField.DoAction(TurnState.activeObject, ActionType.MORPH, undefined, {'target': target, 'additional_cost': 0});
-            ActionBar.update([]);
+            if (HexagonField.DoAction(TurnState.activeObject, ActionType.MORPH, undefined, {'target': target, 'additional_cost': 0})) {
+                ActionBar.update([]);
+                TurnState._PassTurn();
+            }
         } else {
             console.log('ERROR: something other has been clickd, id=' + id);
         }
@@ -922,10 +951,8 @@ window.onload = function() {
 
 	function onCreate() {
         GameWorld.Init();
-        //console.log("loading");
         loading();
-//        console.log("loading");
-        Server = new TServerMock();
+        Server = new TServer();
 	}
 	
 	function onUpdate() {
