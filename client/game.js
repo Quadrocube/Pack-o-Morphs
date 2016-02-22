@@ -449,7 +449,7 @@ window.onload = function() {
                         }
                         HexagonField.Remove(object);
                         if (subject.creature.type !== CreatureType.WASP || subject.creature.type !== CreatureType.SPIDER) {
-                            // GET nutrition
+                            HexagonField.players[subject.creature.player].nutrition += object.creature.NUT;
                         }
                         return true;
                     } 
@@ -467,6 +467,10 @@ window.onload = function() {
                 if (response !== undefined && response.error !== undefined) {
                     // something bad happened
                     console.log('ERROR in DoAction.MORPH: ' + response['error']);
+                    return false;
+                }
+                if (HexagonField.players[subject.creature.player].nutrition <= 1) {
+                    console.log('Not enough nutrition, need 2 have ' + HexagonField.players[subject.creature.player].nutrition);
                     return false;
                 }
                 var target;
@@ -493,6 +497,8 @@ window.onload = function() {
                 var fieldObject = new TFieldObject(HexType.CREATURE, creature);
                 fieldObject.SetNewPosition(subject.col, subject.row);
                 delete subject;
+                
+                HexagonField.players[subject.creature.player].nutrition -= 2;
                 return true;
             } else if (action === ActionType.REPLICATE) {
                 if (args === undefined || args.additional_cost === undefined) {
@@ -505,6 +511,10 @@ window.onload = function() {
                     console.log('ERROR in DoAction.REPLICATE: ' + response['error']);
                     return false;
                 }
+                if (HexagonField.players[subject.creature.player].nutrition <= 1) {
+                    console.log('Not enough nutrition, need 2 have ' + HexagonField.players[subject.creature.player].nutrition);
+                    return false;
+                }
                 HexagonField.Remove(subject);
                 var creature = newCreature(CreatureType.COCOON, HexagonField.PlayerId.ME);
                 creature.init_effect('morph');
@@ -513,11 +523,17 @@ window.onload = function() {
                 fieldObject = new TFieldObject(HexType.CREATURE, creature);
                 fieldObject.SetNewPosition(subject.col, subject.row);
                 delete subject;
+                
+                HexagonField.players[subject.creature.player].nutrition -= 2;
                 return true;
             } else if (action === ActionType.REFRESH) {
-                if (true) { // ENOUGH nutrition
-                    // SPEND nutrition
+                if (true) {
+                    if (HexagonField.players[subject.creature.player].nutrition <= 0) {
+                        console.log('Not enough nutrition, need 1 have ' + HexagonField.players[subject.creature.player].nutrition);
+                        return false;
+                    }
                     subject.creature.Refresh();
+                    HexagonField.players[subject.creature.player].nutrition -= 1;
                     return true;
                 } else {
                     return false;
