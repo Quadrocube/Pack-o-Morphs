@@ -808,7 +808,7 @@ window.onload = function() {
         this.objectType = type;
         this.creature = initCreature; 
         this.hexActive = null;
-        if (initCreature) {
+        /*if (initCreature) {
             if (initCreature.player === HexagonField.PlayerId.ME) {
                 this.hexActive = Game.add.sprite(0,0,'hexagon_me');
                 HexagonField.creatureGroup.add(this.hexActive);
@@ -816,7 +816,7 @@ window.onload = function() {
                 this.hexActive = Game.add.sprite(0,0,'hexagon_opponent');
                 HexagonField.creatureGroup.add(this.hexActive);
             }
-        }
+        }*/
         
         this.colrow = function () {
             return [this.col, this.row];
@@ -1154,7 +1154,7 @@ window.onload = function() {
 	function onCreate() {
         GameWorld.Init();
         loading("Waiting for the opponent...\nTip: you can open the game in other tab and play with yourself :)", "up");
-        Server = new TServerMock();
+        Server = new TServer();
 	}
 	
 	function onUpdate() {
