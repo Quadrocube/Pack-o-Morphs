@@ -802,10 +802,11 @@ window.onload = function() {
         this.hexActive = null;
         if (initCreature) {
             if (initCreature.player === HexagonField.PlayerId.ME) {
-                //this.hexActive = Game.add.sprite(0,0,'hexagon_me');
+                this.hexActive = Game.add.sprite(0,0,'hexagon_me');
             } else {
-                //this.hexActive = Game.add.sprite(0,0,'hexagon_opponent');
+                this.hexActive = Game.add.sprite(0,0,'hexagon_opponent');
             }
+            HexagonField.creatureGroup.add(this.hexActive);
         }
         
         this.colrow = function () {
@@ -873,8 +874,8 @@ window.onload = function() {
                 var newY = 0.75 * GameWorld.GetHexagonHeight() * posY + GameWorld.GetHexagonHeight() / 2;
                 
                 if (this.hexActive) {
-                    this.hexActive.x = newX;
-                    this.hexActive.y = newY;
+                    this.hexActive.x = newX - 16;
+                    this.hexActive.y = newY - 20;
                 }
                 
                 this.marker.x = newX;
