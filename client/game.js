@@ -1,8 +1,6 @@
 window.onload = function() {
-    //var socket = io.connect();
-    var Game = new Phaser.Game("100%", "100%", Phaser.CANVAS, "", {preload: onPreload, create: onCreate, update: onUpdate});
     
-    // test winbreaks
+    var Game = new Phaser.Game("100%", "100%", Phaser.CANVAS, "", {preload: onPreload, create: onCreate, update: onUpdate});
 
     function TGameWorld() {
         var hexagonWidth = 35;
@@ -698,8 +696,7 @@ window.onload = function() {
                                TurnState.SelectField(target) === true) {
                         this.SetNewPosition(hex.x, hex.y);
                     } else {
-                        this.SetNewPosition(this.col, this.row); 
-                        TurnState.SelectField(this);               
+                        this.SetNewPosition(this.col, this.row);          
                     }
                     TurnState.SelectField(this);
                 }
@@ -753,9 +750,6 @@ window.onload = function() {
             return 2;
         }
     }
-	
-    var Creature;
-    var Creature2;
     
     var ActionBar = new TActionBar(Game, GameWorld, AlertManager, 128);
     
@@ -829,15 +823,9 @@ window.onload = function() {
         ActionBar.update(getCreatureActions(TurnState.activeObject.creature));
     }
 
-    var mockGetOrder = function() {
-        return [0, 1];
-    }
-	function onCreate() {
-        GameWorld.Init();
-        var order = mockGetOrder();
-        HexagonField = new THexagonField(order);
-        TurnState = new TTurnState(order[0] === 1);
-        // examples of creatures 
+    var Server;
+    
+    function InitMockCreatures() {
         var RealCreature = newCreature(CreatureType.TURTLE, HexagonField.PlayerId.NOTME);
         Creature = new TFieldObject(HexType.CREATURE, RealCreature);
         Creature.SetNewPosition(10, 11);
@@ -845,23 +833,55 @@ window.onload = function() {
         var RealCreature2 = newCreature(CreatureType.SPAWN, HexagonField.PlayerId.ME);
         Creature2 = new TFieldObject(HexType.CREATURE, RealCreature2);
         Creature2.SetNewPosition(12, 12);
-                        
+    };
+    
+    function InitGame(order, creaturesInit) {
+        HexagonField = new THexagonField(order);
+        creaturesInit();
         ActionBar.create([]);
-        
-        InfoBar.create("Hey you!\nHahahahahah!");
-        
-        InfoBar.displayInfoCreature(RealCreature);
-        
+        InfoBar.create("");        
         Game.input.mouse.mouseDownCallback = mouseDownCallback;
+        TurnState = new TTurnState(order[0] === 0);
+    };
+    
+    function TServer() {
+        var socket = io.connect();
+        
+        function Send(mtype, mdata) {
+            socket.emit(mtype, mdata);
+        };
+        
+        socket.on('found-opp', function(data) {
+            var order = data.order;
+            InitGame(order, InitMockCreatures);
+            Game.input.keyboard.onDownCallback = function(key) {
+                if (key.keyCode == Phaser.Keyboard.SPACEBAR) {
+                    this.Send('manual-field-send', HexagonField.Dump2JSON());
+                }
+            };
+        });
+        
+        //socket.on('disconnect');
+        //socket.on('new-turn');
+    };
+    
+    function TServerMock() {
+        function Send(mtype, mdata) {
+            return true;
+        };
+        
+        var order = [0, 1];
+        InitGame(order, InitMockCreatures);
         Game.input.keyboard.onDownCallback = function(key) {
-            if (key.keyCode == Phaser.Keyboard.SPACEBAR) {
-                socket.emit('client_data', HexagonField.Dump2JSON());
-            }
-            
             if (key.keyCode === Phaser.Keyboard.ONE) {
                 TurnState.MyTurn();
             }
         };
+    };
+
+	function onCreate() {
+        GameWorld.Init();
+        Server = new TServerMock();
 	}
 	
 	function onUpdate() {
