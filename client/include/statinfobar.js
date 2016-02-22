@@ -16,15 +16,16 @@ function TStatInfoBar(Game, GameWorld) {
         rect.fixedToCamera = true;
         infoGroup.add(rect);
         
-        var style = { font: "32px Comfortaa", fill: "#B3E5FC", wordWrap: true, wordWrapWidth: this.width - this.margin, align: "left"};        
+        var style = { font: "20px Comfortaa", fill: "#B3E5FC", wordWrap: true, wordWrapWidth: this.width - this.margin, align: "left"};        
         this.textHandler = Game.add.text(this.x + this.margin / 2, this.y + this.margin/2, this.text, style);
         infoGroup.add(this.textHandler);
         this.textHandler.fixedToCamera = true;            
     }
-    this.displayStatInfo = function(nutrition, nMyCreatures, nOpponentCreature) {
-        var stats = 'my nutrition: ' + nutrition + '\n'
-                  + 'all my creatures: ' + nMyCreatures + '\n'
-                  + 'all opponent creatures: ' + nOpponentCreature + '\n';
+    this.displayStatInfo = function(myNutrition, oppNutrition, nMyCreatures, nOpponentCreatures) {
+        var stats = '\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tME\n' + 
+                    "\tNUT: " + myNutrition + '\n\t#CREATURES: ' + nMyCreatures + '\n\n' +
+                    '\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tOPP\n' + 
+                    "\tNUT: " + oppNutrition + '\n\t#CREATURES: ' + nOpponentCreatures;
                 
         this.textHandler.setText(stats);
         

@@ -78,6 +78,7 @@ window.onload = function() {
             }
             
             Game.world.setBounds(0, -50, Game.width, Game.height + 228); // constants should be fit for size of field that we need
+            Game.camera.y += 60;
         }
         
         
@@ -605,6 +606,14 @@ window.onload = function() {
         TS_OPPONENT_MOVE: 3  
     };
 
+    function updateStatInfo() {
+        var creatures = HexagonField.getMeOpponentCreatures();
+        StatInfoBar.displayStatInfo(HexagonField.GetMe().nutrition,
+                                    HexagonField.GetOpp().nutrition,
+                                    creatures.myCreatures.length,
+                                    creatures.opponentCreatures.length);    
+    };
+    
     function TTurnState(weStart) {
         this.state = StateType.TS_NONE;
         this.activeObject = undefined;
@@ -623,10 +632,7 @@ window.onload = function() {
             this._ResetState();
             this.state = StateType.TS_OPPONENT_MOVE;
             ActionBar.lock();
-            var creatures = HexagonField.getMeOpponentCreatures();
-            StatInfoBar.displayStatInfo(HexagonField.GetMe().nutrition, 
-                                        creatures.myCreatures.length,
-                                        creatures.opponentCreatures.length);
+            updateStatInfo();
             HexagonField.toggleDraggable();
             if (dontSend === true) {
                 // I hate js handling of undefined, null and stuff
@@ -638,6 +644,8 @@ window.onload = function() {
         this._ResetState();
         if (!weStart) {
             this._PassTurn(true);
+        } else {
+            updateStatInfo();
         }
         
         this._CancelMove = function () {
