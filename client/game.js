@@ -811,10 +811,11 @@ window.onload = function() {
         if (initCreature) {
             if (initCreature.player === HexagonField.PlayerId.ME) {
                 this.hexActive = Game.add.sprite(0,0,'hexagon_me');
-            } else {
+                HexagonField.creatureGroup.add(this.hexActive);
+            } else if (initCreature.player === 1) {
                 this.hexActive = Game.add.sprite(0,0,'hexagon_opponent');
+                HexagonField.creatureGroup.add(this.hexActive);
             }
-            HexagonField.creatureGroup.add(this.hexActive);
         }
         
         this.colrow = function () {
