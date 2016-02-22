@@ -1,9 +1,7 @@
 window.onload = function() {
-//    var socket = io.connect();
     var Game = new Phaser.Game("100%", "100%", Phaser.CANVAS, "", {preload: onPreload, create: onCreate, update: onUpdate});
+    var Server;
     
-    // test winbreaks
-
     function TGameWorld() {
         var hexagonWidth = 35;
         var hexagonHeight = 40;
@@ -67,7 +65,7 @@ window.onload = function() {
         };
 
         this.Init = function () {
-        	Game.world.setBounds(-500, -500, 4000, 2000); // constants should be fit for size of field that we need
+    		Game.stage.backgroundColor = "#B3E5FC";
 
             fieldPosX = (Game.width - this.GetHexagonWidth() * Math.ceil(this.GetGridSizeX() / 2)) / 2;
        	    if (this.GetGridSizeX() % 2 === 0) {
@@ -78,6 +76,8 @@ window.onload = function() {
             if (GameWorld.GetGridSizeY() % 2 === 0) {
         	   fieldPosY -= this.GetHexagonHeight() / 8;
             }
+            
+            Game.world.setBounds(0, -50, Game.width, Game.height + 228); // constants should be fit for size of field that we need
         }
         
         
@@ -266,7 +266,6 @@ window.onload = function() {
         
         this.hexField = [];
         this.creatureField = [];
-		Game.stage.backgroundColor = "#B3E5FC";
         gengrid = function(hexGroup, spriteTag, visible) {
             var totalHexes = Math.floor(GameWorld.GetGridSizeX()/2) * GameWorld.GetGridSizeY();
             var hexes = new Array(totalHexes);
@@ -425,6 +424,7 @@ window.onload = function() {
                     console.log('ERROR in DoAction.MOVE: ' + response['error']);
                     return false;
                 }
+                subject.SetNewPosition(object.col, object.row);
                 return true;
             } else if (action === ActionType.ATTACK) {
                 var response = logic.Attack(subject, object);
@@ -515,10 +515,20 @@ window.onload = function() {
                 delete subject;
                 return true;
             } else if (action === ActionType.REFRESH) {
-                // SPEND nutrition
-                subject.creature.Refresh();
+                if (true) { // ENOUGH nutrition
+                    // SPEND nutrition
+                    subject.creature.Refresh();
+                    return true;
+                } else {
+                    return false;
+                }
             } else if (action === ActionType.YIELD) {
                 // ADD nutrition
+                if (true) { // grass AVAILABLE
+                    return true;
+                } else {
+                    return false;
+                }
             } else if (action === ActionType.SPECIAL) {
                 var response = logic.Special(subject);
                 if (response !== undefined && response['error'] !== undefined) {
@@ -548,7 +558,7 @@ window.onload = function() {
                 jsonGameState.objects
                     .push({"l": [obj.col, obj.row], "t": obj.objectType, "c": obj.creature});
             }
-            //jsonGameState.players = 
+            jsonGameState.players = this.players;
             return jsonGameState;
         };
         
@@ -557,22 +567,23 @@ window.onload = function() {
             this.ResetGroup("obstaclesGroup", null);
             this.ResetGroup("oppGroup", null);
             for (var object of jsonGameState.objects) {
-                var obj = new TFieldObject(object.t, object.c);
-                HexagonField.Move([0, 0], object.l, obj);
+                var obj = new TFieldObject(object.t, copyCreature(object.c));
+                obj.SetNewPosition(object.l[0], object.l[1]);
             }
-            // jsonGameState.players...
+            this.players = jsonGameState.players;
         };
     }
         
     var HexagonField;
 
+    var StateType = {
+        TS_NONE: 0,
+        TS_SELECTED: 1,
+        TS_ACTION: 2,
+        TS_OPPONENT_MOVE: 3  
+    };
+
     function TTurnState(weStart) {
-        var StateType = {
-            TS_NONE: 0,
-            TS_SELECTED: 1,
-            TS_ACTION: 2,
-            TS_OPPONENT_MOVE: 3  
-        };
         this.state = StateType.TS_NONE;
         this.activeObject = undefined;
         this.action = undefined;
@@ -583,18 +594,24 @@ window.onload = function() {
             this.activeObject = undefined;
             this.action = undefined;
             this.endPosition = undefined;
+            ActionBar.update([]);
         };
         
-        this._PassTurn = function() {
+        this._PassTurn = function(dontSend) {
             this._ResetState();
             this.state = StateType.TS_OPPONENT_MOVE;
             ActionBar.lock();
             HexagonField.toggleDraggable();
+            if (dontSend === true) {
+                // I hate js handling of undefined, null and stuff
+            } else {
+                Server.Send('new-turn', HexagonField.Dump2JSON());
+            }
         }
         
         this._ResetState();
         if (!weStart) {
-            this._PassTurn();
+            this._PassTurn(true);
         }
         
         this._CancelMove = function () {
@@ -619,6 +636,7 @@ window.onload = function() {
                 this.endPosition = field;
                 var result = HexagonField.DoAction(this.activeObject, this.action, this.endPosition);
                 if (result) {
+                    this._ResetState();
                     this._PassTurn();
                 } else {
                     this._CancelMove();
@@ -697,10 +715,9 @@ window.onload = function() {
                         this.SetNewPosition(this.col, this.row);
                     } else if (TurnState.SelectAction(ActionType.MOVE) === true &&
                                TurnState.SelectField(target) === true) {
-                        this.SetNewPosition(hex.x, hex.y);
+                        // moved as side-effect
                     } else {
-                        this.SetNewPosition(this.col, this.row); 
-                        TurnState.SelectField(this);               
+                        this.SetNewPosition(this.col, this.row);          
                     }
                     TurnState.SelectField(this);
                 }
@@ -754,9 +771,6 @@ window.onload = function() {
             return 2;
         }
     }
-	
-    var Creature;
-    var Creature2;
     
     var ActionBar = new TActionBar(Game, GameWorld, AlertManager, 128);
     
@@ -767,7 +781,12 @@ window.onload = function() {
             var hex = GameWorld.FindHex(); 
             var activeField = HexagonField.GetAt(hex.x, hex.y);
             InfoBar.displayInfoCreature(activeField.creature);
-            ActionBar.update(getCreatureActions(activeField.creature));
+            if (activeField.objectType !== HexType.CREATURE ||
+                activeField.creature.player !== HexagonField.PlayerId.ME) {
+                ActionBar.update([]);    
+            } else {
+                ActionBar.update(getCreatureActions(activeField.creature));
+            }
             TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y));
                 //Creature.SetNewPosition(hex.x, hex.y);
         } else { // else we click on the action bar
@@ -776,6 +795,7 @@ window.onload = function() {
     }
     
 	function onPreload() {
+        Game.load.image('bubble', 'arts/bubble.png');
 		Game.load.image("hexagon", "arts/hexagon.png");
 		Game.load.image("marker", "arts/marker.png");
         Game.load.spritesheet('button_replicate', 'arts/buttons/button_replicate_spritesheet.png', 128, 128);
@@ -804,39 +824,42 @@ window.onload = function() {
     function AlertManager (id) {
         
         if (id === 'feed') {
-            HexagonField.DoAction(TurnState.activeObject, ActionType.REFRESH);
+            if (HexagonField.DoAction(TurnState.activeObject, ActionType.REFRESH)) {
+                TurnState._PassTurn();
+            }
         } else if (id === 'morph') {
             ActionBar.update(getMorphList());
         } else if (id === 'replicate') {
-            HexagonField.DoAction(TurnState.activeObject, ActionType.REPLICATE, undefined, {'additional_cost': 0});
+            if (HexagonField.DoAction(TurnState.activeObject, ActionType.REPLICATE, undefined, {'additional_cost': 0})) {
+                TurnState._PassTurn();
+            }
         } else if (id === 'yield') {
-            HexagonField.DoAction(TurnState.activeObject, ActionType.YIELD);
+            if (HexagonField.DoAction(TurnState.activeObject, ActionType.YIELD)) {
+                TurnState._PassTurn();
+            }
         } else if (id === 'spec_ability') {
-            if (!HexagonField.DoAction(TurnState.activeObject, ActionType.SPECIAL))
+            if (!HexagonField.DoAction(TurnState.activeObject, ActionType.SPECIAL)) {
                 console.log('spec ability is used already');
+            } else {
+                TurnState._PassTurn();
+            }
         } else if (id === 'morph_cancel') {
-            ActionBar.update(getCreatureActions(TurnState.activeObject.creature));
+            if (ActionBar.update(getCreatureActions(TurnState.activeObject.creature))) {
+                TurnState._PassTurn();
+            }
         } else if (id.substring(0, 6) == 'morph_') {
             var target = id.substring(6);
-            HexagonField.DoAction(TurnState.activeObject, ActionType.MORPH, undefined, {'target': target, 'additional_cost': 0});
-            ActionBar.update([]);
+            if (HexagonField.DoAction(TurnState.activeObject, ActionType.MORPH, undefined, {'target': target, 'additional_cost': 0})) {
+                ActionBar.update([]);
+                TurnState._PassTurn();
+            }
         } else {
             console.log('ERROR: something other has been clickd, id=' + id);
         }
         //ActionBar.update(getCreatureActions(TurnState.activeObject.creature));
     }
-
-    var mockGetOrder = function() {
-        return [0, 1];
-    }
-	function onCreate() {
-        GameWorld.Init();
-
-        var order = mockGetOrder();
-        HexagonField = new THexagonField(order);
-        ActionBar.init();
-        TurnState = new TTurnState(order[0] === 0);
-        // examples of creatures 
+    
+    function InitMockCreatures() {
         var RealCreature = newCreature(CreatureType.TURTLE, HexagonField.PlayerId.NOTME);
         Creature = new TFieldObject(HexType.CREATURE, RealCreature);
         Creature.SetNewPosition(10, 11);
@@ -844,22 +867,93 @@ window.onload = function() {
         var RealCreature2 = newCreature(CreatureType.SPAWN, HexagonField.PlayerId.ME);
         Creature2 = new TFieldObject(HexType.CREATURE, RealCreature2);
         Creature2.SetNewPosition(12, 12);
-                        
-        
-        InfoBar.create("Hey you!\nHahahahahah!");
-        
-        InfoBar.displayInfoCreature(RealCreature);
-        
+    };
+    
+    function InitGame(order, creaturesInit) {
+        hideLoading();
+        HexagonField = new THexagonField(order);
+        creaturesInit();
+        ActionBar.create([]);
+        InfoBar.create("");        
         Game.input.mouse.mouseDownCallback = mouseDownCallback;
+        TurnState = new TTurnState(order[0] === 0);
+    };
+    
+    function TServer() {
+        var socket = io.connect();
+        var myserv = this;
+        
+        this.Send = function(mtype, mdata) {
+            socket.emit(mtype, mdata);
+        };
+        
+        socket.on('found-opp', function(data) {
+            var order = data.order;
+            InitGame(order, InitMockCreatures);
+            Game.input.keyboard.onDownCallback = function(key) {
+                if (key.keyCode == Phaser.Keyboard.SPACEBAR) {
+                    myserv.Send('manual-field-send', HexagonField.Dump2JSON());
+                }
+            };
+        });
+        
+        //socket.on('disconnect');
+        socket.on('new-turn', function(data) {
+            assert(TurnState.state === StateType.TS_OPPONENT_MOVE, "Received new-turn during out turn");
+            HexagonField.Load4JSON(data);
+            TurnState.MyTurn();
+        });
+    };
+    
+    function TServerMock() {
+        this.Send = function(mtype, mdata) {
+            return true;
+        };
+        
+        var order = [0, 1];
+        InitGame(order, InitMockCreatures);
         Game.input.keyboard.onDownCallback = function(key) {
-            if (key.keyCode == Phaser.Keyboard.SPACEBAR) {
-                socket.emit('client_data', HexagonField.Dump2JSON());
-            }
-            
             if (key.keyCode === Phaser.Keyboard.ONE) {
                 TurnState.MyTurn();
             }
         };
+    };
+
+    var emitter;
+    var loadingText;
+
+    function hideLoading() {
+        emitter.destroy();
+        loadingText.destroy();    
+    }
+
+    function loading() {
+        emitter = Game.add.emitter(Game.world.centerX, Game.world.height, 200);
+
+        emitter.width = window.innerWidth - 100;
+
+        emitter.makeParticles('bubble');
+
+        emitter.minParticleSpeed.set(0, 100);
+        emitter.maxParticleSpeed.set(0, 200);
+
+        emitter.setRotation(0, 0);
+        emitter.setAlpha(0.3, 0.8);
+        emitter.setScale(0, 0.2, 0, 0.2, 6000, Phaser.Easing.Quintic.Out);
+        emitter.gravity = -500;
+
+        emitter.start(false, 5000, 100);
+        
+        var style = { font: "32px Comfortaa", fill: "#0288D1", align: "center"};        
+        loadingText = Game.add.text(Game.width / 2, Game.height / 2, "Waiting for the opponent...\nTip: you can open the game in other tab and play with yourself :)", style);
+        loadingText.anchor.set(0.5);
+        loadingText.fixedToCamera = true;
+    }
+
+	function onCreate() {
+        GameWorld.Init();
+        loading();
+        Server = new TServer();
 	}
 	
 	function onUpdate() {
