@@ -766,7 +766,11 @@ window.onload = function() {
             var hex = GameWorld.FindHex(); 
             var activeField = HexagonField.GetAt(hex.x, hex.y);
             InfoBar.displayInfoCreature(activeField.creature);
-            ActionBar.update(getCreatureActions(activeField.creature));
+            if (activeField.creature.player === HexagonField.PlayerId.ME) {
+                ActionBar.update(getCreatureActions(activeField.creature));
+            } else {
+                ActionBar.update([]);    
+            }
             TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y));
                 //Creature.SetNewPosition(hex.x, hex.y);
         } else { // else we click on the action bar
