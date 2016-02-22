@@ -647,7 +647,7 @@ window.onload = function() {
                 var hex = GameWorld.FindHex(); 
                 if (TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y)) === true) {
                     HexagonField.HighlightOff();
-                    HexagonField.Highlight(this.col, this.row, this.creature.MoveRange());
+                    HexagonField.Highlight(this.col, this.row, this.MoveRange());
                 }
             };
             
