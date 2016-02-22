@@ -295,7 +295,7 @@
         return this;
     };
     
-    function TCreature(_type, _att, _def, _dam, _hpp, _mov, _nut) {
+    function TCreature(_type, _att, _def, _dam, _hpp, _mov, _nut, _player) {
         this.type = _type;
         
         this.ATT = parseInt(_att);
@@ -304,6 +304,7 @@
         this.HPP = parseInt(_hpp);
         this.MOV = parseInt(_mov);
         this.NUT = parseInt(_nut);
+        this.player = _player;
         
         this.effects = {};
         this.init_effect = function(effect_name) {
@@ -316,7 +317,6 @@
         this.Refresh = function() {
             this.effects = {};
         }
-        //return this;
     };
     
     var CreaturesExamples = {
@@ -332,11 +332,12 @@
 //        ONEHIT: new TCreature(CreatureType.COCOON, 6, 0, 2, 1, 5, 1) 
     };
     
-    function newCreature(_type) {
+    function newCreature(_type, _player) {
         var result = undefined;
-        for (creature_n in CreaturesExamples) {
+        for (var creature_n in CreaturesExamples) {
             if (CreaturesExamples[creature_n].type === _type) {
                 result = jQuery.extend(true, {}, CreaturesExamples[creature_n]);
+                result.player = _player;
                 break;
             }
         }

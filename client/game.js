@@ -13,6 +13,7 @@ window.onload = function() {
         var sectorWidth = hexagonWidth;
         var sectorHeight = hexagonHeight / 4 * 3;
         var gradient = (hexagonHeight / 4) / (hexagonWidth / 2);
+        var initialNutrition = 15;
         this.gameLogic = new TGameLogic();
         
         var fieldPosX;
@@ -20,6 +21,10 @@ window.onload = function() {
         
         var actionBarHeight = 128; // must be changed if buttons change
     
+        this.GetInitNutrition = function() {
+            return initialNutrition;
+        }
+        
         this.GetHexagonWidth = function () {
             return hexagonWidth;
         };
@@ -200,11 +205,7 @@ window.onload = function() {
     
     var GameWorld = new TGameWorld();
     
-    var PlayerType = {
-        ME: 0,
-        NOTME: 1
-    };
-    
+    // int, PlayerType
     function TPlayer(initNutrition, id) {
         this.nutrition = initNutrition;
         this.id = id;
@@ -221,11 +222,27 @@ window.onload = function() {
         SPECIAL: 7
     }
 
-    function THexagonField() {
+    function THexagonField(playerOrder) {
         this.hexagonGroup = Game.add.group();
         this.highlightGroup = Game.add.group();
         this.creatureGroup = Game.add.group();
+        this.oppGroup = Game.add.group();
         this.obstaclesGroup = Game.add.group();
+        
+        this.PlayerId = {};
+        this.PlayerId.ME = playerOrder[0];
+        this.PlayerId.NOTME = playerOrder[1];
+        this.players = Array(2);
+        this.players[this.PlayerId.ME] = new TPlayer(GameWorld.GetInitNutrition(), this.PlayerId.ME); 
+        this.players[this.PlayerId.NOTME] = new TPlayer(GameWorld.GetInitNutrition(), this.PlayerId.NOTME);
+        
+        this.GetMe = function() {
+            return this.players[this.PlayerId.ME];
+        }
+        
+        this.GetOpp = function() {
+            return this.players[this.PlayerId.NOTME];
+        }
         
         this.InitGroup = function(groupName) {
             this[groupName].x = GameWorld.GetFieldX();
@@ -242,7 +259,8 @@ window.onload = function() {
             }
         };
         
-        for (var groupName of ["hexagonGroup", "highlightGroup", "creatureGroup", "obstaclesGroup"]) {
+        for (var groupName of ["hexagonGroup", "highlightGroup", "creatureGroup", 
+                               "obstaclesGroup", "oppGroup"]) {
             this.InitGroup(groupName);
         }
         
@@ -316,7 +334,12 @@ window.onload = function() {
         
         this.Add = function (fieldObject) {
             if (fieldObject.objectType == HexType.CREATURE) {
-                this.creatureGroup.add(fieldObject.marker);
+                assert(fieldObject.creature, "missing creature over here");
+                if (fieldObject.creature.player === this.PlayerId.ME) {
+                    this.creatureGroup.add(fieldObject.marker);
+                } else {
+                    this.oppGroup.add(fieldObject.marker);
+                }
             } else {
                 this.obstaclesGroup.add(fieldObject.marker);
             }
@@ -467,7 +490,7 @@ window.onload = function() {
                 creature.init_effect('morph');
                 creature.effects['morph'] = {'target':target, 'turns': 3 - args.additional_cost};
                 
-                fieldObject = new TFieldObject(HexType.CREATURE, creature);
+                var fieldObject = new TFieldObject(HexType.CREATURE, creature);
                 fieldObject.SetNewPosition(subject.col, subject.row);
                 delete subject;
                 return true;
@@ -532,6 +555,7 @@ window.onload = function() {
         this.Load4JSON = function(jsonGameState) {
             this.ResetGroup("creatureGroup", "creatureField");
             this.ResetGroup("obstaclesGroup", null);
+            this.ResetGroup("oppGroup", null);
             for (var object of jsonGameState.objects) {
                 var obj = new TFieldObject(object.t, object.c);
                 HexagonField.Move([0, 0], object.l, obj);
@@ -640,8 +664,8 @@ window.onload = function() {
             return [this.col, this.row];
         }
         
-        if (this.objectType === HexType.CREATURE) {
-            
+        if (this.objectType === HexType.CREATURE && 
+            this.creature.player === HexagonField.PlayerId.ME) {
             this.marker.inputEnabled = true;
             this.marker.input.enableDrag();
             this.OnDragStart = function (sprite, pointer) {
@@ -797,16 +821,19 @@ window.onload = function() {
         ActionBar.update(getCreatureActions(TurnState.activeObject.creature));
     }
 
+    var mockGetOrder = function() {
+        return [0, 1];
+    }
 	function onCreate() {
         GameWorld.Init();
-        
-        HexagonField = new THexagonField();
+        var order = mockGetOrder();
+        HexagonField = new THexagonField(order);
         // examples of creatures 
-        var RealCreature = newCreature(CreatureType.TURTLE);
+        var RealCreature = newCreature(CreatureType.TURTLE, HexagonField.PlayerId.NOTME);
         Creature = new TFieldObject(HexType.CREATURE, RealCreature);
         Creature.SetNewPosition(10, 11);
         
-        var RealCreature2 = newCreature(CreatureType.SPAWN);
+        var RealCreature2 = newCreature(CreatureType.SPAWN, HexagonField.PlayerId.ME);
         Creature2 = new TFieldObject(HexType.CREATURE, RealCreature2);
         Creature2.SetNewPosition(12, 12);
                         
