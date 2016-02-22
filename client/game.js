@@ -566,52 +566,60 @@ window.onload = function() {
         
     var HexagonField;
 
-    function TTurnState() {
-        var TS_NONE = 0;
-        var TS_SELECTED = 1;
-        var TS_ACTION = 2;
-        var TS_OPPONENT_MOVE = 3;
-        
-        this.state = TS_NONE;
+    function TTurnState(weStart) {
+        var StateType = {
+            TS_NONE: 0,
+            TS_SELECTED: 1,
+            TS_ACTION: 2,
+            TS_OPPONENT_MOVE: 3  
+        };
+        this.state = StateType.TS_NONE;
         this.activeObject = undefined;
         this.action = undefined;
         this.endPosition = undefined;
         
         this._ResetState = function () {
-            this.state = TS_NONE;
+            this.state = StateType.TS_NONE;
             this.activeObject = undefined;
             this.action = undefined;
             this.endPosition = undefined;
         };
         
+        this._PassTurn = function() {
+            this._ResetState();
+            this.state = StateType.TS_OPPONENT_MOVE;
+            ActionBar.lock();
+            HexagonField.toggleDraggable();
+        }
+        
         this._ResetState();
+        if (!weStart) {
+            this._PassTurn();
+        }
         
         this._CancelMove = function () {
             if (this.activeObject != null) {
-                this.state = TS_SELECTED;
+                this.state = StateType.TS_SELECTED;
             } else {
-                this.state = TS_NONE;
+                this.state = StateType.TS_NONE;
             }
             this.action = undefined;
             this.endPosition = undefined;
         }
         
         this.SelectField = function (field) {
-            if (this.state === TS_OPPONENT_MOVE) {
+            if (this.state === StateType.TS_OPPONENT_MOVE) {
                 return false;
             }
             
-            if (this.state === TS_NONE || this.state === TS_SELECTED) {
+            if (this.state === StateType.TS_NONE || this.state === StateType.TS_SELECTED) {
                 this.activeObject = field;
-                this.state = TS_SELECTED;
-            } else if (this.state === TS_ACTION) {
+                this.state = StateType.TS_SELECTED;
+            } else if (this.state === StateType.TS_ACTION) {
                 this.endPosition = field;
                 var result = HexagonField.DoAction(this.activeObject, this.action, this.endPosition);
                 if (result) {
-                    this._ResetState();
-                    this.state = TS_OPPONENT_MOVE;
-                    ActionBar.lock();
-                    HexagonField.toggleDraggable();
+                    this._PassTurn();
                 } else {
                     this._CancelMove();
                 }
@@ -623,14 +631,14 @@ window.onload = function() {
         };
         
         this.SelectAction = function (act) {
-            if (this.state === TS_OPPONENT_MOVE) {
+            if (this.state === StateType.TS_OPPONENT_MOVE) {
                 return false;
             }
-            if (this.state === TS_SELECTED) {
+            if (this.state === StateType.TS_SELECTED) {
                 this.action = act;
-                this.state = TS_ACTION;
+                this.state = StateType.TS_ACTION;
                 return true;
-            } else if (this.state === TS_ACTION) {
+            } else if (this.state === StateType.TS_ACTION) {
                 this.action = act;
                 return true;
             } else {
@@ -640,14 +648,14 @@ window.onload = function() {
         };
         
         this.MyTurn = function () {
-            assert(this.state === TS_OPPONENT_MOVE, "MyTurn() called on my turn");
+            assert(this.state === StateType.TS_OPPONENT_MOVE, "MyTurn() called on my turn");
             HexagonField.toggleDraggable();
             ActionBar.unlock();
             this._ResetState();
         }
     }
     
-    var TurnState = new TTurnState();
+    var TurnState;
     
     // string, HexType, TCreature
     function TFieldObject(type, initCreature) {
@@ -828,6 +836,7 @@ window.onload = function() {
         GameWorld.Init();
         var order = mockGetOrder();
         HexagonField = new THexagonField(order);
+        TurnState = new TTurnState(order[0] === 1);
         // examples of creatures 
         var RealCreature = newCreature(CreatureType.TURTLE, HexagonField.PlayerId.NOTME);
         Creature = new TFieldObject(HexType.CREATURE, RealCreature);
