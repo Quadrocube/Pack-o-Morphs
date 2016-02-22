@@ -33,13 +33,16 @@ function TInfoBar(Game, GameWorld) {
                   + 'mov: ' + '0' + '\n'
                   + 'nut: ' + '0' + '\n';
         } else {
+            creature.init_effect('drain');
             stats = 'type: ' + creature.type + '\n'
                   + 'att: ' + creature.ATT + '\n'
                   + 'def: ' + creature.DEF + '\n'
                   + 'dam: ' + creature.DAM + '\n'
                   + 'hpp: ' + creature.HPP + '\n'
                   + 'mov: ' + creature.MOV + '\n'
-                  + 'nut: ' + creature.NUT + '\n';
+                  + 'nut: ' + creature.NUT + '\n' 
+                  + 'player: ' + creature.player + '\n'
+                  + 'action remain: ' + (creature.MOV - creature.effects['drain']);
         }         
                     
         this.textHandler.setText(stats);

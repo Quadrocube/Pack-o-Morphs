@@ -486,9 +486,9 @@ window.onload = function() {
                     target = CreatureType.SPIDER;
                 HexagonField.Remove(subject);
                 
-                var creature = newCreature(CreatureType.COCOON);
+                var creature = newCreature(CreatureType.COCOON, HexagonField.PlayerId.ME);
                 creature.init_effect('morph');
-                creature.effects['morph'] = {'target':target, 'turns': 3 - args.additional_cost};
+                creature.effects['morph'] = {'target': target, 'turns': 3 - args.additional_cost};
                 
                 var fieldObject = new TFieldObject(HexType.CREATURE, creature);
                 fieldObject.SetNewPosition(subject.col, subject.row);
@@ -506,9 +506,9 @@ window.onload = function() {
                     return false;
                 }
                 HexagonField.Remove(subject);
-                var creature = newCreature(CreatureType.COCOON);
+                var creature = newCreature(CreatureType.COCOON, HexagonField.PlayerId.ME);
                 creature.init_effect('morph');
-                creature.effects['morph'] = {'target': '__replicate', 'turns': 3 - args.additional_cost};
+                creature.effects['morph'] = {'__replicate': true, 'target': subject.creature.type, 'turns': 3 - args.additional_cost};
                 
                 fieldObject = new TFieldObject(HexType.CREATURE, creature);
                 fieldObject.SetNewPosition(subject.col, subject.row);
@@ -695,7 +695,79 @@ window.onload = function() {
             assert(this.state === StateType.TS_OPPONENT_MOVE, "MyTurn() called on my turn");
             HexagonField.toggleDraggable();
             ActionBar.unlock();
+            ActionBar.update([]);
             this._ResetState();
+            
+            objects = HexagonField.getAllObjects();
+            for (i in objects) {
+                if (objects[i].objectType === HexType.CREATURE) {
+                    if (objects[i].creature.effects === undefined)
+                        continue;
+                    
+                    // poison
+                    if (objects[i].creature.effects['poison'] !== undefined) {
+                        objects[i].creature.init_effect('damage');
+                        objects[i].creature.effects['damage'] += objects[i].effects['poison'];
+                        objects[i].creature.effects['poison'] = undefined;
+                    }
+                    // carapace
+                    if (objects[i].creature.effects['carapace'] !== undefined) {
+                        objects[i].creature.effects['carapace'] -= 1;
+                        if (objects[i].creature.effects['carapace'] === 0) {
+                            objects[i].creature.ATT += 2;
+                            objects[i].creature.DEF -= 2;
+                            objects[i].creature.effects['carapace'] = undefined;
+                        }
+                    }
+                    // replicate & morph
+                    if (objects[i].creature.effects['morph'] !== undefined) {
+                        objects[i].creature.effects['morph']['turns'] -= 1;
+                        if (objects[i].creature.effects['morph']['turns'] === 0) {
+                            // time to evolve!
+                            if (objects[i].creature.effects['morph']['__replicate'] === true) {
+                                // replicate
+                                // remove cocoon
+                                HexagonField.Remove(objects[i]);
+                                // place first one
+                                var creature = newCreature(objects[i].creature.effects['morph']['target'], objects[i].creature.player);
+                                var fieldObject = new TFieldObject(HexType.CREATURE, creature);
+                                fieldObject.SetNewPosition(objects[i].col, objects[i].row);
+                                // find the right place for the second one
+                                // forsake if too crowdy
+                                var radius1 = radius_with_blocks(makeColRowPair(objects[i].col, objects[i].row), 1, []);
+                                for (j in radius1) {
+                                    if (HexagonField.GetAt(radius1[j].col, radius1[j].row).objectType === HexType.EMPTY) {
+                                        var creature2 = newCreature(objects[i].creature.effects['morph']['target'], objects[i].creature.player);
+                                        var fieldObject2 = new TFieldObject(HexType.CREATURE, creature2);
+                                        fieldObject2.SetNewPosition(radius1[j].col, radius1[j].row);
+                                        break;
+                                    }
+                                }
+                                // free
+                                delete objects[i];
+                            } else {
+                                // morph
+                                // remove cocoon
+                                HexagonField.Remove(objects[i]);
+                                // place first one
+                                var creature = newCreature(objects[i].creature.effects['morph']['target'], objects[i].creature.player);
+                                var fieldObject = new TFieldObject(HexType.CREATURE, creature);
+                                fieldObject.SetNewPosition(objects[i].col, objects[i].row);
+                                // free
+                                delete objects[i];
+                            }
+                        }
+                    }
+                    
+                    // death?
+                    if (objects[i] !== undefined && GameWorld.gameLogic.chk_death(objects[i]) !== undefined) {
+                        HexagonField.Remove(objects[i]);
+                    }
+                }
+            }
+            
+            // win?
+            
         }
     }
     
@@ -893,6 +965,10 @@ window.onload = function() {
         var RealCreature2 = newCreature(CreatureType.SPAWN, HexagonField.PlayerId.ME);
         var Creature2 = new TFieldObject(HexType.CREATURE, RealCreature2);
         Creature2.SetNewPosition(12, 12);
+        
+        var RealCreature3 = newCreature(CreatureType.DAEMON, HexagonField.PlayerId.ME);
+        Creature2 = new TFieldObject(HexType.CREATURE, RealCreature3);
+        Creature2.SetNewPosition(12, 14);
     };
     
     function genHex(pos, hexType, creatureType, player) {
