@@ -651,6 +651,7 @@ window.onload = function() {
             assert(this.state === StateType.TS_OPPONENT_MOVE, "MyTurn() called on my turn");
             HexagonField.toggleDraggable();
             ActionBar.unlock();
+            ActionBar.update([]);
             this._ResetState();
         }
     }
