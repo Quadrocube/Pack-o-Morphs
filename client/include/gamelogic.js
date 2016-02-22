@@ -337,6 +337,9 @@
     };
     
     function copyCreature(o) {
+        if (!o) {
+            return null;
+        }
         return new TCreature(o.type, o.ATT, o.DEF, o.DAM, o.HPP, o.MOV, o.NUT, o.player, o.effects);
     }
     
