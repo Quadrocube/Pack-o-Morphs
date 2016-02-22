@@ -932,16 +932,52 @@ window.onload = function() {
     
     function InitMockCreatures() {
         var RealCreature = newCreature(CreatureType.TURTLE, HexagonField.PlayerId.NOTME);
-        Creature = new TFieldObject(HexType.CREATURE, RealCreature);
+        var Creature = new TFieldObject(HexType.CREATURE, RealCreature);
         Creature.SetNewPosition(10, 11);
         
         var RealCreature2 = newCreature(CreatureType.SPAWN, HexagonField.PlayerId.ME);
-        Creature2 = new TFieldObject(HexType.CREATURE, RealCreature2);
+        var Creature2 = new TFieldObject(HexType.CREATURE, RealCreature2);
         Creature2.SetNewPosition(12, 12);
         
         var RealCreature3 = newCreature(CreatureType.DAEMON, HexagonField.PlayerId.ME);
         Creature2 = new TFieldObject(HexType.CREATURE, RealCreature3);
         Creature2.SetNewPosition(12, 14);
+    };
+    
+    function genHex(pos, hexType, creatureType, player) {
+        var creature = null;
+        if (hexType === HexType.CREATURE) {
+            if (!player) {
+                player = 2;
+            }
+            creature = newCreature(creatureType, player);
+        };
+        var hex = new TFieldObject(hexType, creature);
+        hex.SetNewPosition(pos[0], pos[1]);
+    };
+    
+    function InitBattleground() {
+        var grass = [[17,12],[0,7],[1,8],[2,8],[2,7],[2,6],[1,6],[1,10],[0,11],[1,12],[2,12],[2,11],[2,10],
+                     [13,11],[14,11],[15,10],[14,9],[13,9],[13,10],[13,7],[14,7],[15,6],[14,5],[13,5],[13,6]];
+        var forest = [[1,8],[1,12],[14,12],[14,8]];
+        var neutrals = [[6,8],[6,9],[7,9],[8,8],[7,7],[6,7],[6,11],[6,12],[6,13],[7,13],[8,12],[7,11]];
+        var playerOne = [[7,0],[6,1],[7,2],[8,2],[8,1],[8,0]];
+        var playerTwo = [[7,18],[6,17],[7,16],[8,16],[8,17],[8,18]];
+        for (var pos of grass) {
+            genHex(pos, HexType.GRASS);
+        }
+        for (var pos of forest) {
+            genHex(pos, HexType.FOREST);
+        }
+        for (var pos of neutrals) {
+            genHex(pos, HexType.CREATURE, CreatureType.VECTOR);
+        }
+        for (var pos of playerOne) {
+            genHex(pos, HexType.CREATURE, CreatureType.VECTOR, 0);
+        }
+        for (var pos of playerTwo) {
+            genHex(pos, HexType.CREATURE, CreatureType.VECTOR, 1);
+        }
     };
     
     function InitGame(order, creaturesInit) {
@@ -964,7 +1000,7 @@ window.onload = function() {
         
         socket.on('found-opp', function(data) {
             var order = data.order;
-            InitGame(order, InitMockCreatures);
+            InitGame(order, InitBattleground);
             Game.input.keyboard.onDownCallback = function(key) {
                 if (key.keyCode == Phaser.Keyboard.SPACEBAR) {
                     myserv.Send('manual-field-send', HexagonField.Dump2JSON());
@@ -972,9 +1008,12 @@ window.onload = function() {
             };
         });
         
-        //socket.on('disconnect');
+        socket.on('disconnect', function() {
+            loading("Sorry, your opponent has disconnected...", "down");
+            TurnState._PassTurn();
+        });
         socket.on('new-turn', function(data) {
-            assert(TurnState.state === StateType.TS_OPPONENT_MOVE, "Received new-turn during out turn");
+            assert(TurnState.state === StateType.TS_OPPONENT_MOVE, "Received new-turn during my turn");
             HexagonField.Load4JSON(data);
             TurnState.MyTurn();
         });
@@ -986,7 +1025,7 @@ window.onload = function() {
         };
         
         var order = [0, 1];
-        InitGame(order, InitMockCreatures);
+        InitGame(order, InitBattleground);
         Game.input.keyboard.onDownCallback = function(key) {
             if (key.keyCode === Phaser.Keyboard.ONE) {
                 TurnState.MyTurn();
@@ -1002,8 +1041,16 @@ window.onload = function() {
         loadingText.destroy();    
     }
 
-    function loading() {
-        emitter = Game.add.emitter(Game.world.centerX, Game.world.height, 200);
+    function loading (text, direction) {
+        var emitterY = Game.world.height;
+        var gravity = -500;
+        var color = "#0288D1";
+        if (direction === 'down') {
+            emitterY = 0;
+            gravity = 500;
+            color = "#01579B";
+        }
+        emitter = Game.add.emitter(Game.world.centerX, emitterY, 200);
 
         emitter.width = window.innerWidth - 100;
 
@@ -1015,20 +1062,20 @@ window.onload = function() {
         emitter.setRotation(0, 0);
         emitter.setAlpha(0.3, 0.8);
         emitter.setScale(0, 0.2, 0, 0.2, 6000, Phaser.Easing.Quintic.Out);
-        emitter.gravity = -500;
+        emitter.gravity = gravity;
 
         emitter.start(false, 5000, 100);
         
-        var style = { font: "32px Comfortaa", fill: "#0288D1", align: "center"};        
-        loadingText = Game.add.text(Game.width / 2, Game.height / 2, "Waiting for the opponent...\nTip: you can open the game in other tab and play with yourself :)", style);
+        var style = { font: "32px Comfortaa", fill: color, align: "center"};        
+        loadingText = Game.add.text(Game.width / 2, Game.height / 2, text, style);
         loadingText.anchor.set(0.5);
         loadingText.fixedToCamera = true;
     }
 
 	function onCreate() {
         GameWorld.Init();
-        loading();
-        Server = new TServerMock();
+        loading("Waiting for the opponent...\nTip: you can open the game in other tab and play with yourself :)", "up");
+        Server = new TServer();
 	}
 	
 	function onUpdate() {
