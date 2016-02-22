@@ -577,7 +577,7 @@ window.onload = function() {
                     if (obj.objectType === HexType.CREATURE) {
                         if (obj.creature.player === HexagonField.PlayerId.ME) {
                             myCreatures.push(obj);
-                        } else {
+                        } else if (obj.creature.player === HexagonField.PlayerId.NOTME) {
                             opponentCreatures.push(obj);
                         }
                     }
@@ -1154,11 +1154,6 @@ window.onload = function() {
         GameWorld.Init();
         loading("Waiting for the opponent...\nTip: you can open the game in other tab and play with yourself :)", "up");
         Server = new TServerMock();
-        
-        var creatures = HexagonField.getMeOpponentCreatures();
-        StatInfoBar.displayStatInfo(HexagonField.GetMe().nutrition, 
-                                    creatures.myCreatures.length,
-                                    creatures.opponentCreatures.length);
 	}
 	
 	function onUpdate() {
