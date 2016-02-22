@@ -974,7 +974,7 @@ window.onload = function() {
     function genHex(pos, hexType, creatureType, player) {
         var creature = null;
         if (hexType === HexType.CREATURE) {
-            if (!player) {
+            if (player === undefined) {
                 player = 2;
             }
             creature = newCreature(creatureType, player);
