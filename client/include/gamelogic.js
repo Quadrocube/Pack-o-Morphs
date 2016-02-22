@@ -126,9 +126,8 @@
             }
             return (actual_dice_result > 0);
         };
-        this.chk_death = function(creature) {
-            console.log(creature);
-            if (creature.creature.effects['damage'] >= creature.creature.HPP) {
+        this.chk_death = function(fieldObj) {
+            if (fieldObj.creature.effects['damage'] >= fieldObj.creature.HPP) {
                 return {'dead': true};
             }
             return undefined;
@@ -177,7 +176,7 @@
                 if (subj.creature.type === CreatureType.DAEMON) {
                     if (obj.creature.type != CreatureType.WASP) {
                         obj.creature.init_effect('poison');
-                        obj.creature.effecs['poison'] += 1;
+                        obj.creature.effects['poison'] += 1;
                     }
                 }
                 
@@ -241,6 +240,7 @@
             if (obj.objectType === HexType.CREATURE) {
                 return {'error': 'target hex blocked'};
             }
+            // regular drain
             subj.creature.init_effect('drain');
             subj.creature.effects['drain'] += 1;
             return undefined;
@@ -268,21 +268,28 @@
             //if (subj.creature.player.NUT < 2 + additional_cost) {
             //    return {'error': 'not enough NUT'};
             //}
+            // regular drain
+            subj.creature.init_effect('drain');
+            subj.creature.effects['drain'] += 1;
             return undefined;
         };
         /*
             returns {}
         */
         this.Yield = function(subj, obj) {
+            // regular drain
+            subj.creature.init_effect('drain');
+            subj.creature.effects['drain'] += 1;
             return undefined;
         };
         this.Special = function(subject) {
             if (subject.creature.effects['carapace'] !== undefined) {
-                    return {'error': 'carapace already used this turn'};
+                    return {'error': 'carapace already active'};
             }
-            subject.creature.effects['carapace'] = true;
+            subject.creature.effects['carapace'] = 4;
             subject.creature.ATT -= 2;
             subject.creature.DEF += 2;
+            // regular drain
             subject.creature.init_effect('drain');
             subject.creature.effects['drain'] += 1;
             return undefined;
