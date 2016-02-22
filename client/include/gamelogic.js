@@ -295,7 +295,7 @@
         return this;
     };
     
-    function TCreature(_type, _att, _def, _dam, _hpp, _mov, _nut, _player) {
+    function TCreature(_type, _att, _def, _dam, _hpp, _mov, _nut, _player, _effects) {
         this.type = _type;
         
         this.ATT = parseInt(_att);
@@ -306,7 +306,11 @@
         this.NUT = parseInt(_nut);
         this.player = _player;
         
-        this.effects = {};
+        if (_effects) {
+            this.effects = jQuery.extend(true, {}, _effects);
+        } else {
+            this.effects = {};
+        }
         this.init_effect = function(effect_name) {
             if (this.effects === undefined) 
                 this.effects = {};
@@ -331,6 +335,10 @@
         SPIDER: new TCreature(CreatureType.SPIDER, 4, 4, 2, 4, 4, 2),
 //        ONEHIT: new TCreature(CreatureType.COCOON, 6, 0, 2, 1, 5, 1) 
     };
+    
+    function copyCreature(o) {
+        return new TCreature(o.type, o.ATT, o.DEF, o.DAM, o.HPP, o.MOV, o.NUT, o.player, o.effects);
+    }
     
     function newCreature(_type, _player) {
         var result = undefined;

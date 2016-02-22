@@ -1,6 +1,7 @@
 window.onload = function() {
     var Game = new Phaser.Game("100%", "100%", Phaser.CANVAS, "", {preload: onPreload, create: onCreate, update: onUpdate});
-
+    var Server;
+    
     function TGameWorld() {
         var hexagonWidth = 35;
         var hexagonHeight = 40;
@@ -422,6 +423,7 @@ window.onload = function() {
                     console.log('ERROR in DoAction.MOVE: ' + response['error']);
                     return false;
                 }
+                subject.SetNewPosition(object.col, object.row);
                 return true;
             } else if (action === ActionType.ATTACK) {
                 var response = logic.Attack(subject, object);
@@ -545,7 +547,7 @@ window.onload = function() {
                 jsonGameState.objects
                     .push({"l": [obj.col, obj.row], "t": obj.objectType, "c": obj.creature});
             }
-            //jsonGameState.players = 
+            jsonGameState.players = this.players;
             return jsonGameState;
         };
         
@@ -554,22 +556,23 @@ window.onload = function() {
             this.ResetGroup("obstaclesGroup", null);
             this.ResetGroup("oppGroup", null);
             for (var object of jsonGameState.objects) {
-                var obj = new TFieldObject(object.t, object.c);
-                HexagonField.Move([0, 0], object.l, obj);
+                var obj = new TFieldObject(object.t, copyCreature(object.c));
+                obj.SetNewPosition(object.l[0], object.l[1]);
             }
-            // jsonGameState.players...
+            this.players = jsonGameState.players;
         };
     }
         
     var HexagonField;
 
+    var StateType = {
+        TS_NONE: 0,
+        TS_SELECTED: 1,
+        TS_ACTION: 2,
+        TS_OPPONENT_MOVE: 3  
+    };
+
     function TTurnState(weStart) {
-        var StateType = {
-            TS_NONE: 0,
-            TS_SELECTED: 1,
-            TS_ACTION: 2,
-            TS_OPPONENT_MOVE: 3  
-        };
         this.state = StateType.TS_NONE;
         this.activeObject = undefined;
         this.action = undefined;
@@ -587,6 +590,7 @@ window.onload = function() {
             this.state = StateType.TS_OPPONENT_MOVE;
             ActionBar.lock();
             HexagonField.toggleDraggable();
+            Server.Send('new-turn', HexagonField.Dump2JSON());
         }
         
         this._ResetState();
@@ -693,7 +697,7 @@ window.onload = function() {
                         this.SetNewPosition(this.col, this.row);
                     } else if (TurnState.SelectAction(ActionType.MOVE) === true &&
                                TurnState.SelectField(target) === true) {
-                        this.SetNewPosition(hex.x, hex.y);
+                        // moved as side-effect
                     } else {
                         this.SetNewPosition(this.col, this.row);          
                     }
@@ -759,10 +763,11 @@ window.onload = function() {
             var hex = GameWorld.FindHex(); 
             var activeField = HexagonField.GetAt(hex.x, hex.y);
             InfoBar.displayInfoCreature(activeField.creature);
-            if (activeField.creature.player === HexagonField.PlayerId.ME) {
-                ActionBar.update(getCreatureActions(activeField.creature));
-            } else {
+            if (activeField.objectType !== HexType.CREATURE ||
+                activeField.creature.player !== HexagonField.PlayerId.ME) {
                 ActionBar.update([]);    
+            } else {
+                ActionBar.update(getCreatureActions(activeField.creature));
             }
             TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y));
                 //Creature.SetNewPosition(hex.x, hex.y);
@@ -821,8 +826,6 @@ window.onload = function() {
         }
         //ActionBar.update(getCreatureActions(TurnState.activeObject.creature));
     }
-
-    var Server;
     
     function InitMockCreatures() {
         var RealCreature = newCreature(CreatureType.TURTLE, HexagonField.PlayerId.NOTME);
@@ -845,8 +848,9 @@ window.onload = function() {
     
     function TServer() {
         var socket = io.connect();
+        var myserv = this;
         
-        function Send(mtype, mdata) {
+        this.Send = function(mtype, mdata) {
             socket.emit(mtype, mdata);
         };
         
@@ -855,17 +859,21 @@ window.onload = function() {
             InitGame(order, InitMockCreatures);
             Game.input.keyboard.onDownCallback = function(key) {
                 if (key.keyCode == Phaser.Keyboard.SPACEBAR) {
-                    this.Send('manual-field-send', HexagonField.Dump2JSON());
+                    myserv.Send('manual-field-send', HexagonField.Dump2JSON());
                 }
             };
         });
         
         //socket.on('disconnect');
-        //socket.on('new-turn');
+        socket.on('new-turn', function(data) {
+            assert(TurnState.state === StateType.TS_OPPONENT_MOVE, "Received new-turn during out turn");
+            HexagonField.Load4JSON(data);
+            TurnState.MyTurn();
+        });
     };
     
     function TServerMock() {
-        function Send(mtype, mdata) {
+        this.Send = function(mtype, mdata) {
             return true;
         };
         
