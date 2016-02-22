@@ -937,7 +937,7 @@ window.onload = function() {
         creaturesInit();
         ActionBar.create([]);
         InfoBar.create("");
-        StatBar.create("");        
+        StatInfoBar.create("");        
         Game.input.mouse.mouseDownCallback = mouseDownCallback;
         TurnState = new TTurnState(order[0] === 0);
     };
@@ -1027,7 +1027,7 @@ window.onload = function() {
 	function onCreate() {
         GameWorld.Init();
         loading("Waiting for the opponent...\nTip: you can open the game in other tab and play with yourself :)", "up");
-        Server = new TServer();
+        Server = new TServerMock();
 	}
 	
 	function onUpdate() {
