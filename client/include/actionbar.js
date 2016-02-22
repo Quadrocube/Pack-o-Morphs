@@ -19,16 +19,14 @@ function TActionBar(Game, GameWorld, callback, buttonWidth) {
     
     this.init = function () {
         this.actionBarHeight = GameWorld.GetActionBarHeight();
-        alert("hey");
+        this.isLock = false;
         this.create([]);
     };
     
     this.create = function (ids) {
-        alert("create");
         if (this.isLock) {
             return;
         }
-        
         var n = ids.length;
         var startPosX = Game.width / 2 - buttonWidth * n / 2;
         
@@ -57,8 +55,8 @@ function TActionBar(Game, GameWorld, callback, buttonWidth) {
                 }
             this.buttons.push(button);
             button.fixedToCamera = true;
-        }
-    }
+        };
+    };
     
     this.update = function (actionList) {
         if (this.isLock) {
@@ -76,7 +74,7 @@ function TActionBar(Game, GameWorld, callback, buttonWidth) {
             ids.push(GameWorld.GetCreatureActionFuncAndButton(item));
         });
         this.create(ids);
-    }
+    };
     
     this.lock = function () {
         this.isLock = true;
@@ -91,7 +89,7 @@ function TActionBar(Game, GameWorld, callback, buttonWidth) {
         this.buttons.forEach(function (item, i, arr) {
             item.inputEnabled = false;
         });
-    }
+    };
     
     this.unlock = function () {
         this.isLock = false;
@@ -101,7 +99,7 @@ function TActionBar(Game, GameWorld, callback, buttonWidth) {
         this.buttons.forEach(function (item, i, arr) {
             item.inputEnabled = true;
         });
-    }
+    };
 }
 
 /*

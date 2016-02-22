@@ -417,7 +417,7 @@ window.onload = function() {
         */
         this.DoAction = function(subject, action, object, args) {
             var logic = GameWorld.gameLogic;
-            console.log(HexagonField.creatureField);
+            //console.log(HexagonField.creatureField);
             if (action === ActionType.MOVE) {
                 var response = logic.Move(subject, object);
                 if (response !== undefined && response.error !== undefined) {
@@ -766,7 +766,6 @@ window.onload = function() {
             var hex = GameWorld.FindHex(); 
             var activeField = HexagonField.GetAt(hex.x, hex.y);
             InfoBar.displayInfoCreature(activeField.creature);
-            console.log(getCreatureActions(activeField.creature));
             ActionBar.update(getCreatureActions(activeField.creature));
             TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y));
                 //Creature.SetNewPosition(hex.x, hex.y);
@@ -819,11 +818,11 @@ window.onload = function() {
         } else if (id.substring(0, 6) == 'morph_') {
             var target = id.substring(6);
             HexagonField.DoAction(TurnState.activeObject, ActionType.MORPH, undefined, {'target': target, 'additional_cost': 0});
-             ActionBar.update([]);
+            ActionBar.update([]);
         } else {
             console.log('ERROR: something other has been clickd, id=' + id);
         }
-        ActionBar.update(getCreatureActions(TurnState.activeObject.creature));
+        //ActionBar.update(getCreatureActions(TurnState.activeObject.creature));
     }
 
     var mockGetOrder = function() {
@@ -831,9 +830,11 @@ window.onload = function() {
     }
 	function onCreate() {
         GameWorld.Init();
+
         var order = mockGetOrder();
         HexagonField = new THexagonField(order);
-        TurnState = new TTurnState(order[0] === 1);
+        ActionBar.init();
+        TurnState = new TTurnState(order[0] === 0);
         // examples of creatures 
         var RealCreature = newCreature(CreatureType.TURTLE, HexagonField.PlayerId.NOTME);
         Creature = new TFieldObject(HexType.CREATURE, RealCreature);
@@ -843,7 +844,6 @@ window.onload = function() {
         Creature2 = new TFieldObject(HexType.CREATURE, RealCreature2);
         Creature2.SetNewPosition(12, 12);
                         
-        ActionBar.init();
         
         InfoBar.create("Hey you!\nHahahahahah!");
         
