@@ -944,7 +944,7 @@ window.onload = function() {
         emitter.start(false, 5000, 100);
         
         var style = { font: "32px Comfortaa", fill: "#0288D1", align: "center"};        
-        loadingText = Game.add.text(Game.width / 2, Game.height / 2, "Loading...", style);
+        loadingText = Game.add.text(Game.width / 2, Game.height / 2, "Waiting for the opponent...\nTip: you can open the game in other tab and play with yourself :)", style);
         loadingText.anchor.set(0.5);
         loadingText.fixedToCamera = true;
     }
