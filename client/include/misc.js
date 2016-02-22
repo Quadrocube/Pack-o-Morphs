@@ -15,3 +15,27 @@ function logg(object) {
     }
     console.log(output);
 }
+
+function MyQueue () {
+    this.carry = [];
+    this.length = function () {
+        return this.carry.length;
+    }
+    this.push = function (val) {
+        this.carry.push(val);
+    };
+    this.pop = function () {
+        this.carry.splice(0,1);
+    };
+    this.remove_by_value = function (val) {
+        var found = undefined;
+        for (i in this.carry) {
+            if (this.carry[i] === val) {
+                found = i;
+            }
+        }
+        if (found !== undefined) {
+            this.carry.splice(found, 1);
+        }
+    };
+}
