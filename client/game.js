@@ -1,5 +1,4 @@
 window.onload = function() {
-    
     var Game = new Phaser.Game("100%", "100%", Phaser.CANVAS, "", {preload: onPreload, create: onCreate, update: onUpdate});
 
     function TGameWorld() {
@@ -264,7 +263,7 @@ window.onload = function() {
         
         this.hexField = [];
         this.creatureField = [];
-		Game.stage.backgroundColor = "#ffffff";
+		Game.stage.backgroundColor = "#B3E5FC";
         gengrid = function(hexGroup, spriteTag, visible) {
             var totalHexes = Math.floor(GameWorld.GetGridSizeX()/2) * GameWorld.GetGridSizeY();
             var hexes = new Array(totalHexes);
@@ -415,7 +414,7 @@ window.onload = function() {
         */
         this.DoAction = function(subject, action, object, args) {
             var logic = GameWorld.gameLogic;
-            console.log(HexagonField.creatureField);
+            //console.log(HexagonField.creatureField);
             if (action === ActionType.MOVE) {
                 var response = logic.Move(subject, object);
                 if (response !== undefined && response.error !== undefined) {
@@ -756,20 +755,20 @@ window.onload = function() {
     var InfoBar = new TInfoBar(Game, GameWorld);
     
     function mouseDownCallback(e) {
-        if (Game.input.mouse.button === Phaser.Mouse.LEFT_BUTTON) { //Left Click
-            if (Game.input.y <= window.innerHeight - GameWorld.GetActionBarHeight()) { 
-                var hex = GameWorld.FindHex(); 
-                var activeField = HexagonField.GetAt(hex.x, hex.y);
-                InfoBar.displayInfoCreature(activeField.creature);
+        if (Game.input.y <= window.innerHeight - GameWorld.GetActionBarHeight()) { 
+            var hex = GameWorld.FindHex(); 
+            var activeField = HexagonField.GetAt(hex.x, hex.y);
+            InfoBar.displayInfoCreature(activeField.creature);
+            if (activeField.creature.player === HexagonField.PlayerId.ME) {
                 ActionBar.update(getCreatureActions(activeField.creature));
-                TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y));
-                //Creature.SetNewPosition(hex.x, hex.y);
-            } else { // else we click on the action bar
-                
+            } else {
+                ActionBar.update([]);    
             }
-		} else {
-			//Right Click	
-		}    
+            TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y));
+                //Creature.SetNewPosition(hex.x, hex.y);
+        } else { // else we click on the action bar
+                
+        }
     }
     
 	function onPreload() {
@@ -816,11 +815,11 @@ window.onload = function() {
         } else if (id.substring(0, 6) == 'morph_') {
             var target = id.substring(6);
             HexagonField.DoAction(TurnState.activeObject, ActionType.MORPH, undefined, {'target': target, 'additional_cost': 0});
-             ActionBar.update([]);
+            ActionBar.update([]);
         } else {
             console.log('ERROR: something other has been clickd, id=' + id);
         }
-        ActionBar.update(getCreatureActions(TurnState.activeObject.creature));
+        //ActionBar.update(getCreatureActions(TurnState.activeObject.creature));
     }
 
     var Server;

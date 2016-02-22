@@ -11,12 +11,12 @@ function TInfoBar(Game, GameWorld) {
         var infoGroup = Game.add.group();
         
         var graphics = Game.add.graphics(0, 0);
-        graphics.beginFill(0x000000, 0.5); 
+        graphics.beginFill(0x01579B, 0.5); 
         var rect = graphics.drawRoundedRect(this.x, this.y, this.width, this.height);
         rect.fixedToCamera = true;
         infoGroup.add(rect);
         
-        var style = { font: "32px Comfortaa", fill: "#ffffff", wordWrap: true, wordWrapWidth: this.width - this.margin, align: "left"};        
+        var style = { font: "32px Comfortaa", fill: "#B3E5FC", wordWrap: true, wordWrapWidth: this.width - this.margin, align: "left"};        
         this.textHandler = Game.add.text(this.x + this.margin / 2, this.y + this.margin/2, this.text, style);
         infoGroup.add(this.textHandler);
         this.textHandler.fixedToCamera = true;            
