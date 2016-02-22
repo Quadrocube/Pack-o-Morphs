@@ -1,5 +1,5 @@
 window.onload = function() {
-    //var socket = io.connect();
+//    var socket = io.connect();
     var Game = new Phaser.Game("100%", "100%", Phaser.CANVAS, "", {preload: onPreload, create: onCreate, update: onUpdate});
     
     // test winbreaks
@@ -266,7 +266,7 @@ window.onload = function() {
         
         this.hexField = [];
         this.creatureField = [];
-		Game.stage.backgroundColor = "#ffffff";
+		Game.stage.backgroundColor = "#B3E5FC";
         gengrid = function(hexGroup, spriteTag, visible) {
             var totalHexes = Math.floor(GameWorld.GetGridSizeX()/2) * GameWorld.GetGridSizeY();
             var hexes = new Array(totalHexes);
@@ -762,20 +762,17 @@ window.onload = function() {
     var InfoBar = new TInfoBar(Game, GameWorld);
     
     function mouseDownCallback(e) {
-        if (Game.input.mouse.button === Phaser.Mouse.LEFT_BUTTON) { //Left Click
-            if (Game.input.y <= window.innerHeight - GameWorld.GetActionBarHeight()) { 
-                var hex = GameWorld.FindHex(); 
-                var activeField = HexagonField.GetAt(hex.x, hex.y);
-                InfoBar.displayInfoCreature(activeField.creature);
-                ActionBar.update(getCreatureActions(activeField.creature));
-                TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y));
+        if (Game.input.y <= window.innerHeight - GameWorld.GetActionBarHeight()) { 
+            var hex = GameWorld.FindHex(); 
+            var activeField = HexagonField.GetAt(hex.x, hex.y);
+            InfoBar.displayInfoCreature(activeField.creature);
+            console.log(getCreatureActions(activeField.creature));
+            ActionBar.update(getCreatureActions(activeField.creature));
+            TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y));
                 //Creature.SetNewPosition(hex.x, hex.y);
-            } else { // else we click on the action bar
+        } else { // else we click on the action bar
                 
-            }
-		} else {
-			//Right Click	
-		}    
+        }
     }
     
 	function onPreload() {
@@ -846,7 +843,7 @@ window.onload = function() {
         Creature2 = new TFieldObject(HexType.CREATURE, RealCreature2);
         Creature2.SetNewPosition(12, 12);
                         
-        ActionBar.create([]);
+        ActionBar.init();
         
         InfoBar.create("Hey you!\nHahahahahah!");
         

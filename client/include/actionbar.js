@@ -11,8 +11,20 @@ function TActionBar(Game, GameWorld, callback, buttonWidth) {
     this.borderMargin = 40;
     this.buttons = [];
     this.isLock = false;
+    this.actionBarPosX = 100;
+    this.actionBarWidth = 100;
+    this.actionBarHeight = 128;
+    this.lockRect;
+    this.barRect;
+    
+    this.init = function () {
+        this.actionBarHeight = GameWorld.GetActionBarHeight();
+        alert("hey");
+        this.create([]);
+    };
     
     this.create = function (ids) {
+        alert("create");
         if (this.isLock) {
             return;
         }
@@ -20,21 +32,19 @@ function TActionBar(Game, GameWorld, callback, buttonWidth) {
         var n = ids.length;
         var startPosX = Game.width / 2 - buttonWidth * n / 2;
         
-        var actionBarHeight = GameWorld.GetActionBarHeight();
         // black rounded rect -- background for buttons
-        this.graphics = Game.add.graphics(0, 0);
-        this.graphics.beginFill(0x000000, 0.5); 
-        var actionBarWidth = Math.max(GameWorld.GetFieldSizeX(), buttonWidth * n + this.borderMargin );
-        var actionBarPosX = Math.min(GameWorld.GetFieldX(), startPosX - this.borderMargin / 2);
-        var rect = this.graphics.drawRoundedRect(actionBarPosX, window.innerHeight - actionBarHeight, 
-                                            actionBarWidth , actionBarHeight);
-        rect.fixedToCamera = true;
+        this.graphicsBar = Game.add.graphics(0, 0);
+        this.graphicsBar.beginFill(0x01579B, 0.5); 
+        this.actionBarWidth = Math.max(GameWorld.GetFieldSizeX(), buttonWidth * n + this.borderMargin );
+        this.actionBarPosX = Math.min(GameWorld.GetFieldX(), startPosX - this.borderMargin / 2);
+        this.barRect = this.graphicsBar.drawRoundedRect(this.actionBarPosX, window.innerHeight - this.actionBarHeight, 
+                                            this.actionBarWidth , this.actionBarHeight);
+        this.barRect.fixedToCamera = true;
 
         var factory = new TActionBarButtonCallbackFactory(callback);
-
         for (var i = 0; i < parseInt(n); i++) {
             var posX = startPosX + buttonWidth * i;
-            var posY = window.innerHeight - actionBarHeight;
+            var posY = window.innerHeight - this.actionBarHeight;
             var button;
             if(ids[i][1] === 'button_replicate' 
                 || ids[i][1] === 'button_spec_ability' 
@@ -55,7 +65,7 @@ function TActionBar(Game, GameWorld, callback, buttonWidth) {
             return;
         }
         
-        this.graphics.destroy();
+        this.barRect.destroy();
         this.buttons.forEach(function (item, i, arr) {
             item.destroy();
         });
@@ -70,6 +80,14 @@ function TActionBar(Game, GameWorld, callback, buttonWidth) {
     
     this.lock = function () {
         this.isLock = true;
+
+        this.graphicsLock = Game.add.graphics(0, 0);        
+        this.graphicsLock.beginFill(0xFFFFFF, 0.5); 
+        this.lockRect = this.graphicsLock.drawRoundedRect(this.actionBarPosX, window.innerHeight - this.actionBarHeight, 
+                                            this.actionBarWidth , this.actionBarHeight);
+        this.lockRect.fixedToCamera = true;
+        this.graphicsLock.endFill();
+
         this.buttons.forEach(function (item, i, arr) {
             item.inputEnabled = false;
         });
@@ -77,6 +95,9 @@ function TActionBar(Game, GameWorld, callback, buttonWidth) {
     
     this.unlock = function () {
         this.isLock = false;
+
+        this.graphicsLock.destroy();
+
         this.buttons.forEach(function (item, i, arr) {
             item.inputEnabled = true;
         });
