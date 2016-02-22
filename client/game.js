@@ -267,7 +267,7 @@ window.onload = function() {
         
         this.hexField = [];
         this.creatureField = [];
-        gengrid = function(hexGroup, spriteTag, visible) {
+        var gengrid = function(hexGroup, spriteTag, visible) {
             var totalHexes = Math.floor(GameWorld.GetGridSizeX()/2) * GameWorld.GetGridSizeY();
             var hexes = new Array(totalHexes);
             var arrlen = 0;
@@ -450,7 +450,7 @@ window.onload = function() {
                         }
                         HexagonField.Remove(object);
                         if (subject.creature.type !== CreatureType.WASP || subject.creature.type !== CreatureType.SPIDER) {
-                            // GET nutrition
+                            HexagonField.players[subject.creature.player].nutrition += object.creature.NUT;
                         }
                         return true;
                     } 
@@ -468,6 +468,10 @@ window.onload = function() {
                 if (response !== undefined && response.error !== undefined) {
                     // something bad happened
                     console.log('ERROR in DoAction.MORPH: ' + response['error']);
+                    return false;
+                }
+                if (HexagonField.players[subject.creature.player].nutrition <= 1) {
+                    console.log('Not enough nutrition, need 2 have ' + HexagonField.players[subject.creature.player].nutrition);
                     return false;
                 }
                 var target;
@@ -494,6 +498,8 @@ window.onload = function() {
                 var fieldObject = new TFieldObject(HexType.CREATURE, creature);
                 fieldObject.SetNewPosition(subject.col, subject.row);
                 delete subject;
+                
+                HexagonField.players[subject.creature.player].nutrition -= 2;
                 return true;
             } else if (action === ActionType.REPLICATE) {
                 if (args === undefined || args.additional_cost === undefined) {
@@ -506,6 +512,10 @@ window.onload = function() {
                     console.log('ERROR in DoAction.REPLICATE: ' + response['error']);
                     return false;
                 }
+                if (HexagonField.players[subject.creature.player].nutrition <= 1) {
+                    console.log('Not enough nutrition, need 2 have ' + HexagonField.players[subject.creature.player].nutrition);
+                    return false;
+                }
                 HexagonField.Remove(subject);
                 var creature = newCreature(CreatureType.COCOON, HexagonField.PlayerId.ME);
                 creature.init_effect('morph');
@@ -514,11 +524,17 @@ window.onload = function() {
                 fieldObject = new TFieldObject(HexType.CREATURE, creature);
                 fieldObject.SetNewPosition(subject.col, subject.row);
                 delete subject;
+                
+                HexagonField.players[subject.creature.player].nutrition -= 2;
                 return true;
             } else if (action === ActionType.REFRESH) {
-                if (true) { // ENOUGH nutrition
-                    // SPEND nutrition
+                if (true) {
+                    if (HexagonField.players[subject.creature.player].nutrition <= 0) {
+                        console.log('Not enough nutrition, need 1 have ' + HexagonField.players[subject.creature.player].nutrition);
+                        return false;
+                    }
                     subject.creature.Refresh();
+                    HexagonField.players[subject.creature.player].nutrition -= 1;
                     return true;
                 } else {
                     return false;
@@ -706,8 +722,8 @@ window.onload = function() {
             ActionBar.update([]);
             this._ResetState();
             
-            objects = HexagonField.getAllObjects();
-            for (i in objects) {
+            var objects = HexagonField.getAllObjects();
+            for (var i in objects) {
                 if (objects[i].objectType === HexType.CREATURE) {
                     if (objects[i].creature.effects === undefined)
                         continue;
@@ -743,7 +759,7 @@ window.onload = function() {
                                 // find the right place for the second one
                                 // forsake if too crowdy
                                 var radius1 = radius_with_blocks(makeColRowPair(objects[i].col, objects[i].row), 1, []);
-                                for (j in radius1) {
+                                for (var j in radius1) {
                                     if (HexagonField.GetAt(radius1[j].col, radius1[j].row).objectType === HexType.EMPTY) {
                                         var creature2 = newCreature(objects[i].creature.effects['morph']['target'], objects[i].creature.player);
                                         var fieldObject2 = new TFieldObject(HexType.CREATURE, creature2);
@@ -783,14 +799,23 @@ window.onload = function() {
     
     // string, HexType, TCreature
     function TFieldObject(type, initCreature) {
-        var sprite_name = GameWorld.getSpriteName(type, initCreature);
-        this.marker = Game.add.sprite(0,0,sprite_name);
+        var spriteName = GameWorld.getSpriteName(type, initCreature);
+        this.marker = Game.add.sprite(0,0,spriteName);
         this.marker.visible = true;
         // row = y, col = x
         this.col = 0;
         this.row = 0;
         this.objectType = type;
         this.creature = initCreature; 
+        this.hexActive = null;
+        if (initCreature) {
+            if (initCreature.player === HexagonField.PlayerId.ME) {
+                this.hexActive = Game.add.sprite(0,0,'hexagon_me');
+            } else {
+                this.hexActive = Game.add.sprite(0,0,'hexagon_opponent');
+            }
+            HexagonField.creatureGroup.add(this.hexActive);
+        }
         
         this.colrow = function () {
             return [this.col, this.row];
@@ -844,10 +869,25 @@ window.onload = function() {
             this.col = posX;
             if (!GameWorld.IsValidCoordinate(posX, posY)) {
                 this.marker.visible = false;
+                if (this.hexActive) {
+                    this.hexActive.visible = false;
+                }
 		    } else {
                 this.marker.visible = true;
-                this.marker.x = GameWorld.GetHexagonWidth() * posX + GameWorld.GetHexagonWidth()/ 2 + (GameWorld.GetHexagonWidth() / 2) * (posY % 2);
-				this.marker.y = 0.75 * GameWorld.GetHexagonHeight() * posY + GameWorld.GetHexagonHeight() / 2;
+                if (this.hexActive) {
+                    this.hexActive.visible = true;
+                }
+                
+                var newX = GameWorld.GetHexagonWidth() * posX + GameWorld.GetHexagonWidth()/ 2 + (GameWorld.GetHexagonWidth() / 2) * (posY % 2);
+                var newY = 0.75 * GameWorld.GetHexagonHeight() * posY + GameWorld.GetHexagonHeight() / 2;
+                
+                if (this.hexActive) {
+                    this.hexActive.x = newX - 16;
+                    this.hexActive.y = newY - 20;
+                }
+                
+                this.marker.x = newX;
+				this.marker.y = newY;
             }
             
             return this;
@@ -903,6 +943,8 @@ window.onload = function() {
 	function onPreload() {
         Game.load.image('bubble', 'arts/bubble.png');
 		Game.load.image("hexagon", "arts/hexagon.png");
+        Game.load.image("hexagon_me", "arts/hexagon_me.png");
+        Game.load.image("hexagon_opponent", "arts/hexagon_opponent.png");
 		Game.load.image("marker", "arts/marker.png");
         Game.load.spritesheet('button_replicate', 'arts/buttons/button_replicate_spritesheet.png', 128, 128);
         Game.load.spritesheet('button_spec_ability', 'arts/buttons/button_spec_ability_spritesheet.png', 128, 128);
@@ -1112,6 +1154,11 @@ window.onload = function() {
         GameWorld.Init();
         loading("Waiting for the opponent...\nTip: you can open the game in other tab and play with yourself :)", "up");
         Server = new TServerMock();
+        
+        var creatures = HexagonField.getMeOpponentCreatures();
+        StatInfoBar.displayStatInfo(HexagonField.GetMe().nutrition, 
+                                    creatures.myCreatures.length,
+                                    creatures.opponentCreatures.length);
 	}
 	
 	function onUpdate() {
