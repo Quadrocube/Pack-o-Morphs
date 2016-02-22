@@ -65,7 +65,7 @@ window.onload = function() {
         };
 
         this.Init = function () {
-        	Game.world.setBounds(-500, -500, 4000, 2000); // constants should be fit for size of field that we need
+    		Game.stage.backgroundColor = "#B3E5FC";
 
             fieldPosX = (Game.width - this.GetHexagonWidth() * Math.ceil(this.GetGridSizeX() / 2)) / 2;
        	    if (this.GetGridSizeX() % 2 === 0) {
@@ -76,6 +76,8 @@ window.onload = function() {
             if (GameWorld.GetGridSizeY() % 2 === 0) {
         	   fieldPosY -= this.GetHexagonHeight() / 8;
             }
+            
+            Game.world.setBounds(0, -50, Game.width, Game.height + 228); // constants should be fit for size of field that we need
         }
         
         
@@ -264,7 +266,6 @@ window.onload = function() {
         
         this.hexField = [];
         this.creatureField = [];
-		Game.stage.backgroundColor = "#B3E5FC";
         gengrid = function(hexGroup, spriteTag, visible) {
             var totalHexes = Math.floor(GameWorld.GetGridSizeX()/2) * GameWorld.GetGridSizeY();
             var hexes = new Array(totalHexes);
@@ -777,6 +778,7 @@ window.onload = function() {
     }
     
 	function onPreload() {
+        Game.load.image('bubble', 'arts/bubble.png');
 		Game.load.image("hexagon", "arts/hexagon.png");
 		Game.load.image("marker", "arts/marker.png");
         Game.load.spritesheet('button_replicate', 'arts/buttons/button_replicate_spritesheet.png', 128, 128);
@@ -838,6 +840,7 @@ window.onload = function() {
     };
     
     function InitGame(order, creaturesInit) {
+        hideLoading();
         HexagonField = new THexagonField(order);
         creaturesInit();
         ActionBar.create([]);
@@ -886,8 +889,42 @@ window.onload = function() {
         };
     };
 
+    var emitter;
+    var loadingText;
+
+    function hideLoading() {
+        emitter.destroy();
+        loadingText.destroy();    
+    }
+
+    function loading() {
+        emitter = Game.add.emitter(Game.world.centerX, Game.world.height, 200);
+
+        emitter.width = window.innerWidth - 100;
+
+        emitter.makeParticles('bubble');
+
+        emitter.minParticleSpeed.set(0, 100);
+        emitter.maxParticleSpeed.set(0, 200);
+
+        emitter.setRotation(0, 0);
+        emitter.setAlpha(0.3, 0.8);
+        emitter.setScale(0, 0.2, 0, 0.2, 6000, Phaser.Easing.Quintic.Out);
+        emitter.gravity = -500;
+
+        emitter.start(false, 5000, 100);
+        
+        var style = { font: "32px Comfortaa", fill: "#0288D1", align: "center"};        
+        loadingText = Game.add.text(Game.width / 2, Game.height / 2, "Loading...", style);
+        loadingText.anchor.set(0.5);
+        loadingText.fixedToCamera = true;
+    }
+
 	function onCreate() {
         GameWorld.Init();
+        //console.log("loading");
+        loading();
+//        console.log("loading");
         Server = new TServerMock();
 	}
 	
