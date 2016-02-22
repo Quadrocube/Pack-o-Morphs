@@ -385,7 +385,8 @@ window.onload = function() {
                 subject is TURTLE :)
         */
         this.DoAction = function(subject, action, object, args) {
-            logic = GameWorld.gameLogic;
+            var logic = GameWorld.gameLogic;
+            console.log(HexagonField.creatureField);
             if (action === ActionType.MOVE) {
                 var response = logic.Move(subject, object);
                 if (response !== undefined && response.error !== undefined) {
@@ -396,12 +397,16 @@ window.onload = function() {
                 return true;
             } else if (action === ActionType.ATTACK) {
                 var response = logic.Attack(subject, object);
-                if (response.error !== undefined) {
+                if (response !== undefined && response.error !== undefined) {
                     // something bad happened
                     console.log('ERROR in DoAction.ATTACK: ' + response['error']);
                     return false;
                 }
-                if (response.landed === true && response.death !== undefined) {
+                if (response === undefined || response['landed'] === undefined) {
+                    console.log('ERROR in DoAction.ATTACK: Presentation error');
+                    return false;
+                }
+                if (response['landed'] === true && response['death'] !== undefined) {
                     // attack landed
                     if (response.death.obj !== undefined) {
                         // obj is dead
@@ -418,12 +423,8 @@ window.onload = function() {
                         return true;
                     } 
                 } 
-                else if (response.landed === false) {
-                    // attack missed
-                    return true;
-                } 
-                console.log('ERROR in DoAction.ATTACK: Presentation error');
-                return false;
+                // attack missed or damage not lethal
+                return true;
             } else if (action === ActionType.RUNHIT) {
             } else if (action === ActionType.MORPH) {
                 if (args === undefined || args.target === undefined || args.additional_cost === undefined) {
@@ -454,7 +455,7 @@ window.onload = function() {
                     target = CreatureType.SPIDER;
                 HexagonField.Remove(subject);
                 
-                creature = newCreature(CreatureType.COCOON);
+                var creature = newCreature(CreatureType.COCOON);
                 creature.init_effect('morph');
                 creature.effects['morph'] = {'target':target, 'turns': 3 - args.additional_cost};
                 
@@ -474,7 +475,7 @@ window.onload = function() {
                     return false;
                 }
                 HexagonField.Remove(subject);
-                creature = newCreature(CreatureType.COCOON);
+                var creature = newCreature(CreatureType.COCOON);
                 creature.init_effect('morph');
                 creature.effects['morph'] = {'target': '__replicate', 'turns': 3 - args.additional_cost};
                 
@@ -691,6 +692,25 @@ window.onload = function() {
         
         this.GetCreaturesInRadius = function (radius) {
             return HexagonField.GetCreaturesInRadius(this.col, this.row, radius);
+        }
+        
+        this.MoveRange = function () {
+            if (this.objectType !== HexType.CREATURE || this.creature == null)
+                return 0;
+            if (this.creature.type === CreatureType.PLANT || this.creature.type === CreatureType.COCOON)
+                return 0;
+            var neigh = this.GetCreaturesInRadius(1);
+            for (var cr in neigh) {
+                if (neigh[cr] === this)
+                    continue;
+                if (neigh[cr].creature.type === CreatureType.TURTLE) {
+                    return 1;
+                }
+            }
+            if (this.creature.type === CreatureType.SPAWN) {
+                return 4;
+            }
+            return 2;
         }
     }
 	

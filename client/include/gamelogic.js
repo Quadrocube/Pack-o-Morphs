@@ -102,7 +102,7 @@
             if (subj.creature.type === CreatureType.SPIDER)
                 d = 3;
             if (user_d <= d) 
-                return {};
+                return undefined;
             else
                 return {'error': 'distance is too great d=' + user_d + ' vs range=' + d };
         };
@@ -147,8 +147,8 @@
         this.Attack = function(subj, obj) {
             // chk: attack is valid
             var cassert = this.assert_can_attack(subj, obj);
-            if (cassert.error !== undefined) {
-                return {'error': assert.error};
+            if (cassert !== undefined && cassert.error !== undefined) {
+                return {'error': cassert.error};
             }
             
             subj.creature.init_effect('attacked');
@@ -213,10 +213,10 @@
             // regular drain
             subj.creature.init_effect('drain');
             subj.creature.effects['drain'] += 1;
-            console.log('---');
-            console.log(subj);
-            console.log(obj);
-            console.log('---');
+//            console.log('---ATTACK aftermath---');
+//            console.log(subj);
+//            console.log(obj);
+//            console.log('---');
             return {'landed': landed, 'death': death};
         };
         /*
@@ -228,22 +228,18 @@
         this.Move = function(subj, obj) {
             if (subj.creature.type === CreatureType.COCOON) 
                 return {'error': 'cocoon is immovable'};
-            var d = 2;
-            if (subj.creature.type === CreatureType.SPAWN) {
-                d *= 2;
-            }
-            var neigh = subj.GetCreaturesInRadius(1);
-            for (var cr in neigh) {
-                if (neigh[cr].creature.type === CreatureType.TURTLE) {
-                    d = 1;
-                }
-            }
+            if (subj.creature.effects['drain'] >= subj.creature.MOV)
+                return {'error': 'subject completely drained'};
+            var d = subj.MoveRange();
             var user_d = (new THex(0, 0, 0)).from_colrow(subj.col, subj.row).distance((new THex(0, 0, 0)).from_colrow(obj.col, obj.row));
             if (user_d > d) {
                 return {'error': 'too far d=' + user_d + ' vs permitted=' + d};
             }
             if (user_d === 0) {
                 return {'error': '0 movement'};
+            }
+            if (obj.objectType === HexType.CREATURE) {
+                return {'error': 'target hex blocked'};
             }
             subj.creature.init_effect('drain');
             subj.creature.effects['drain'] += 1;
