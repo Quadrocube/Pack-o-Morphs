@@ -1,4 +1,4 @@
-function TInfoBar(Game, GameWorld) {
+function TInfoBar(Game) {
     this.text = "Default text!\n";
     this.width = 300;
     this.margin = 40;
