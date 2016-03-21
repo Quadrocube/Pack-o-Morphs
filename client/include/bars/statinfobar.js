@@ -1,4 +1,4 @@
-function TStatInfoBar(Game, GameWorld) {
+function TStatInfoBar(Game) {
     this.text = "Default text!\n";
     this.width = 300;
     this.margin = 40;
