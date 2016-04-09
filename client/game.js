@@ -1,33 +1,40 @@
 window.onload = function() {
-
-    var Game = new Phaser.Game("100%", "100%", Phaser.CANVAS, "", {preload: onPreload, create: onCreate, update: onUpdate});
+    var Game = new Phaser.Game('100%', '100%', Phaser.CANVAS, '', {preload: onPreload, create: onCreate, update: onUpdate});
     function onPreload() {
-        Game.load.image('bubble', 'arts/bubble.png');
-		Game.load.image("hexagon", "arts/hexagon.png");
-        Game.load.image("hexagon_me", "arts/hexagon_me.png");
-        Game.load.image("hexagon_opponent", "arts/hexagon_opponent.png");
-		Game.load.image("marker", "arts/marker.png");
-        Game.load.spritesheet('button_replicate', 'arts/buttons/button_replicate_spritesheet.png', 128, 128);
-        Game.load.spritesheet('button_spec_ability', 'arts/buttons/button_spec_ability_spritesheet.png', 128, 128);
-        Game.load.spritesheet('button_feed', 'arts/buttons/button_feed_spritesheet.png', 128, 128);
-        Game.load.spritesheet('button_morph', 'arts/buttons/button_morph_spritesheet.png', 128, 128);
-        Game.load.spritesheet('button_yield', 'arts/buttons/button_yield_spritesheet.png', 128, 128);
-        Game.load.image('button_morph_vector', 'arts/button_size/amoeba1.png');
-        Game.load.image('button_morph_cocoon', 'arts/button_size/amoeba2.png');
-        Game.load.image('button_morph_plant', 'arts/button_size/amoeba3.png');
-        Game.load.image('button_morph_spawn', 'arts/button_size/amoeba4.png');
-        Game.load.image('button_morph_daemon', 'arts/button_size/amoeba5.png');
-        Game.load.image('button_morph_turtle', 'arts/button_size/amoeba6.png');
-        Game.load.image('button_morph_rhino', 'arts/button_size/amoeba7.png');
-        Game.load.image('button_morph_wasp', 'arts/button_size/amoeba8.png');
-        Game.load.image('button_morph_spider', 'arts/button_size/amoeba9.png');
-        Game.load.image('button_morph_cancel', 'arts/button_size/cancel.png');
-        Game.load.image('hex_vector', 'arts/small/amoeba.png');
-        Game.load.image('hex_cocoon', 'arts/small/amoeba2.png');
-        Game.load.image('hex_plant', 'arts/small/amoeba3.png');
-        Game.load.image('hex_spawn', 'arts/small/amoeba4.png');
-        Game.load.image('hex_daemon', 'arts/small/amoeba5.png');
-        Game.load.image('hex_turtle', 'arts/small/amoeba6.png');
+        var images = {
+            'bubble': 'arts/bubble.png',
+            'hexagon': 'arts/hexagon.png',
+            'hexagon_me': 'arts/hexagon_me.png',
+            'hexagon_opponent': 'arts/hexagon_opponent.png',
+            'marker': 'arts/marker.png',
+            'button_morph_vector': 'arts/button_size/amoeba1.png',
+            'button_morph_cocoon': 'arts/button_size/amoeba2.png',
+            'button_morph_plant': 'arts/button_size/amoeba3.png',
+            'button_morph_spawn': 'arts/button_size/amoeba4.png',
+            'button_morph_daemon': 'arts/button_size/amoeba5.png',
+            'button_morph_turtle': 'arts/button_size/amoeba6.png',
+            'button_morph_rhino': 'arts/button_size/amoeba7.png',
+            'button_morph_wasp': 'arts/button_size/amoeba8.png',
+            'button_morph_spider': 'arts/button_size/amoeba9.png',
+            'button_morph_cancel': 'arts/button_size/cancel.png',
+            'hex_vector': 'arts/small/amoeba.png',
+            'hex_cocoon': 'arts/small/amoeba2.png',
+            'hex_plant': 'arts/small/amoeba3.png',
+            'hex_spawn': 'arts/small/amoeba4.png',
+            'hex_daemon': 'arts/small/amoeba5.png',
+            'hex_turtle': 'arts/small/amoeba6.png',
+        }
+        var spritesheets = {
+            'button_replicate': 'arts/buttons/button_replicate_spritesheet.png',
+            'button_spec_ability': 'arts/buttons/button_spec_ability_spritesheet.png',
+            'button_feed': 'arts/buttons/button_feed_spritesheet.png',
+            'button_morph': 'arts/buttons/button_morph_spritesheet.png',
+            'button_yield': 'arts/buttons/button_yield_spritesheet.png',
+        }
+        for (name in images)
+            Game.load.image(name, images[name]);
+        for (name in spritesheets)
+            Game.load.spritesheet(name, spritesheets[name], 128, 128);
 	};
 
 
@@ -89,11 +96,11 @@ window.onload = function() {
         });
 
         socket.on('disconnect', function() {
-            loading("Sorry, your opponent has disconnected...", "down");
+            loading('Sorry, your opponent has disconnected...', 'down');
             TurnState._PassTurn();
         });
         socket.on('new-turn', function(data) {
-            assert(TurnState.state === StateType.TS_OPPONENT_MOVE, "Received new-turn during my turn");
+            assert(TurnState.state === StateType.TS_OPPONENT_MOVE, 'Received new-turn during my turn');
             HexagonField.Load4JSON(data);
             TurnState.MyTurn();
         });
@@ -108,83 +115,83 @@ window.onload = function() {
     };
 
 	function onCreate() {
-	    Game.stage.backgroundColor = "#B3E5FC";
+	    Game.stage.backgroundColor = '#B3E5FC';
         Game.world.setBounds(0, -50, Game.width, Game.height + 228); // constants should be fit for size of field that we need
         Game.camera.y += 60;
 
 	    var GameLogic = new TGameLogic();
-	    var GameWorld = new TGameWorld(Game);
-	    var order = [0, 1];
-        var HexagonField = new THexagonField(Game, GameWorld, GameLogic, order);
+	    //var GameWorld = new TGameWorld(Game);
+	    //var order = [0, 1];
+        var HexagonField = new THexagonField(Game, GameLogic);
 
-        var ActionBar = new TActionBar(Game, GameWorld, undefined, 128);
-        var InfoBar = new TInfoBar(Game);
-        var StatInfoBar = new TStatInfoBar(Game);
-
-        InfoBar.create("");
-        StatInfoBar.create("");
-
-        var Server = new TServerMock();
-        var TurnState = new TTurnState(Game, GameWorld, GameLogic, HexagonField, ActionBar, StatInfoBar, Server, order[0] === 0);
-        ActionBar.callback = function(id) {
-            if (id === 'feed') {
-                if (HexagonField.DoAction(TurnState.activeObject, ActionType.REFRESH)) {
-                    TurnState._PassTurn();
-                }
-            } else if (id === 'morph') {
-                ActionBar.update(getMorphList());
-            } else if (id === 'replicate') {
-                if (HexagonField.DoAction(TurnState.activeObject, ActionType.REPLICATE, undefined, {'additional_cost': 0})) {
-                    TurnState._PassTurn();
-                }
-            } else if (id === 'yield') {
-                if (HexagonField.DoAction(TurnState.activeObject, ActionType.YIELD)) {
-                    TurnState._PassTurn();
-                }
-            } else if (id === 'spec_ability') {
-                if (!HexagonField.DoAction(TurnState.activeObject, ActionType.SPECIAL)) {
-                    console.log('spec ability is used already');
-                } else {
-                    TurnState._PassTurn();
-                }
-            } else if (id === 'morph_cancel') {
-                if (ActionBar.update(getCreatureActions(TurnState.activeObject.creature))) {
-                    TurnState._PassTurn();
-                }
-            } else if (id.substring(0, 6) == 'morph_') {
-                var target = id.substring(6);
-                if (HexagonField.DoAction(TurnState.activeObject, ActionType.MORPH, undefined, {'target': target, 'additional_cost': 0})) {
-                    ActionBar.update([]);
-                    TurnState._PassTurn();
-                }
-            } else {
-                console.log('ERROR: something other has been clickd, id=' + id);
-            }
-            //ActionBar.update(getCreatureActions(TurnState.activeObject.creature));
-        }
-
-        Game.input.keyboard.onDownCallback = function(key) {
-            if (key.keyCode === Phaser.Keyboard.ONE) {
-                TurnState.MyTurn();
-            }
-        };
-        InitBattleground(Game, GameWorld, HexagonField, TurnState);
-        Game.input.mouse.mouseDownCallback = function(e) {
-            if (Game.input.y <= window.innerHeight - GameWorld.actionBarHeight) {
-                var hex = GameWorld.FindHex();
-                var activeField = HexagonField.GetAt(hex.x, hex.y);
-                InfoBar.displayInfoCreature(activeField.creature);
-                if (activeField.objectType !== HexType.CREATURE ||
-                    activeField.creature.player !== HexagonField.PlayerId.ME) {
-                    ActionBar.update([]);
-                } else {
-                    ActionBar.update(getCreatureActions(activeField.creature));
-                }
-                TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y));
-                    //Creature.SetNewPosition(hex.x, hex.y);
-            } else { // else we click on the action bar
-            }
-        }
+//        var ActionBar = new TActionBar(Game, GameWorld, undefined, 128);
+//        var InfoBar = new TInfoBar(Game);
+//        var StatInfoBar = new TStatInfoBar(Game);
+//
+//        InfoBar.create('');
+//        StatInfoBar.create('');
+//
+//        var Server = new TServerMock();
+//        var TurnState = new TTurnState(Game, GameWorld, GameLogic, HexagonField, ActionBar, StatInfoBar, Server, order[0] === 0);
+//        ActionBar.callback = function(id) {
+//            if (id === 'feed') {
+//                if (HexagonField.DoAction(TurnState.activeObject, ActionType.REFRESH)) {
+//                    TurnState._PassTurn();
+//                }
+//            } else if (id === 'morph') {
+//                ActionBar.update(getMorphList());
+//            } else if (id === 'replicate') {
+//                if (HexagonField.DoAction(TurnState.activeObject, ActionType.REPLICATE, undefined, {'additional_cost': 0})) {
+//                    TurnState._PassTurn();
+//                }
+//            } else if (id === 'yield') {
+//                if (HexagonField.DoAction(TurnState.activeObject, ActionType.YIELD)) {
+//                    TurnState._PassTurn();
+//                }
+//            } else if (id === 'spec_ability') {
+//                if (!HexagonField.DoAction(TurnState.activeObject, ActionType.SPECIAL)) {
+//                    console.log('spec ability is used already');
+//                } else {
+//                    TurnState._PassTurn();
+//                }
+//            } else if (id === 'morph_cancel') {
+//                if (ActionBar.update(getCreatureActions(TurnState.activeObject.creature))) {
+//                    TurnState._PassTurn();
+//                }
+//            } else if (id.substring(0, 6) == 'morph_') {
+//                var target = id.substring(6);
+//                if (HexagonField.DoAction(TurnState.activeObject, ActionType.MORPH, undefined, {'target': target, 'additional_cost': 0})) {
+//                    ActionBar.update([]);
+//                    TurnState._PassTurn();
+//                }
+//            } else {
+//                console.log('ERROR: something other has been clickd, id=' + id);
+//            }
+//            //ActionBar.update(getCreatureActions(TurnState.activeObject.creature));
+//        }
+//
+//        Game.input.keyboard.onDownCallback = function(key) {
+//            if (key.keyCode === Phaser.Keyboard.ONE) {
+//                TurnState.MyTurn();
+//            }
+//        };
+//        InitBattleground(Game, GameWorld, HexagonField, TurnState);
+//        Game.input.mouse.mouseDownCallback = function(e) {
+//            if (Game.input.y <= window.innerHeight - GameWorld.actionBarHeight) {
+//                var hex = GameWorld.FindHex();
+//                var activeField = HexagonField.GetAt(hex.x, hex.y);
+//                InfoBar.displayInfoCreature(activeField.creature);
+//                if (activeField.objectType !== HexType.CREATURE ||
+//                    activeField.creature.player !== HexagonField.PlayerId.ME) {
+//                    ActionBar.update([]);
+//                } else {
+//                    ActionBar.update(getCreatureActions(activeField.creature));
+//                }
+//                TurnState.SelectField(HexagonField.GetAt(hex.x, hex.y));
+//                    //Creature.SetNewPosition(hex.x, hex.y);
+//            } else { // else we click on the action bar
+//            }
+//        }
 	};
 
 	function onUpdate() {

@@ -4,51 +4,36 @@ function TPlayer(initNutrition, id) {
 };
 
 
-
-function THexagonField(Game, GameWorld, GameLogic, playerOrder) {
-    var order = playerOrder || [0, 1]
-    this.PlayerId = {};
-    this.PlayerId.ME = order[0];
-    this.PlayerId.NOTME = order[1];
-    this.players = Array(2);
+function THexagonField(Game, GameLogic) {
     this.hexField = [];
     this.creatureField = [];
     this.lastHighlight = [];
     this.creaturesDraggable = true;
     this.game = Game;
-    this.gameWorld = GameWorld;
+    this.grid = new THexagonGrid(Game.width, Game.height, 35, 16, 20);
     this.gameLogic = GameLogic;
     this.Init();
 }
 
 THexagonField.prototype = {
     Init : function(){
-        this.players[this.PlayerId.ME] = new TPlayer(this.gameWorld.initialNutrition, this.PlayerId.ME);
-        this.players[this.PlayerId.NOTME] = new TPlayer(this.gameWorld.initialNutrition, this.PlayerId.NOTME);
-
+        this.grid.Test();
         for (var groupName of ["hexagonGroup", "highlightGroup", "creatureGroup", "obstaclesGroup", "oppGroup"]) {
             this[groupName] = this.game.add.group();
             this.InitGroup(groupName);
         }
         this.GenerateGrid(this.hexagonGroup, "hexagon", true);
         this.highHexes = this.GenerateGrid(this.highlightGroup, "marker", false);
-        for (var _row = 0; _row < this.gameWorld.gridSizeY; ++_row) {
-            for (var _col = 0; _col < this.gameWorld.gridSizeX / 2; ++_col) {
-                this.hexField[_col+":"+_row] = {"row": _row, "col": _col, "objectType": HexType.EMPTY, "creature": null};
+        for (var i = 0; i < this.grid.rowNum; ++i) {
+            for (var j = 0; j < this.grid.colNum; ++j) {
+                this.hexField[j+":"+i] = {"row": i, "col": j, "objectType": HexType.EMPTY, "creature": null};
             }
         }
     },
-    GetMe : function() {
-        return this.players[this.PlayerId.ME];
-    },
-
-    GetOpp : function() {
-        return this.players[this.PlayerId.NOTME];
-    },
 
     InitGroup : function(groupName) {
-        this[groupName].x = this.gameWorld.fieldPosX;
-        this[groupName].y = this.gameWorld.fieldPosY;
+        this[groupName].x = this.grid.leftBound;
+        this[groupName].y = this.grid.upperBound;
     },
 
     ResetGroup : function(groupName, fieldName) {
@@ -62,22 +47,15 @@ THexagonField.prototype = {
     },
 
     GenerateGrid : function(hexGroup, spriteTag, visible) {
-        var totalHexes = Math.floor(this.gameWorld.gridSizeX/2) * this.gameWorld.gridSizeY;
-        var hexes = new Array(totalHexes);
-        var arrlen = 0;
-        for (var i = 0; i < this.gameWorld.gridSizeY / 2; i++) {
-            for (var j = 0; j < this.gameWorld.gridSizeX; j++) {
-                if (this.gameWorld.gridSizeY % 2 === 0
-                        || i + 1 < this.gameWorld.gridSizeY / 2
-                        || j % 2===0) {
-                    var hexagonX = this.gameWorld.hexagonWidth * j / 2;
-                    var hexagonY = this.gameWorld.hexagonHeight * i * 1.5
-                        + (this.gameWorld.hexagonHeight / 4 * 3) * (j % 2);
-                    var hexagon = this.game.add.sprite(hexagonX,hexagonY,spriteTag);
-                    hexes[arrlen++] = hexagon;
-                    hexagon.visible = visible;
-                    hexGroup.add(hexagon);
-                }
+        var totalHexes = this.grid.rowNum * this.grid.colNum;
+        var hexes = [];
+        for (var i = 0; i < this.grid.rowNum; i++) {
+            for (var j = 0; j < this.grid.colNum; j++) {
+                var coord = this.grid.ColRowToXYCorner(j, i);
+                var hexagon = this.game.add.sprite(coord.x, coord.y, spriteTag);
+                hexes.push(hexagon)
+                hexagon.visible = visible;
+                hexGroup.add(hexagon);
             }
         }
         return hexes;
@@ -138,7 +116,7 @@ THexagonField.prototype = {
         for (var i = 0; i < neighborHexes.length; i++) {
             var x = neighborHexes[i].col;
             var y = neighborHexes[i].row;
-            if (this.gameWorld.IsValidCoordinate(x, y)) {
+            if (this.grid.IsValidCoordinate(x, y)) {
                 var hex = this.GetAt(x, y);
                 if (hex.objectType === HexType.CREATURE) {
                     neighborCreatures[ncreatures++] = hex;
@@ -156,8 +134,8 @@ THexagonField.prototype = {
         for (var i = 0; i < this.lastHighlight.length; i++) {
             var x = this.lastHighlight[i].col;
             var y = this.lastHighlight[i].row;
-            if (this.gameWorld.IsValidCoordinate(x, y)) {
-                this.highHexes[this.gameWorld.ColRow2Ind(x, y)].visible = true;
+            if (this.grid.IsValidCoordinate(x, y)) {
+                this.highHexes[this.grid.ColRow2Ind(x, y)].visible = true;
             }
         }
     },
@@ -166,8 +144,8 @@ THexagonField.prototype = {
         for (var i = 0; i < this.lastHighlight.length; ++i) {
             var x = this.lastHighlight[i].col;
             var y = this.lastHighlight[i].row;
-            if (this.gameWorld.IsValidCoordinate(x, y)) {
-                this.highHexes[this.gameWorld.ColRow2Ind(x, y)].visible = false;
+            if (this.grid.IsValidCoordinate(x, y)) {
+                this.highHexes[this.grid.ColRow2Ind(x, y)].visible = false;
             }
             delete this.lastHighlight[i];
         }
@@ -280,7 +258,7 @@ THexagonField.prototype = {
             creature.init_effect('morph');
             creature.effects['morph'] = {'target': target, 'turns': 3 - args.additional_cost};
 
-            var fieldObject = new TFieldObject(this.game, this.gameWorld, this, HexType.CREATURE, creature);
+            var fieldObject = new TFieldObject(this.game, this.grid, this, HexType.CREATURE, creature);
             fieldObject.SetNewPosition(subject.col, subject.row);
             delete subject;
 
@@ -306,7 +284,7 @@ THexagonField.prototype = {
             creature.init_effect('morph');
             creature.effects['morph'] = {'__replicate': true, 'target': subject.creature.type, 'turns': 3 - args.additional_cost};
 
-            fieldObject = new TFieldObject(this.game, this.gameWorld, this, HexType.CREATURE, creature);
+            fieldObject = new TFieldObject(this.game, this.grid, this, HexType.CREATURE, creature);
             fieldObject.SetNewPosition(subject.col, subject.row);
             delete subject;
 
@@ -390,7 +368,7 @@ THexagonField.prototype = {
         this.ResetGroup("obstaclesGroup", null);
         this.ResetGroup("oppGroup", null);
         for (var object of jsonGameState.objects) {
-            var obj = new TFieldObject(this.game, this.gameWorld, this, object.t, copyCreature(object.c));
+            var obj = new TFieldObject(this.game, this.grid, this, object.t, copyCreature(object.c));
             obj.SetNewPosition(object.l[0], object.l[1]);
         }
         this.players = jsonGameState.players;
