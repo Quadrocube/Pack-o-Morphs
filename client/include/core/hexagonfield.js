@@ -17,7 +17,7 @@ function THexagonField(Game, GameLogic) {
 
 THexagonField.prototype = {
     Init : function(){
-        this.grid.Test();
+        //this.grid.Test();
         for (var groupName of ["hexagonGroup", "highlightGroup", "creatureGroup", "obstaclesGroup", "oppGroup"]) {
             this[groupName] = this.game.add.group();
             this.InitGroup(groupName);
@@ -29,6 +29,7 @@ THexagonField.prototype = {
                 this.hexField[j+":"+i] = {"row": i, "col": j, "objectType": HexType.EMPTY, "creature": null};
             }
         }
+        this.grid.GetBlocksInRadius({col: 2, row: 3}, 2);
     },
 
     InitGroup : function(groupName) {

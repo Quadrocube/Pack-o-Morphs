@@ -93,7 +93,6 @@ THexagonGrid.prototype = {
 
     // Преобразование в левый верхний угол прямоугольника, описывающего гексагон.
     ColRowToXYCorner: function (col, row) {
-
         var center = this.ColRowToXY(col, row);
         return {
             x: center.x - this.edge * sin60 - this.edge / 2,
@@ -108,6 +107,33 @@ THexagonGrid.prototype = {
         if (x < 0 || y < 0)
             throw "Invalid position in HexInd";
         return this.XYToColRow(x, y);
+    },
+
+    // Нахождение расстояния (в гексагонах) от одного элемента до другого
+    GetDistance: function (first, second) {
+        var fmlr = this.ColRowToMLR(first.col, first.row);
+        var smlr = this.ColRowToMLR(second.col, second.row);
+        return Math.ceil(Math.max(Math.abs(fmlr.m - smlr.m), Math.abs(fmlr.l - smlr.l), Math.abs(fmlr.r - smlr.r)) / 2);
+    },
+
+    // Нахождения массива соседних колец
+    GetBlocksInRadius: function (center, radius) {
+        var fringes = []; // who is reachable in k steps
+        for (var k = 0; k <= radius; k++)
+            fringes.push([]);
+        for (var dy = -radius; dy <= radius; dy++){
+            var len = 2 * radius + 1 - Math.abs(dy);
+            var left = (center.row % 2 == 0) ? -(Math.floor(len / 2)) : -(Math.ceil(len / 2)) + 1;
+            for (var dx = left; dx < left + len; dx++){
+                var row = center.row + dy;
+                var col = center.col + dx;
+                if (col >= 0 && row >= 0) {
+                    var current = {col: col, row: row};
+                    fringes[this.GetDistance(center, current)].push(current);
+                }
+            }
+        }
+        console.log(fringes);
     },
 
     // Тест на правильность выполнения 2 кругов ColRow -> ColRow
@@ -128,8 +154,8 @@ THexagonGrid.prototype = {
                     return false;
                 }
             }
-            console.log("Test passed");
-            return true;
         }
+        console.log("Test passed");
+        return true;
     },
 }
