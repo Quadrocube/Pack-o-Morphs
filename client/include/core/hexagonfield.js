@@ -17,7 +17,7 @@ function THexagonField(Game, GameLogic) {
 
 THexagonField.prototype = {
     Init : function(){
-        //this.grid.Test();
+        this.grid.Test();
         for (var groupName of ["hexagonGroup", "highlightGroup", "creatureGroup", "obstaclesGroup", "oppGroup"]) {
             this[groupName] = this.game.add.group();
             this.InitGroup(groupName);

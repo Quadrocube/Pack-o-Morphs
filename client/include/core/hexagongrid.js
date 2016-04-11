@@ -4,10 +4,10 @@
 // https://habrahabr.ru/post/147082/
 // http://www.redblobgames.com/grids/hexagons/
 
-// MLR:
+// Cube:
 //  В единицах this.hexWidth/2, только целые числа.
-//  r + l - m = 0.
-//  Направления: m = ->, l = /^, r = \.
+//  x + y +z = 0.
+//  Направления: z = |, x = /^, y = \.
 
 // XY:
 //  В пикселях, могут быть нецелые числа.
@@ -37,7 +37,7 @@ function THexagonGrid(width, height, hexWidth, colNum, rowNum) {
 }
 
 THexagonGrid.prototype = {
-    // Базисные функции ColRow->XY->MLR->ColRow.
+    // Базисные функции ColRow->XY->Cube->ColRow.
     // ---------------------------------------------------------------------------------------------------------------
 
     // Преобразование в центр гексагона.
@@ -48,48 +48,72 @@ THexagonGrid.prototype = {
         };
     },
 
-    // Считаем проекции на оси m, l и r (в половинах периода решетки, то есть в единицах this.hexWidth/2).
-    XYToMLR: function (x, y) {
-        return {
-            m: Math.floor(2 * x / this.hexWidth),
-            l: Math.floor(2 * (cos60 * x - sin60 * y) / this.hexWidth),
-            r: Math.floor(2 * (cos60 * x + sin60 * y) / this.hexWidth),
+    // Считаем проекции на оси x, y, z (в 1.5 * this.edge).
+    XYToCube: function (x, y) {
+        var float_cube = {
+            z: y  * 2/3 / this.edge,
+            x: ( x * cos30 - y * sin30 ) * 2/3 / this.edge,
         }
+        float_cube.y = -float_cube.x - float_cube.z;
+        return this.CubeRound(float_cube.x, float_cube.y, float_cube.z);
     },
 
-    MLRToColRow: function (m, l, r) {
-        var row = Math.floor((r - l + 1) / 3.0)
+    CubeToColRow: function (x, y, z) {
         return {
-            col: Math.floor((m + l + 2) / 3.0) + Math.floor(row / 2) ,
-            row: row,
+            col: x + (z - (z&1)) / 2 ,
+            row: z,
         };
     },
 
     // Функции до полного набора.
     // ---------------------------------------------------------------------------------------------------------------
 
-    ColRowToMLR: function (col, row) {
+    ColRowToCube: function (col, row) {
         // Подставил базисные, выразил явно.
         return {
-            m: 2 * col  + (row&1),
-            r: 1.5 * row + col + (row&1) / 2,
-            l: -1.5 * row + col + (row&1) / 2,
+            x: col - (row - (row&1)) / 2,
+            z: row,
+            y: -col - (row + (row&1)) / 2,
         };
     },
 
     XYToColRow: function(x, y) {
-        var mlr = this.XYToMLR(x, y);
-        return this.MLRToColRow(mlr.m, mlr.l, mlr.r);
+        var cube = this.XYToCube(x, y);
+        return this.CubeToColRow(cube.x, cube.y, cube.z);
     },
 
-    // Возращается x, y центра гексагона, в котором лежит точка (m, l, r).
-    MLRToXY: function (m, l ,r) {
-        var cl = this.MLRToColRow(m, l ,r);
+    // Возращается x, y центра гексагона, в котором лежит точка (x, y, z).
+    CubeToXY: function (x, y, z) {
+        var cl = this.CubeToColRow(x, y ,z);
         return this.ColRowToXY(cl.col, cl.row);
     },
 
     // Вспомогательные функции.
     // ---------------------------------------------------------------------------------------------------------------
+
+    // Округление к целым (x, y, z).
+    CubeRound(x, y, z){
+        var rx = Math.round(x)
+        var ry = Math.round(y)
+        var rz = Math.round(z)
+
+        var x_diff = Math.abs(rx - x)
+        var y_diff = Math.abs(ry - y)
+        var z_diff = Math.abs(rz - z)
+
+        if (x_diff > y_diff && x_diff > z_diff)
+            rx = -ry-rz
+        else if (y_diff > z_diff)
+            ry = -rx-rz
+        else
+            rz = -rx-ry
+
+        return {
+            x: rx,
+            y: ry,
+            z: rz
+        }
+    },
 
     // Преобразование в левый верхний угол прямоугольника, описывающего гексагон.
     ColRowToXYCorner: function (col, row) {
@@ -111,9 +135,9 @@ THexagonGrid.prototype = {
 
     // Нахождение расстояния (в гексагонах) от одного элемента до другого
     GetDistance: function (first, second) {
-        var fmlr = this.ColRowToMLR(first.col, first.row);
-        var smlr = this.ColRowToMLR(second.col, second.row);
-        return Math.ceil(Math.max(Math.abs(fmlr.m - smlr.m), Math.abs(fmlr.l - smlr.l), Math.abs(fmlr.r - smlr.r)) / 2);
+        var fcube = this.ColRowToCube(first.col, first.row);
+        var scube = this.ColRowToCube(second.col, second.row);
+        return Math.max(Math.abs(fcube.x - scube.x), Math.abs(fcube.y - scube.y), Math.abs(fcube.z - scube.z));
     },
 
     // Нахождения массива соседних колец
@@ -133,7 +157,6 @@ THexagonGrid.prototype = {
                 }
             }
         }
-        console.log(fringes);
     },
 
     // Тест на правильность выполнения 2 кругов ColRow -> ColRow
@@ -141,14 +164,16 @@ THexagonGrid.prototype = {
         for (var i = 0; i < this.rowNum; i++) {
             for (var j = 0; j < this.colNum; j++) {
                 var xy = this.ColRowToXY(j, i);
-                var colrow = this.XYToColRow(xy.x, xy.y);
+                var cube = this.XYToCube(xy.x, xy.y);
+                var colrow = this.CubeToColRow(cube.x, cube.y, cube.z);
                 if (colrow.col!=j || colrow.row!=i){
+                    console.log(i, j, xy, cube, colrow)
                     console.log("Test failed");
                     return false;
                 }
 
-                var mlr = this.ColRowToMLR(j, i);
-                colrow = this.MLRToColRow(mlr.m, mlr.l, mlr.r);
+                var cube = this.ColRowToCube(j, i);
+                colrow = this.CubeToColRow(cube.x, cube.y, cube.z);
                 if (colrow.col!=j || colrow.row!=i){
                     console.log("Test failed");
                     return false;
