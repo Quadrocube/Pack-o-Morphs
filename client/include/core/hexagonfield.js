@@ -34,6 +34,7 @@ THexagonField.prototype = {
 
     InitGroup : function(groupName) {
         this[groupName].x = this.grid.leftBound;
+        console.log(this.grid.upperBound)
         this[groupName].y = this.grid.upperBound;
     },
 
@@ -52,7 +53,7 @@ THexagonField.prototype = {
         var hexes = [];
         for (var i = 0; i < this.grid.rowNum; i++) {
             for (var j = 0; j < this.grid.colNum; j++) {
-                var coord = this.grid.ColRowToXYCorner(j, i);
+                var coord = this.grid.ColRowToXY(j, i);
                 var hexagon = this.game.add.sprite(coord.x, coord.y, spriteTag);
                 hexes.push(hexagon)
                 hexagon.visible = visible;

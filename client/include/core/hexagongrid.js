@@ -29,11 +29,11 @@ function THexagonGrid(width, height, hexWidth, colNum, rowNum) {
     this.edge = this.hexWidth / (2 * sin60);
     this.hexHeight = this.hexWidth / sin60;
 
-    this.fieldWidth = this.hexWidth * this.colNum;
-    this.fieldHeight = this.hexHeight * this.rowNum;
+    this.fieldWidth = this.hexWidth * (this.colNum + 1/2);
+    this.fieldHeight = 3/4 * this.hexHeight * (this.rowNum - 1) + this.hexHeight;
 
     this.leftBound = (width - this.fieldWidth) / 2;
-    this.upperBound = (height - this.fieldHeight);
+    this.upperBound = (height - this.fieldHeight) / 2;
 }
 
 THexagonGrid.prototype = {
