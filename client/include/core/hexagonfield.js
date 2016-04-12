@@ -10,7 +10,7 @@ function THexagonField(Game, GameLogic) {
     this.lastHighlight = [];
     this.creaturesDraggable = true;
     this.game = Game;
-    this.grid = new THexagonGrid(Game.width, Game.height, 35, 16, 20);
+    this.grid = new THexGrid(Game.width, Game.height, 35, 16, 20);
     this.gameLogic = GameLogic;
     this.Init();
 }

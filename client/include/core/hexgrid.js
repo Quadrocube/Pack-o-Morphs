@@ -21,7 +21,7 @@ var cos60 = 0.5;
 var sin30 = cos60;
 var cos30 = sin60;
 
-function THexagonGrid(width, height, hexWidth, colNum, rowNum) {
+function THexGrid(width, height, hexWidth, colNum, rowNum) {
     this.hexWidth = hexWidth;
     this.colNum = colNum;
     this.rowNum = rowNum;
@@ -36,7 +36,7 @@ function THexagonGrid(width, height, hexWidth, colNum, rowNum) {
     this.upperBound = (height - this.fieldHeight) / 2;
 }
 
-THexagonGrid.prototype = {
+THexGrid.prototype = {
     // Базисные функции ColRow->XY->Cube->ColRow.
     // ---------------------------------------------------------------------------------------------------------------
 
@@ -92,7 +92,7 @@ THexagonGrid.prototype = {
     // ---------------------------------------------------------------------------------------------------------------
 
     // Округление к целым (x, y, z).
-    CubeRound(x, y, z){
+    CubeRound: function(x, y, z){
         var rx = Math.round(x)
         var ry = Math.round(y)
         var rz = Math.round(z)
@@ -157,30 +157,24 @@ THexagonGrid.prototype = {
                 }
             }
         }
-    },
-
-    // Тест на правильность выполнения 2 кругов ColRow -> ColRow
-    Test: function () {
-        for (var i = 0; i < this.rowNum; i++) {
-            for (var j = 0; j < this.colNum; j++) {
-                var xy = this.ColRowToXY(j, i);
-                var cube = this.XYToCube(xy.x, xy.y);
-                var colrow = this.CubeToColRow(cube.x, cube.y, cube.z);
-                if (colrow.col!=j || colrow.row!=i){
-                    console.log(i, j, xy, cube, colrow)
-                    console.log("Test failed");
-                    return false;
-                }
-
-                var cube = this.ColRowToCube(j, i);
-                colrow = this.CubeToColRow(cube.x, cube.y, cube.z);
-                if (colrow.col!=j || colrow.row!=i){
-                    console.log("Test failed");
-                    return false;
-                }
-            }
-        }
-        console.log("Test passed");
-        return true;
+        return fringes;
     },
 }
+
+describe("Tests for HexGrid", function() {
+    var grid = new THexGrid(1000, 800, 35, 16, 20);
+    it("Тест на правильность выполнения 2 кругов ColRow -> ColRow", function() {
+        for (var i = 0; i < grid.rowNum; i++) {
+            for (var j = 0; j < grid.colNum; j++) {
+                var xy = grid.ColRowToXY(j, i);
+                var cube = grid.XYToCube(xy.x, xy.y);
+                var colrow = grid.CubeToColRow(cube.x, cube.y, cube.z);
+                expect(colrow.col==j && colrow.row==i).toBe(true);
+
+                var cube = grid.ColRowToCube(j, i);
+                colrow = grid.CubeToColRow(cube.x, cube.y, cube.z);
+                expect(colrow.col==j && colrow.row==i).toBe(true)
+            }
+        }
+    });
+});
