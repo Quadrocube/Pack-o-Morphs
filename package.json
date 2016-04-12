@@ -1,0 +1,22 @@
+{
+  "name": "pack-o-morphs",
+  "version": "1.0.0",
+  "description": "tactical game",
+  "main": "server/index.js",
+  "devDependencies": {
+    "karma": "~0.12"
+  },
+  "scripts": {
+    "test": "karma start --single-run --browsers PhantomJS"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marqueewinq/Pack-o-Morphs.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/marqueewinq/Pack-o-Morphs/issues"
+  },
+  "homepage": "https://github.com/marqueewinq/Pack-o-Morphs#readme"
+}
