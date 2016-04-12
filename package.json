@@ -4,6 +4,7 @@
   "description": "tactical game",
   "main": "server/index.js",
   "devDependencies": {
+    "coffee-script": "latest",
     "karma": "~0.12",
     "karma-phantomjs-launcher":  "~1.0.0",
     "karma-jasmine": "~0.3.8"
