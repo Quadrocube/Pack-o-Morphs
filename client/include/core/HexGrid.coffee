@@ -4,7 +4,7 @@ sin30 = cos60
 cos30 = sin60
 
 class window.THexGrid
-    constructor: (width, height, @hexWidth, @colNum, @rowNum) ->
+    constructor: (width, height, @hexWidth, @rowNum, @colNum) ->
         @edge = @hexWidth / (2 * sin60)
         @hexHeight = @hexWidth / sin60
 
@@ -114,7 +114,7 @@ class window.THexGrid
         fringes
 
 describe "Tests for HexGrid", () ->
-    grid = new window.THexGrid(1000, 800, 35, 16, 20)
+    grid = new window.THexGrid(1000, 800, 35, 20, 16)
     it "Тест на правильность выполнения 2 кругов ColRow -> ColRow", () ->
         for i in [0..grid.rowNum-1]
             for j in [0..grid.colNum-1]

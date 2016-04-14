@@ -1,4 +1,3 @@
 class window.PLayer
-	constructor: (nutrition, id) ->
-		@nutrition = nutrition
-		@id = id
+	constructor: (@nutrition, @id) ->
+		return
