@@ -18,7 +18,7 @@ class window.THexGrid
     # Базисные функции ColRow->XY->Cube->ColRow.
     # ---------------------------------------------------------------------------------------------------------------
     # Преобразование в центр гексагона.
-    ColRowToXY: (col, row) ->
+    ColRowToXY: (row, col) ->
         x: (@hexWidth / 2) * (2 * col + (row&1))
         y: (@hexWidth / 2) * (2 * row * sin60)
 
@@ -37,7 +37,7 @@ class window.THexGrid
 
     # Функции до полного набора.
     # ---------------------------------------------------------------------------------------------------------------
-    ColRowToCube: (col, row) ->
+    ColRowToCube: (row, col) ->
         # Подставил базисные, выразил явно.
         x: col - (row - (row&1)) / 2
         z: row
@@ -50,7 +50,7 @@ class window.THexGrid
     # Возращается x, y центра гексагона, в котором лежит точка (x, y, z).
     CubeToXY: (x, y, z) ->
         cl = this.CubeToColRow(x, y ,z)
-        @ColRowToXY(cl.col, cl.row)
+        @ColRowToXY(cl.row, cl.col)
 
 
     # Вспомогательные функции.
@@ -77,55 +77,37 @@ class window.THexGrid
         z: rz
 
     # Преобразование в левый верхний угол прямоугольника, описывающего гексагон.
-    ColRowToXYCorner: (col, row) ->
-        center = @ColRowToXY(col, row)
+    ColRowToXYCorner: (row, col) ->
+        center = @ColRowToXY(row, col)
         x: center.x - this.edge * sin60 - this.edge / 2
         y: center.y - this.edge
 
 
     # Нахождение ColRow относительно мировой сетки.
     HexInd : (worldX, worldY) ->
-        x = worldX - this.leftBound
-        y = worldY - this.upperBound
+        x = worldX - @leftBound
+        y = worldY - @upperBound
         if x < 0 or y < 0
             throw "Invalid position in HexInd"
         @XYToColRow(x, y)
 
     # Нахождение расстояния (в гексагонах) от одного элемента до другого
-    GetDistance: (first, second) ->
-        fcube = @ColRowToCube(first.col, first.row)
-        scube = @ColRowToCube(second.col, second.row)
+    GetDistance: (row1, col1, row2, col2) ->
+        fcube = @ColRowToCube(row1, col1)
+        scube = @ColRowToCube(row2, col2)
         Math.max(Math.abs(fcube.x - scube.x), Math.abs(fcube.y - scube.y), Math.abs(fcube.z - scube.z))
 
     # Нахождения массива соседних колец
-    GetBlocksInRadius: (center, radius) ->
+    GetBlocksInRadius: (row, col, radius) ->
         fringes = [] # who is reachable in k steps
         fringes.push [] for k in [0..radius]
 
         for dy in [-radius..radius]
             len = 2 * radius + 1 - Math.abs(dy)
-            left = if (center.row % 2 == 0) then -(Math.floor(len / 2)) else -(Math.ceil(len / 2)) + 1
+            left = if (row % 2 == 0) then -(Math.floor(len / 2)) else -(Math.ceil(len / 2)) + 1
             for dx in [left..left+len-1]
-                row = center.row + dy
-                col = center.col + dx
+                current = {row: row + dy, col: col + dx}
                 if col >= 0 and row >= 0
-                    current = {col: col, row: row}
-                    fringes[this.GetDistance(center, current)].push(current)
+                    fringes[@GetDistance(row, col, current.row, current.col)].push(current)
         fringes
-
-describe "Tests for HexGrid", () ->
-    grid = new window.THexGrid(1000, 800, 35, 20, 16)
-    it "Тест на правильность выполнения 2 кругов ColRow -> ColRow", () ->
-        for i in [0..grid.rowNum-1]
-            for j in [0..grid.colNum-1]
-                xy = grid.ColRowToXY(j, i);
-                cube = grid.XYToCube(xy.x, xy.y);
-                colrow = grid.CubeToColRow(cube.x, cube.y, cube.z)
-                expect(colrow.col==j && colrow.row==i).toBe(true)
-
-                cube = grid.ColRowToCube(j, i)
-                colrow = grid.CubeToColRow(cube.x, cube.y, cube.z)
-                expect(colrow.col==j && colrow.row==i).toBe(true)
-        return
-    return
 

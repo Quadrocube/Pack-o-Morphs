@@ -1,6 +1,5 @@
 window.onload = () ->
-    game = new Phaser.Game('100%', '100%', Phaser.CANVAS, '', {preload: onPreload, create: onCreate, update: onUpdate})
-    onPreload = () ->
+    onPreload = () =>
         images =
             'bubble': 'arts/bubble.png'
             'hexagon': 'arts/hexagon.png'
@@ -29,16 +28,22 @@ window.onload = () ->
             'button_feed': 'arts/buttons/button_feed_spritesheet.png'
             'button_morph': 'arts/buttons/button_morph_spritesheet.png'
             'button_yield': 'arts/buttons/button_yield_spritesheet.png'
-        for image, name in images
-            Game.load.image(name, image)
-        for spritesheet, name in spritesheets
-            Game.load.spritesheet(name, spritesheet, 128, 128)
+        for name, image of images
+            @game.load.image(name, image)
+        for name, spritesheet of spritesheets
+            @game.load.spritesheet(name, spritesheet, 128, 128)
         return
 
-    onCreate = () ->
-        game.stage.backgroundColor = '#B3E5FC';
+    onCreate = () =>
+        @game.stage.backgroundColor = '#B3E5FC'
+        @game.world.setBounds(0, 0, @game.width, @game.height)
+        field = new window.DrawField(@game, 35, 20, 16)
         return
 
-    onUpdate = () ->
+    onUpdate = () =>
         return
+
+    @game = new Phaser.Game('100%', '100%', Phaser.CANVAS, '', {preload: onPreload, create: onCreate, update: onUpdate})
+
+    return
 
