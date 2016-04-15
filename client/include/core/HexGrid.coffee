@@ -111,3 +111,6 @@ class window.THexGrid
                     fringes[@GetDistance(row, col, current.row, current.col)].push(current)
         fringes
 
+	# Нахождение ближайшей к basic клетке по направлению к remote
+	NearestNeighbour: (basic, remote) ->
+		return
