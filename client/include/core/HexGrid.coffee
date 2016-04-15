@@ -15,10 +15,10 @@ class window.THexGrid
         @upperBound = (height - @fieldHeight) / 2
 
 
-    # Базисные функции ColRow->XY->Cube->ColRow.
+    # Базисные функции RowCol->XY->Cube->RowCol.
     # ---------------------------------------------------------------------------------------------------------------
     # Преобразование в центр гексагона.
-    ColRowToXY: (row, col) ->
+    RowColToXY: (row, col) ->
         x: (@hexWidth / 2) * (2 * col + (row&1))
         y: (@hexWidth / 2) * (2 * row * sin60)
 
@@ -30,27 +30,27 @@ class window.THexGrid
         float_cube.y = -float_cube.x - float_cube.z
         @CubeRound(float_cube.x, float_cube.y, float_cube.z)
 
-    CubeToColRow: (x, y, z) ->
+    CubeToRowCol: (x, y, z) ->
         col: x + (z - (z&1)) / 2
         row: z
 
 
     # Функции до полного набора.
     # ---------------------------------------------------------------------------------------------------------------
-    ColRowToCube: (row, col) ->
+    RowColToCube: (row, col) ->
         # Подставил базисные, выразил явно.
         x: col - (row - (row&1)) / 2
         z: row
         y: -col - (row + (row&1)) / 2
 
-    XYToColRow: (x, y) ->
+    XYToRowCol: (x, y) ->
         cube = this.XYToCube(x, y)
-        @CubeToColRow(cube.x, cube.y, cube.z)
+        @CubeToRowCol(cube.x, cube.y, cube.z)
 
     # Возращается x, y центра гексагона, в котором лежит точка (x, y, z).
     CubeToXY: (x, y, z) ->
-        cl = this.CubeToColRow(x, y ,z)
-        @ColRowToXY(cl.row, cl.col)
+        cl = this.CubeToRowCol(x, y ,z)
+        @RowColToXY(cl.row, cl.col)
 
 
     # Вспомогательные функции.
@@ -77,24 +77,24 @@ class window.THexGrid
         z: rz
 
     # Преобразование в левый верхний угол прямоугольника, описывающего гексагон.
-    ColRowToXYCorner: (row, col) ->
-        center = @ColRowToXY(row, col)
+    RowColToXYCorner: (row, col) ->
+        center = @RowColToXY(row, col)
         x: center.x - this.edge * sin60 - this.edge / 2
         y: center.y - this.edge
 
 
-    # Нахождение ColRow относительно мировой сетки.
+    # Нахождение RowCol относительно мировой сетки.
     HexInd : (worldX, worldY) ->
         x = worldX - @leftBound
         y = worldY - @upperBound
         if x < 0 or y < 0
             throw "Invalid position in HexInd"
-        @XYToColRow(x, y)
+        @XYToRowCol(x, y)
 
     # Нахождение расстояния (в гексагонах) от одного элемента до другого
     GetDistance: (row1, col1, row2, col2) ->
-        fcube = @ColRowToCube(row1, col1)
-        scube = @ColRowToCube(row2, col2)
+        fcube = @RowColToCube(row1, col1)
+        scube = @RowColToCube(row2, col2)
         Math.max(Math.abs(fcube.x - scube.x), Math.abs(fcube.y - scube.y), Math.abs(fcube.z - scube.z))
 
     # Нахождения массива соседних колец
@@ -106,7 +106,9 @@ class window.THexGrid
             len = 2 * radius + 1 - Math.abs(dy)
             left = if (row % 2 == 0) then -(Math.floor(len / 2)) else -(Math.ceil(len / 2)) + 1
             for dx in [left..left+len-1]
-                current = {row: row + dy, col: col + dx}
+                current =
+                    row: row + dy
+                    col: col + dx
                 if col >= 0 and row >= 0
                     fringes[@GetDistance(row, col, current.row, current.col)].push(current)
         fringes
