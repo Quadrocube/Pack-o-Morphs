@@ -12,6 +12,8 @@ class window.DrawField
         @Add(4, 4, "VECTOR", null)
         @Add(10, 10, "VECTOR", null)
 
+        @Move(@data.creatureField, 4, 4, 11, 11)
+
     ResetGroup: (group) ->
         if group?
             group.destroy()
@@ -58,54 +60,41 @@ class window.DrawField
         return
 
     Add: (row, col, type, owner) ->
-        object = new window.FieldObject(type, true, owner)
+        object = new window.FieldObject(row, col, type, true)
         if object.IsCreature()
             @AddToGroup(row, col, @creatureGroup, @data.creatureField, object)
+            @EnableDrag(object)
         else
             @AddToGroup(row, col, @obstaclesGroup, @data.obstaclesField, object)
 
-#    Move : (prevPos, newPos, object) ->
-#        var units;
-#        if (prevPos) {
-#            units = this.creatureField[prevPos[0] + ":" + prevPos[1]];
-#            ind = units.indexOf(fieldObject);
-#            units.splice(ind, 1);
-#        }
-#        if (newPos) {
-#            var ind = newPos[0] + ":" + newPos[1];
-#            if (this.creatureField[ind] === undefined) {
-#                this.creatureField[ind] = [];
-#            }
-#            units = this.creatureField[ind];
-#            units.push(fieldObject);
-#            units.sort((a, b) => {return a.objectType - b.objectType;});
+    Move : (field, row1, col1, row2, col2) ->
+        object = field[row1][col1]
+        field[row2][col2] = object
+        field[row1][col1] = undefined
 
-#    OnDragStart : () ->
-#        var hex = this.gameWorld.FindHex()
-#        if (this.turnState.SelectField(this.hexagonField.GetAt(hex.x, hex.y)) === true) {
-#            this.hexagonField.HighlightOff()
-#            this.hexagonField.Highlight(this.col, this.row, this.MoveRange())
-#        }
-#    },
-#
-#    OnDragStop : function (sprite, pointer) {
-#        var hex = this.gameWorld.FindHex()
-#        if (!this.gameWorld.IsValidCoordinate(hex.x, hex.y)) { // out of field
-#           this.SetNewPosition(this.col, this.row)
-#        } else {
-#            var target = this.hexagonField.GetAt(hex.x, hex.y)
-#            if (target.objectType === HexType.CREATURE &&
-#                this.turnState.SelectAction(ActionType.ATTACK) === true &&
-#                this.turnState.SelectField(target) === true) {
-#                this.SetNewPosition(this.col, this.row)
-#            } else if (this.turnState.SelectAction(ActionType.MOVE) === true &&
-#                       this.turnState.SelectField(target) === true) {
-#                // moved as side-effect
-#            } else {
-#                this.SetNewPosition(this.col, this.row)
-#            }
-#            this.turnState.SelectField(this)
-#        }
-#
-#        this.hexagonField.HighlightOff()
-#    },
+        object.row = row2
+        object.col = col2
+
+        coord = @grid.RowColToXY(row2, col2)
+        object.sprite.x = coord.x
+        object.sprite.y = coord.y
+
+    EnableDrag: (object) ->
+        object.sprite.inputEnabled = true
+        object.sprite.input.enableDrag()
+        object.sprite.events.onDragStart.add(@OnDragStart, this)
+        object.sprite.events.onDragStop.add(@OnDragStop, this)
+
+    OnDragStart : (sprite, pointer) ->
+        x = @game.input.worldX-@grid.leftBound
+        y = @game.input.worldY-@grid.upperBound
+        rowcol = @grid.XYToRowCol(x, y)
+        @HighlightOff()
+        @Highlight(rowcol.row, rowcol.col, 3)
+
+    OnDragStop : (sprite, pointer) ->
+        begin = @grid.XYToRowCol(sprite.x, sprite.y)
+        end = @grid.XYToRowCol(@game.input.worldX, @game.input.worldY)
+        if target?
+            @Move(@data.creatureField, begin.row, begin.col, end.row, end.col)
+        @HighlightOff()

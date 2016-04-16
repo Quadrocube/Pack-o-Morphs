@@ -1,5 +1,5 @@
 class window.FieldObject
-	constructor: (@type, @isVisible, @owner) ->
+	constructor: (@row, @col, @type, @isVisible) ->
 		Sprites =
 			"EMPTY": "hexagon"
 			"GRASS": "marker"
