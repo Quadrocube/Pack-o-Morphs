@@ -4,16 +4,12 @@ sin30 = cos60
 cos30 = sin60
 
 class window.THexGrid
-    constructor: (width, height, @hexWidth, @rowNum, @colNum) ->
+    constructor: (@hexWidth, @rowNum, @colNum) ->
         @edge = @hexWidth / (2 * sin60)
         @hexHeight = @hexWidth / sin60
 
         @fieldWidth = @hexWidth * (@colNum + 1/2)
         @fieldHeight = 3/4 * @hexHeight * (@rowNum - 1) + @hexHeight
-
-        @leftBound = (width - @fieldWidth) / 2
-        @upperBound = (height - @fieldHeight) / 2
-
 
     # Базисные функции RowCol->XY->Cube->RowCol.
     # ---------------------------------------------------------------------------------------------------------------
@@ -78,21 +74,6 @@ class window.THexGrid
         y: ry
         z: rz
 
-    # Преобразование в левый верхний угол прямоугольника, описывающего гексагон.
-    RowColToXYCorner: (row, col) ->
-        center = @RowColToXY(row, col)
-        x: center.x - @edge * sin60 - @edge / 2
-        y: center.y - @edge
-
-
-    # Нахождение RowCol относительно мировой сетки.
-    HexInd : (worldX, worldY) ->
-        x = worldX - @leftBound
-        y = worldY - @upperBound
-        if x < 0 or y < 0
-            throw "Invalid position in HexInd"
-        @XYToRowCol(x, y)
-
     # Нахождение расстояния (в гексагонах) от одного элемента до другого
     GetDistance: (row1, col1, row2, col2) ->
         fcube = @RowColToCube(row1, col1)
@@ -115,8 +96,8 @@ class window.THexGrid
                     fringes[@GetDistance(row, col, current.row, current.col)].push(current)
         fringes
 
+    # Проверка на принадлежность сетке
     IsValidRowCol: (row, col) -> (col >= 0 && row >= 0 && col<@colNum && row<@rowNum)
-
 
 	# Нахождение ближайшей к basic клетке по направлению к remote
 	NearestNeighbour: (basic, remote) ->

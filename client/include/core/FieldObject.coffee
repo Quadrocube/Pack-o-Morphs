@@ -15,6 +15,8 @@ class window.FieldObject
 			"WASP": "gemme my sprite now!"
 			"SPIDER": "gemme my sprite now!"
 		@spriteTag = Sprites[@type]
+		if not (@spriteTag?)
+			throw "Wrong type in FieldObject constructor"
 
 	verbose: () ->
 		if @type == FieldObjectType.CREATURE
@@ -23,8 +25,3 @@ class window.FieldObject
 
 	IsCreature: () ->
 		@type not in ["EMPTY", "GRASS", "FOREST"]
-
-	ToogleVisibility: (value) ->
-		@isVisible = value
-		if @sprite?
-			@sprite.visible = @isVisible
