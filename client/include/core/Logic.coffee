@@ -1,5 +1,5 @@
 class window.Logic
-	constructor: (@game, @grid) ->
+	constructor: (@grid) ->
 		return
 	
 	rollAttack(att, def) ->
@@ -21,7 +21,7 @@ class window.Logic
 		if not subject.creature?
 			error: "Attack: subject not a creature"
 			return 
-		### check whether attack is valid
+		# ## check whether attack is valid
 		# check: enough MOV points left
 		if subject.creature.effects.drain >= subject.creature.MOV
 			error: "Attack: subject #{subject.verbose()} completely drained"
@@ -32,7 +32,7 @@ class window.Logic
 			return
 		# check distance
 		if not check_distance
-			d ?= subject.creature.getAttRange()
+			d = subject.creature.getAttRange()
 			user_d = @grid.GetDistance subject.row, subject.col, object.row, object.col
 			if user_d == 0
 				error: "Attack: distance is 0"
@@ -40,8 +40,8 @@ class window.Logic
 			if user_d > d
 				error: "Attack: user_d #{user_d} > d #{d}"
 				return
-			
-		### roll the dice
+
+		# ## roll the dice
 		# mark subject as attacked this turn
 		subject.creature.effects.attacked = true
 		
@@ -50,7 +50,7 @@ class window.Logic
 			miss: true
 			return
 		
-		### assign damage and effects
+		# ## assign damage and effects
 		# execute infest
 		infest = 0
 		if subject.creature.effects.infest?
@@ -83,7 +83,7 @@ class window.Logic
 			object.creature.effects.infest ?= 0
 			object.creature.effects.infest += 1
 		
-		### aftermath
+		# ## aftermath
 		# check for object"s death
 		object_dead = (object.creature.effects.damage > object.creature.hpp)
 		
@@ -102,7 +102,7 @@ class window.Logic
 		subject_dead : subject_dead
 	
 	Move: (subject, hex) ->
-		### checks whether move is valid
+		# ## checks whether move is valid
 		# cocoons and plants
 		if "immovable" in subject.creature.keywords
 			error: "Move: subject #{subject.verbose()} immovable"
@@ -124,7 +124,7 @@ class window.Logic
 			error: "Move: target hex blocked"
 			return
 		
-		### all is ok 
+		# ## all is ok 
 		# regular drain
 		subject.creature.effects.drain ?= 0
 		subject.creature.effects.drain += 1
@@ -154,9 +154,11 @@ class window.Logic
 		if subject.creature.effects.drain >= subject.creature.mov
 			error: "Yield: subject #{subject.verbose()} completely drained"
 			return
-		# regular drain
+		# refreshing!
 		subject.creature.effects.drain ?= 0
-		subject.creature.effects.drain += 1
+		subject.creature.effects.drain -= 1
+		if subject.creature.effects.drain <= 0
+			delete subject.creature.effects.drain
 	
 	Special: (subject) ->
 		if 'carapace' in subject.creature.keywords
@@ -174,6 +176,3 @@ class window.Logic
 		# regular drain
 		subject.creature.effects.drain ?= 0
 		subject.creature.effects.drain += 1
-	
-	Test: () ->
-		return
