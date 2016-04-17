@@ -1,7 +1,9 @@
 class window.DrawField
     constructor: (@game, hexWidth, @rowNum, @colNum) ->
         @data = new window.FieldData(@rowNum, @colNum)
-        @grid = new window.THexGrid(@game.width, @game.height, hexWidth, @rowNum, @colNum)
+        @grid = new window.THexGrid(hexWidth, @rowNum, @colNum)
+        @leftBound = (@game.width - @grid.fieldWidth) / 2
+        @upperBound = (@game.height - @grid.fieldHeight) / 2
 
         @groundGroup = @DrawGroup(@groundGroup, @data.groundField)
         @highlightGroup = @DrawGroup(@highlightGroup, @data.highlightField)
@@ -9,15 +11,77 @@ class window.DrawField
         @obstaclesGroup = @DrawGroup(@obstaclesGroup, @data.obstaclesField)
 
         @Highlight(4, 4, 3)
-        @Add(4, 4, "VECTOR", null)
-        @Add(10, 10, "VECTOR", null)
+        @Add(4, 4, "VECTOR")
+        @Add(10, 10, "VECTOR")
+        @Move(@data.creatureField, 4, 4, 11, 11)
+
+    # Интерфейс
+    # ---------------------------------------------------------------------------------------------------------------
+    # Добваление объекта типа type в клетку [row][col]
+    Add: (row, col, type) ->
+        if !@grid.IsValidRowCol(row, col)
+            throw "Wrond RowCol in DrawField Add method"
+        object = new window.FieldObject(row, col, type, true)
+        if object.IsCreature()
+            @AddToGroup(row, col, @creatureGroup, @data.creatureField, object)
+            @ToogleDrag(object.sprite, true)
+        else
+            @AddToGroup(row, col, @obstaclesGroup, @data.obstaclesField, object)
+
+    # Перещение объекта на поле field из [row1][col1] в [row2][col2]
+    Move: (field, row1, col1, row2, col2) ->
+        if !@grid.IsValidRowCol(row1, col1) || !@grid.IsValidRowCol(row2, col2)
+            throw "Wrond RowCol in DrawField Move method"
+        object = field[row1][col1]
+        field[row2][col2] = object
+        field[row1][col1] = undefined
+        if object?
+            object.row = row2
+            object.col = col2
+            coord = @grid.RowColToXY(row2, col2)
+            object.sprite.x = coord.x
+            object.sprite.y = coord.y
+        return
+
+    # Подсветка области вокруг [row][col] радиусом rad
+    Highlight: (row, col, rad) ->
+        @HighlightOff()
+        highlight = @grid.GetBlocksInRadius(row, col, rad)
+        for r in [0..highlight.length - 1]
+            for k in [0..highlight[r].length - 1]
+                i = highlight[r][k].row
+                j = highlight[r][k].col
+                @ToogleVisibility(@data.highlightField[i][j], true)
+        return
+
+    # Отключение подсветки
+    HighlightOff: () ->
+        for i in [0..@rowNum-1]
+            for j in [0..@colNum-1]
+                @ToogleVisibility(@data.highlightField[i][j], false)
+        return
+
+    # Измнение режима перетаскивания спрайта
+    ToogleDrag: (sprite, value) ->
+        sprite.inputEnabled = value
+        if value
+            sprite.input.enableDrag()
+            sprite.events.onDragStart.add(@OnDragStart, this)
+            sprite.events.onDragStop.add(@OnDragStop, this)
+        else
+            sprite.input.disableDrag()
+
+    # Внутренние методы
+    # ---------------------------------------------------------------------------------------------------------------
+    GetGridX: (x) -> x - @leftBound
+    GetGridY: (y) -> y - @upperBound
 
     ResetGroup: (group) ->
         if group?
             group.destroy()
         group = @game.add.group()
-        group.x = @grid.leftBound
-        group.y = @grid.upperBound
+        group.x = @leftBound
+        group.y = @upperBound
         return group
 
     DrawSprite: (x, y, object) ->
@@ -30,6 +94,7 @@ class window.DrawField
         coord = @grid.RowColToXY(row, col)
         sprite = @DrawSprite(coord.x, coord.y, object)
         object.sprite = sprite
+        sprite.object = object
         group.add(sprite)
         return
 
@@ -41,71 +106,20 @@ class window.DrawField
                     @AddToGroup(i, j, group, field, field[i][j])
         return group
 
-    Highlight: (row, col, rad) ->
+    OnDragStart: (sprite, pointer) ->
+        rowcol = @grid.XYToRowCol(@GetGridX(pointer.x), @GetGridY(pointer.y))
         @HighlightOff()
-        highlight = @grid.GetBlocksInRadius(row, col, rad)
-        for r in [0..highlight.length - 1]
-            for k in [0..highlight[r].length - 1]
-                i = highlight[r][k].row
-                j = highlight[r][k].col
-                @data.highlightField[i][j].ToogleVisibility(true)
+        @Highlight(rowcol.row, rowcol.col, 3)
         return
 
-    HighlightOff: () ->
-        for i in [0..@rowNum-1]
-            for j in [0..@colNum-1]
-                 @data.highlightField[i][j].ToogleVisibility(false)
+    OnDragStop: (sprite, pointer) ->
+        end = @grid.XYToRowCol(@GetGridX(pointer.x), @GetGridY(pointer.y))
+        @Move(@data.creatureField, sprite.object.row, sprite.object.col, end.row, end.col)
+        @HighlightOff()
         return
 
-    Add: (row, col, type, owner) ->
-        object = new window.FieldObject(type, true, owner)
-        if object.IsCreature()
-            @AddToGroup(row, col, @creatureGroup, @data.creatureField, object)
-        else
-            @AddToGroup(row, col, @obstaclesGroup, @data.obstaclesField, object)
-
-#    Move : (prevPos, newPos, object) ->
-#        var units;
-#        if (prevPos) {
-#            units = this.creatureField[prevPos[0] + ":" + prevPos[1]];
-#            ind = units.indexOf(fieldObject);
-#            units.splice(ind, 1);
-#        }
-#        if (newPos) {
-#            var ind = newPos[0] + ":" + newPos[1];
-#            if (this.creatureField[ind] === undefined) {
-#                this.creatureField[ind] = [];
-#            }
-#            units = this.creatureField[ind];
-#            units.push(fieldObject);
-#            units.sort((a, b) => {return a.objectType - b.objectType;});
-
-#    OnDragStart : () ->
-#        var hex = this.gameWorld.FindHex()
-#        if (this.turnState.SelectField(this.hexagonField.GetAt(hex.x, hex.y)) === true) {
-#            this.hexagonField.HighlightOff()
-#            this.hexagonField.Highlight(this.col, this.row, this.MoveRange())
-#        }
-#    },
-#
-#    OnDragStop : function (sprite, pointer) {
-#        var hex = this.gameWorld.FindHex()
-#        if (!this.gameWorld.IsValidCoordinate(hex.x, hex.y)) { // out of field
-#           this.SetNewPosition(this.col, this.row)
-#        } else {
-#            var target = this.hexagonField.GetAt(hex.x, hex.y)
-#            if (target.objectType === HexType.CREATURE &&
-#                this.turnState.SelectAction(ActionType.ATTACK) === true &&
-#                this.turnState.SelectField(target) === true) {
-#                this.SetNewPosition(this.col, this.row)
-#            } else if (this.turnState.SelectAction(ActionType.MOVE) === true &&
-#                       this.turnState.SelectField(target) === true) {
-#                // moved as side-effect
-#            } else {
-#                this.SetNewPosition(this.col, this.row)
-#            }
-#            this.turnState.SelectField(this)
-#        }
-#
-#        this.hexagonField.HighlightOff()
-#    },
+    ToogleVisibility: (object, value) ->
+        object.isVisible = value
+        if object.sprite?
+            object.sprite.visible = value
+        return
