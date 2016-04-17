@@ -115,4 +115,4 @@ class window.THexGrid
 
 	# Нахождение ближайшей к basic клетке по направлению к remote
 	NearestNeighbour: (basic, remote) ->
-		return
+		return 

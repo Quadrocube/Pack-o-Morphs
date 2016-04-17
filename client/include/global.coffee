@@ -2,21 +2,18 @@ class window.Player
 	constructor: (@nutrition, @id) ->
 		return
 
-class window.Keyword
-	constructor: (@id, @args) ->
-		return
-	comparator: (kwd) => kwd.id 
-
 class window.Creature
-	constructor(@att, @dam, @def, @hpp, @nut, @mov, @keywords = []) ->
-		@effects = []
+	constructor: (@att, @dam, @def, @hpp, @nut, @mov, @keywords) ->
+		@effects = {}
 		@player = null
+		@attack_range = 1
+		@move_range = 2
 		# non-essential information below
 		@id = ""
-	verbose () ->
+	verbose:  () ->
 		return "#{@id} of player #{@player}"
 	
-	getAttRange() ->
+	getAttackRange: () ->
 		return @attack_range
-	getMoveRange() ->
+	getMoveRange: () ->
 		return @move_range

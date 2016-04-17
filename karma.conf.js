@@ -7,7 +7,8 @@ module.exports = function(config) {
     // base path that will be used to resolve all patterns (eg. files, exclude)
     basePath: '',
 
-
+	plugins: [require("karma-jasmine"), require("karma-phantomjs-launcher")],
+	
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['jasmine'],
@@ -15,9 +16,10 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'client/include/core/*.js',
-      'client/include/*.js',
-      'client/*.js'
+	  'client/libs/phaser.min.js',
+	  'client/*.js',
+	  'client/include/*.js',
+      'client/include/core/*.js'
     ],
 
 
