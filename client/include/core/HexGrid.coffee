@@ -1,3 +1,16 @@
+# Автор: Гусев Илья.
+# Описание: Класс, описывающий перобразования разных коородинатных сеток гексогонального поля.
+# Ссылка на статью с алгоритмами: http://www.redblobgames.com/grids/hexagons/
+# Cube:
+#   В единицах this.hexWidth/2, только целые числа.
+#   x + y + z = 0.
+#   Направления: z = |, x = /^, y = \.
+# XY:
+#   В пикселях, могут быть нецелые числа.
+#   Направления: ->, |.
+# RowCol:
+#   Только целые числа, индексы двумерного массива размерности @rowNum на @colNum.
+
 sin60 = Math.sqrt(3.0) * 0.5
 cos60 = 0.5
 sin30 = cos60
@@ -20,8 +33,6 @@ class window.THexGrid
 
     # Считаем проекции на оси x, y, z (в 1.5 * @edge).
     XYToCube: (x, y) ->
-        x -= @hexWidth / 2
-        y -= @hexHeight / 2
         float_cube =
             z: y  * 2/3 / @edge,
             x: ( x * cos30 - y * sin30 ) * 2/3 / @edge
@@ -97,8 +108,9 @@ class window.THexGrid
         fringes
 
     # Проверка на принадлежность сетке
-    IsValidRowCol: (row, col) -> (col >= 0 && row >= 0 && col<@colNum && row<@rowNum)
+    IsValidRowCol: (row, col) -> (col >= 0 && row >= 0 && col < @colNum && row < @rowNum)
 
 	# Нахождение ближайшей к basic клетке по направлению к remote
 	NearestNeighbour: (basic, remote) ->
+	    # TODO: реализовать
 		return 
