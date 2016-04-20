@@ -14,3 +14,12 @@ class window.FieldData
 
     # Вспомогательный метод для создания двумерного массива.
     GenerateArray: () -> new Array(@colNum) for i in [0..@rowNum-1]
+
+    # Нахождение самого верхнего объекта
+    GetUpperObject: (row, col) ->
+        if @creatureField[row][col]?
+            return @creatureField[row][col]
+        else if @obstaclesField[row][col]?
+            return @obstaclesField[row][col]
+        else
+            return @groundField[row][col]

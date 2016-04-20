@@ -14,6 +14,18 @@ class window.DrawField
         @obstaclesGroup = @DrawGroup(@obstaclesGroup, @data.obstaclesField)
         @creatureGroup = @DrawGroup(@creatureGroup, @data.creatureField)
 
+        @game.input.mouse.mouseDownCallback = () =>
+            rowcol = @grid.XYToRowCol(@GetGridX(@game.input.worldX), @GetGridY(@game.input.worldY))
+            row = rowcol.row
+            col = rowcol.col
+            if @grid.IsValidRowCol(row, col)
+                object = @GetUpperObject(row, col)
+                actionBar = window.ActionBar.getInstance(@game, @grid)
+                if object.IsCreature()
+                    actionBar.unlock()
+                else
+                    actionBar.lock()
+
         # Пример
         @Highlight(4, 4, 3)
         @Add(4, 4, "VECTOR")
@@ -48,6 +60,20 @@ class window.DrawField
             object.sprite.x = coord.x
             object.sprite.y = coord.y
         return
+
+    # Удаление объекта с клетки [row][col].
+    Remove: (field, row, col) ->
+        if !@grid.IsValidRowCol(row, col)
+            throw "Wrond RowCol in DrawField Remove method"
+        field[row][col] = undefined
+        return
+
+    # Нахождение самого верхнего объекта
+    GetUpperObject: (row, col) ->
+        if !@grid.IsValidRowCol(row, col)
+            throw "Wrond RowCol in DrawField GetUpperObject method"
+        return @data.GetUpperObject(row, col)
+
 
     # Подсветка области вокруг [row][col] радиусом rad.
     Highlight: (row, col, rad) ->
@@ -128,7 +154,7 @@ class window.DrawField
     OnDragStop: (sprite, pointer) ->
         end = @grid.XYToRowCol(@GetGridX(pointer.x), @GetGridY(pointer.y))
         @Move(@data.creatureField, sprite.object.row, sprite.object.col, end.row, end.col)
-        @HighlightOff()
+        @Highlight(end.row, end.col, 3)
         return
 
     # Переключение видимости объекта и его спрайта.
