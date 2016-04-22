@@ -26,13 +26,13 @@ class window.Logic
 		# ## check whether attack is valid
 		# check: enough MOV points left
 		if subject.creature.effects.drain? and subject.creature.effects.drain >= subject.creature.mov
-			return error_code : 101, error: "Attack: subject #{subject.verbose()} completely drained"
+			return error_code : 101, error: "Attack: subject #{subject.Verbose()} completely drained"
 		# check for Hidden
 		if "hidden" in object.creature.keywords and not object.creature.effects.attacked?
 			return error_code : 102, error: "Attack: object is Hidden"
 		# check distance
 		if check_distance
-			d = subject.creature.getAttackRange()
+			d = subject.creature.GetAttackRange()
 			user_d = @grid.GetDistance subject.row, subject.col, object.row, object.col
 			if user_d == 0
 				return error_code : 103, error: "Attack: distance is 0"
@@ -112,12 +112,12 @@ class window.Logic
 		# ## checks whether move is valid
 		# cocoons and plants
 		if "immovable" in subject.creature.keywords
-			return error_code : 105, error: "Move: subject #{subject.verbose()} immovable"
+			return error_code : 105, error: "Move: subject #{subject.Verbose()} immovable"
 		# check if drained
 		if subject.creature.effects.drain? and subject.creature.effects.drain >= subject.creature.mov
-			return error_code : 101, error: "Move: subject #{subject.verbose()} completely drained"
+			return error_code : 101, error: "Move: subject #{subject.Verbose()} completely drained"
 		# check distance
-		d = subject.creature.getMoveRange()
+		d = subject.creature.GetMoveRange()
 		user_d = @grid.GetDistance subject.row, subject.col, object.row, object.col
 		if user_d > d
 			return error_code : 107, error: "Move: too far #{user_d} > #{d}"
@@ -138,7 +138,7 @@ class window.Logic
 	
 	RunHit: (subject, object) ->
 		# check distance
-		d = subject.creature.getMoveRange()
+		d = subject.creature.GetMoveRange()
 		user_d = @grid.GetDistance subject.row, subject.col, object.row, object.col
 		if user_d > d
 			return error_code : 110, error: "RunHit: user_d #{user_d} > d #{d}"
@@ -162,7 +162,7 @@ class window.Logic
 			return error_code: 100, error: "Yield: subject not a creature"
 		# check if drained
 		if subject.creature.effects.drain? and subject.creature.effects.drain >= subject.creature.mov
-			return error_code : 101, error: "Yield: subject #{subject.verbose()} completely drained"
+			return error_code : 101, error: "Yield: subject #{subject.Verbose()} completely drained"
 		# refreshing!
 		subject.creature.effects.drain ?= 0
 		subject.creature.effects.drain -= 1
@@ -177,7 +177,7 @@ class window.Logic
 		if 'carapace' in subject.creature.keywords
 			# check if drained
 			if subject.creature.effects.drain? and subject.creature.effects.drain >= subject.creature.mov
-				return error_code : 113, error: "Special-carapace: subject #{subject.verbose()} completely drained"
+				return error_code : 113, error: "Special-carapace: subject #{subject.Verbose()} completely drained"
 			if subject.creature.effects.carapace?
 				return error_code : 114, error: 'Special-carapace: carapace already active'
 			subject.creature.effects.carapace = true

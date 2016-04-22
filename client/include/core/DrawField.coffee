@@ -7,27 +7,28 @@ class window.DrawField
         @data = new window.FieldData(@rowNum, @colNum)
         @grid = new window.THexGrid(hexWidth, @rowNum, @colNum)
         @leftBound = (@game.width - @grid.fieldWidth) / 2
-        @upperBound = (@game.height - @grid.fieldHeight) / 2
+        @upperBound = (@game.height - @grid.fieldHeight) / 2 - 100
 
-        @groundGroup = @DrawGroup(@groundGroup, @data.groundField)
-        @highlightGroup = @DrawGroup(@highlightGroup, @data.highlightField)
-        @obstaclesGroup = @DrawGroup(@obstaclesGroup, @data.obstaclesField)
-        @creatureGroup = @DrawGroup(@creatureGroup, @data.creatureField)
+        @actionBar = window.ActionBar.instance = new window.ActionBar(@game, @grid)
+        @infoBar = window.InfoBar.instance = new window.InfoBar(@game)
+        @playerBar = window.PlayerBar.instance = new window.PlayerBar(@game)
+
+        @groundGroup = @drawGroup(@groundGroup, @data.groundField)
+        @highlightGroup = @drawGroup(@highlightGroup, @data.highlightField)
+        @obstaclesGroup = @drawGroup(@obstaclesGroup, @data.obstaclesField)
+        @creatureGroup = @drawGroup(@creatureGroup, @data.creatureField)
 
         @game.input.mouse.mouseDownCallback = () =>
-            rowcol = @grid.XYToRowCol(@GetGridX(@game.input.worldX), @GetGridY(@game.input.worldY))
+            rowcol = @grid.XYToRowCol(@getGridX(@game.input.worldX), @getGridY(@game.input.worldY))
             row = rowcol.row
             col = rowcol.col
             if @grid.IsValidRowCol(row, col)
                 object = @GetUpperObject(row, col)
-                actionBar = window.ActionBar.getInstance(@game, @grid)
-                if object.IsCreature()
-                    actionBar.unlock()
-                else
-                    actionBar.lock()
+                @actionBar.DisplayObjectActions(object)
+                @infoBar.DisplayObjectInfo(object)
 
         # Пример
-        @Highlight(4, 4, 3)
+        @Highlight(10, 10, 3)
         @Add(4, 4, "VECTOR")
         @Add(10, 10, "VECTOR")
         @Move(@data.creatureField, 4, 4, 11, 11)
@@ -40,15 +41,17 @@ class window.DrawField
             throw "Wrond RowCol in DrawField Add method"
         object = new window.FieldObject(row, col, type, true)
         if object.IsCreature()
-            @AddToGroup(row, col, @creatureGroup, @data.creatureField, object)
+            @addToGroup(row, col, @creatureGroup, @data.creatureField, object)
             @ToogleDrag(object.sprite, true)
         else
-            @AddToGroup(row, col, @obstaclesGroup, @data.obstaclesField, object)
+            @addToGroup(row, col, @obstaclesGroup, @data.obstaclesField, object)
 
     # Перещение объекта на поле field из [row1][col1] в [row2][col2].
     Move: (field, row1, col1, row2, col2) ->
         if !@grid.IsValidRowCol(row1, col1) || !@grid.IsValidRowCol(row2, col2)
-            throw "Wrond RowCol in DrawField Move method"
+            throw "Wrong RowCol in DrawField Move method"
+        if field[row2][col2]? && field[row2][col2] != field[row1][col1]
+            throw "[row2][col2] in DrawField Move method was already filled"
         object = field[row1][col1]
         field[row1][col1] = undefined
         field[row2][col2] = object
@@ -83,34 +86,33 @@ class window.DrawField
             for k in [0..highlight[r].length - 1]
                 i = highlight[r][k].row
                 j = highlight[r][k].col
-                @ToogleVisibility(@data.highlightField[i][j], true)
+                @toogleVisibility(@data.highlightField[i][j], true)
         return
 
     # Отключение подсветки.
     HighlightOff: () ->
         for i in [0..@rowNum-1]
             for j in [0..@colNum-1]
-                @ToogleVisibility(@data.highlightField[i][j], false)
+                @toogleVisibility(@data.highlightField[i][j], false)
         return
 
     # Измнение режима перетаскивания спрайта.
     ToogleDrag: (sprite, value) ->
-        sprite.inputEnabled = value
         if value
             sprite.input.enableDrag()
-            sprite.events.onDragStart.add(@OnDragStart, this)
-            sprite.events.onDragStop.add(@OnDragStop, this)
+            sprite.events.onDragStart.add(@onDragStart, this)
+            sprite.events.onDragStop.add(@onDragStop, this)
         else
             sprite.input.disableDrag()
 
     # Внутренние методы.
     # ---------------------------------------------------------------------------------------------------------------
     # Расчёт перевода глобальных коородинат в коородинаты XY у @grid
-    GetGridX: (x) -> x - @leftBound - @grid.hexWidth / 2
-    GetGridY: (y) -> y - @upperBound - @grid.hexHeight / 2
+    getGridX: (x) -> x - @leftBound - @grid.hexWidth / 2
+    getGridY: (y) -> y - @upperBound - @grid.hexHeight / 2
 
     # Сброс и инициализация группы спрайтов.
-    ResetGroup: (group) ->
+    resetGroup: (group) ->
         if group?
             group.destroy()
         group = @game.add.group()
@@ -119,46 +121,52 @@ class window.DrawField
         return group
 
     # Отрисовка спрайта.
-    DrawSprite: (x, y, object) ->
+    drawSprite: (x, y, object) ->
         sprite = @game.add.sprite(x, y, object.spriteTag)
         sprite.visible = object.isVisible
         return sprite
 
     # Добавление object в ячейку field[row][col] и отрисовка его спрайта с добавлением в group.
-    AddToGroup: (row, col, group, field, object) ->
+    addToGroup: (row, col, group, field, object) ->
         field[row][col] = object
         coord = @grid.RowColToXY(row, col)
-        sprite = @DrawSprite(coord.x, coord.y, object)
+        sprite = @drawSprite(coord.x, coord.y, object)
         object.sprite = sprite
         sprite.object = object
+        sprite.inputEnabled = true
         group.add(sprite)
         return
 
     # Отрисовка объектов в field с добавлением в group.
-    DrawGroup: (group, field) ->
-        group = @ResetGroup group
+    drawGroup: (group, field) ->
+        group = @resetGroup group
         for i in [0..@rowNum-1]
             for j in [0..@colNum-1]
                 if field[i][j]?
-                    @AddToGroup(i, j, group, field, field[i][j])
+                    @addToGroup(i, j, group, field, field[i][j])
         return group
 
     # Обработчик начала перетаскивания спрайта, вешается в ToogleDrag.
-    OnDragStart: (sprite, pointer) ->
-        rowcol = @grid.XYToRowCol(@GetGridX(pointer.x), @GetGridY(pointer.y))
+    onDragStart: (sprite, pointer) ->
+        rowcol = @grid.XYToRowCol(@getGridX(pointer.x), @getGridY(pointer.y))
         @HighlightOff()
         @Highlight(rowcol.row, rowcol.col, 3)
         return
 
     # Обработчик конца перетаскивания спрайта, вешается в ToogleDrag.
-    OnDragStop: (sprite, pointer) ->
-        end = @grid.XYToRowCol(@GetGridX(pointer.x), @GetGridY(pointer.y))
-        @Move(@data.creatureField, sprite.object.row, sprite.object.col, end.row, end.col)
-        @Highlight(end.row, end.col, 3)
+    onDragStop: (sprite, pointer) ->
+        begin = {row: sprite.object.row, col: sprite.object.col}
+        end = @grid.XYToRowCol(@getGridX(pointer.x), @getGridY(pointer.y))
+        try
+            @Move(@data.creatureField, begin.row, begin.col, end.row, end.col)
+            @Highlight(end.row, end.col, 3)
+        catch error
+            @Move(@data.creatureField, begin.row, begin.col, begin.row, begin.col)
+            @Highlight(begin.row, begin.col, 3)
         return
 
     # Переключение видимости объекта и его спрайта.
-    ToogleVisibility: (object, value) ->
+    toogleVisibility: (object, value) ->
         object.isVisible = value
         if object.sprite?
             object.sprite.visible = value

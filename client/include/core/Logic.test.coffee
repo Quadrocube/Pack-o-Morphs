@@ -10,7 +10,7 @@ describe "Tests for Logic", () ->
 	grid = new window.THexGrid(35, 20, 16)
 	logic = new window.Logic(grid)
 	creature = new window.Creature(4, 4, 4, 4, 4, 4, [])
-	defaultSubject = new window.FieldObject(0, 0, "VECTOR", true, creature)
+	defaultSubject = new window.FieldObject(0, 0, "VECTOR", true, 0, creature)
 
 	it "Attack : typo", () ->
 		expect(logic.Attack({}, {}).error_code).toBe(100)
@@ -58,7 +58,8 @@ describe "Tests for Logic", () ->
 		expect(e.error_code).toBe(undefined)
 
 	it "Move : immovable", () ->
-		subject = new window.FieldObject(0, 0, "VECTOR", true, new window.Creature(4, 4, 4, 4, 4, 4, ["immovable"]))
+		subject = new window.FieldObject(0, 0, "VECTOR", true, 0, new window.Creature(4, 4, 4, 4, 4, 4, ["immovable"]))
+		console.log(subject.creature.keywords)
 		object = {row: 0, col: 1, }
 		e = logic.Move(subject, object)
 		expect(e.error_code).toBe(105)
