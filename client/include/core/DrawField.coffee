@@ -6,7 +6,7 @@ class window.DrawField
     constructor: (@game, hexWidth, @rowNum, @colNum) ->
         @data = new window.FieldData(@rowNum, @colNum)
         @grid = new window.THexGrid(hexWidth, @rowNum, @colNum)
-        @logic = new window.Logic(@grid)
+        @logic = new window.Logic(@grid, @data, @)
         @leftBound = (@game.width - @grid.fieldWidth) / 2
         @upperBound = (@game.height - @grid.fieldHeight) / 2 - 100
 
@@ -35,10 +35,20 @@ class window.DrawField
 
     # Интерфейс.
     # ---------------------------------------------------------------------------------------------------------------
-    # Добваление объекта типа type в клетку [row][col].
+    # Добавление объекта fieldObject в его клетку
+    Add: (fieldObject) ->
+        if not @grid.IsValidRowCol(fieldObject.row, fieldObject.col)
+            throw "Wrong RowCol in DrawField Add(fieldObject) method"
+        if object.IsCreature()
+            @addToGroup(fieldObject.row, fieldObject.col, @creatureGroup, @data.creatureField, fieldObject)
+            @ToogleDrag(fieldObject.sprite, true)
+        else
+            @addToGroup(fieldObject.row, fieldObject.col, @obstaclesGroup, @data.obstaclesField, fieldObject)
+
+    # Добавление объекта типа type в клетку [row][col].
     Add: (row, col, type) ->
         if !@grid.IsValidRowCol(row, col)
-            throw "Wrong RowCol in DrawField Add method"
+            throw "Wrond RowCol in DrawField Add(row, col, type) method"
         object = new window.FieldObject(row, col, type, true)
         if object.IsCreature()
             @addToGroup(row, col, @creatureGroup, @data.creatureField, object)

@@ -23,3 +23,5 @@ class window.FieldData
             return @obstaclesField[row][col]
         else
             return @groundField[row][col]
+
+

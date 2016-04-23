@@ -47,6 +47,12 @@ class window.FieldObject
 
 	IsCreature: () ->
 		@type not in ["EMPTY", "GRASS", "FOREST"]
+	IsForest: () ->
+		@type == "FOREST"
+	IsGrass: () ->
+		@type == "GRASS"
+	IsEmpty: () ->
+		@type == "EMPTY"
 
 	Verbose: () ->
 		if @IsCreature()
