@@ -29,7 +29,6 @@ class window.DrawField
                 @infoBar.DisplayObjectInfo(object)
 
         # Пример
-        @Highlight(10, 10, 3)
         @Add(4, 4, "VECTOR")
         @Add(10, 10, "VECTOR")
         @Move(@data.creatureField, 4, 4, 11, 11)
@@ -39,7 +38,7 @@ class window.DrawField
     # Добваление объекта типа type в клетку [row][col].
     Add: (row, col, type) ->
         if !@grid.IsValidRowCol(row, col)
-            throw "Wrond RowCol in DrawField Add method"
+            throw "Wrong RowCol in DrawField Add method"
         object = new window.FieldObject(row, col, type, true)
         if object.IsCreature()
             @addToGroup(row, col, @creatureGroup, @data.creatureField, object)
@@ -68,14 +67,14 @@ class window.DrawField
     # Удаление объекта с клетки [row][col].
     Remove: (field, row, col) ->
         if !@grid.IsValidRowCol(row, col)
-            throw "Wrond RowCol in DrawField Remove method"
+            throw new Error("Wrong RowCol in DrawField Remove method")
         field[row][col] = undefined
         return
 
     # Нахождение самого верхнего объекта
     GetUpperObject: (row, col) ->
         if !@grid.IsValidRowCol(row, col)
-            throw "Wrond RowCol in DrawField GetUpperObject method"
+            throw new Error("Wrong RowCol in DrawField GetUpperObject method")
         return @data.GetUpperObject(row, col)
 
 
@@ -151,7 +150,7 @@ class window.DrawField
     onDragStart: (sprite, pointer) ->
         rowcol = @grid.XYToRowCol(@getGridX(pointer.x), @getGridY(pointer.y))
         @HighlightOff()
-        @Highlight rowcol.row, rowcol.col, sprite.object.creature.GetMoveRange()
+        @Highlight(rowcol.row, rowcol.col, sprite.object.creature.GetMoveRange())
         return
 
     # Обработчик конца перетаскивания спрайта, вешается в ToogleDrag.
@@ -160,8 +159,8 @@ class window.DrawField
         end = @grid.XYToRowCol(@getGridX(pointer.x), @getGridY(pointer.y))
         subject = @GetUpperObject(begin.row, begin.col)
         object = @GetUpperObject(end.row, end.col)
-        
         action = ""
+
         try
             action = @logic.SelectAction(subject, object)
         catch e

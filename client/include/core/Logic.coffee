@@ -22,22 +22,22 @@ class window.Logic
 	
 	Attack: (subject, object, check_distance = true) ->
 		if not subject.creature?
-			throw error_code : 100, error: "Attack: subject not a creature"
+			throw new Error("Attack: subject not a creature")
 		# ## check whether attack is valid
 		# check: enough MOV points left
 		if subject.creature.effects.drain? and subject.creature.effects.drain >= subject.creature.mov
-			throw error_code : 101, error: "Attack: subject #{subject.Verbose()} completely drained"
+			throw new Error("Attack: subject #{subject.Verbose()} completely drained")
 		# check for Hidden
 		if "hidden" in object.creature.keywords and not object.creature.effects.attacked?
-			throw error_code : 102, error: "Attack: object is Hidden"
+			throw new Error("Attack: object is Hidden")
 		# check distance
 		if check_distance
 			d = subject.creature.GetAttackRange()
 			user_d = @grid.GetDistance subject.row, subject.col, object.row, object.col
 			if user_d == 0
-				throw error_code : 103, error: "Attack: distance is 0"
+				throw new Error("Attack: distance is 0")
 			if user_d > d
-				throw error_code : 104, error: "Attack: user_d #{user_d} > d #{d}"
+				throw new Error("Attack: user_d #{user_d} > d #{d}")
 
 		# ## roll the dice
 		# mark subject as attacked this turn
@@ -104,23 +104,23 @@ class window.Logic
 
 	Move: (subject, object) ->
 		if not subject.creature?
-			throw error_code : 100, error: "Move: subject not a creature" 
+			throw new Error("Move: subject not a creature")
 		# ## checks whether move is valid
 		# cocoons and plants
 		if "immovable" in subject.creature.keywords
-			throw error_code : 105, error: "Move: subject #{subject.Verbose()} immovable"
+			throw new Error("Move: subject #{subject.Verbose()} immovable")
 		# check if drained
 		if subject.creature.effects.drain? and subject.creature.effects.drain >= subject.creature.mov
-			throw error_code : 101, error: "Move: subject #{subject.Verbose()} completely drained"
+			throw new Error("Move: subject #{subject.Verbose()} completely drained")
 		# check distance
 		d = subject.creature.GetMoveRange()
 		user_d = @grid.GetDistance subject.row, subject.col, object.row, object.col
 		if user_d > d
-			throw error_code : 107, error: "Move: too far #{user_d} > #{d}"
+			throw new Error("Move: too far #{user_d} > #{d}")
 		if user_d == 0
-			throw error_code : 108, error: "Move: distance is 0"
+			throw new Error("Move: distance is 0")
 		if object.creature?
-			throw error_code : 109, error: "Move: target hex blocked"
+			throw new Error("Move: target hex blocked")
 		
 		# ## all is ok 
 		# regular drain
@@ -132,15 +132,15 @@ class window.Logic
 	RunHit: (subject, object) ->
 		# check distance
 		d = subject.creature.GetMoveRange()
-		user_d = @grid.GetDistance subject.row, subject.col, object.row, object.col
+		user_d = @grid.GetDistance(subject.row, subject.col, object.row, object.col)
 		if user_d > d
-			throw error_code : 110, error: "RunHit: user_d #{user_d} > d #{d}"
+			throw new Error("RunHit: user_d #{user_d} > d #{d}")
 		
 		# okay, moving
 		try
 			@Move(subject, @grid.NearestNeighbour(object, subject))
 		catch e
-			throw error_code : 111, error: e.error
+			throw e
 		# moved ok, attacking
 		return @Attack(subject, object, false)
 		
@@ -150,13 +150,12 @@ class window.Logic
 		
 	Yield: (subject, object) ->
 		if object.type != 'GRASS'
-			# TODO: HexType enumerator in global
-			throw error_code: 100, error: "Yield: object not a GRASS"
+			throw new Error("Yield: object not a GRASS")
 		if not subject.creature?
-			throw error_code: 100, error: "Yield: subject not a creature"
+			throw new Error("Yield: subject not a creature")
 		# check if drained
 		if subject.creature.effects.drain? and subject.creature.effects.drain >= subject.creature.mov
-			throw error_code : 101, error: "Yield: subject #{subject.Verbose()} completely drained"
+			throw new Error("Yield: subject #{subject.Verbose()} completely drained")
 		# refreshing!
 		subject.creature.effects.drain ?= 0
 		subject.creature.effects.drain -= 1
@@ -168,9 +167,9 @@ class window.Logic
 		if 'carapace' in subject.creature.keywords
 			# check if drained
 			if subject.creature.effects.drain? and subject.creature.effects.drain >= subject.creature.mov
-				throw error_code : 113, error: "Special-carapace: subject #{subject.Verbose()} completely drained"
+				throw new Error("Special-carapace: subject #{subject.Verbose()} completely drained")
 			if subject.creature.effects.carapace?
-				throw error_code : 114, error: 'Special-carapace: carapace already active'
+				throw new Error('Special-carapace: carapace already active')
 			subject.creature.effects.carapace = true
 			subject.creature.att -= 2
 			subject.creature.def += 2
@@ -186,7 +185,7 @@ class window.Logic
 			@Special(subject)
 			return 'Special'
 
-		d = @grid.GetDistance subject.row, subject.col, object.row, object.col
+		d = @grid.GetDistance(subject.row, subject.col, object.row, object.col)
 		if object.IsCreature()
 			if d > subject.creature.GetAttackRange()
 				@RunHit(subject, object)
@@ -201,5 +200,7 @@ class window.Logic
 		if object.type == 'EMPTY'
 			@Move(subject, object)
 			return 'Move'
+
+		return ''
 
 

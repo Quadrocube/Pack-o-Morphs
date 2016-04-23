@@ -110,7 +110,7 @@ class window.THexGrid
     # Проверка на принадлежность сетке
     IsValidRowCol: (row, col) -> (col >= 0 && row >= 0 && col < @colNum && row < @rowNum)
 
-	# Нахождение ближайшей к basic клетке по направлению к remote
-	NearestNeighbour: (basic, remote) ->
-	    # TODO: реализовать
-		return 
+    # Нахождение ближайшей к basic клетке по направлению к remote
+    NearestNeighbour: (basic, remote) ->
+        # TODO: реализовать
+        return

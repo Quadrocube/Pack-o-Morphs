@@ -50,5 +50,5 @@ class window.FieldObject
 
 	Verbose: () ->
 		if @IsCreature()
-			return '#{@type} #{@player} at row #{@row} col #{@col}'
-		return '#{@type} at row #{@row} col #{@col}'
+			return "#{@type} #{@player} at row #{@row} col #{@col}"
+		return "#{@type} at row #{@row} col #{@col}"
