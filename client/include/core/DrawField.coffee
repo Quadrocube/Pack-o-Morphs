@@ -6,6 +6,7 @@ class window.DrawField
     constructor: (@game, hexWidth, @rowNum, @colNum) ->
         @data = new window.FieldData(@rowNum, @colNum)
         @grid = new window.THexGrid(hexWidth, @rowNum, @colNum)
+        @logic = new window.Logic(@grid)
         @leftBound = (@game.width - @grid.fieldWidth) / 2
         @upperBound = (@game.height - @grid.fieldHeight) / 2 - 100
 
@@ -150,19 +151,33 @@ class window.DrawField
     onDragStart: (sprite, pointer) ->
         rowcol = @grid.XYToRowCol(@getGridX(pointer.x), @getGridY(pointer.y))
         @HighlightOff()
-        @Highlight(rowcol.row, rowcol.col, 3)
+        @Highlight rowcol.row, rowcol.col, sprite.object.creature.GetMoveRange()
         return
 
     # Обработчик конца перетаскивания спрайта, вешается в ToogleDrag.
     onDragStop: (sprite, pointer) ->
         begin = {row: sprite.object.row, col: sprite.object.col}
         end = @grid.XYToRowCol(@getGridX(pointer.x), @getGridY(pointer.y))
+        subject = @GetUpperObject(begin.row, begin.col)
+        object = @GetUpperObject(end.row, end.col)
+        
+        action = ""
         try
-            @Move(@data.creatureField, begin.row, begin.col, end.row, end.col)
-            @Highlight(end.row, end.col, 3)
-        catch error
+            action = @logic.SelectAction(subject, object)
+        catch e
+            console.log(e)
             @Move(@data.creatureField, begin.row, begin.col, begin.row, begin.col)
-            @Highlight(begin.row, begin.col, 3)
+            return
+        
+        if action == "Move"
+            @Move(@data.creatureField, begin.row, begin.col, end.row, end.col)
+        else if action == "RunHit"
+            moveto = @grid.NearestNeighbour(object, subject)
+            @Move(@data.creatureField, begin.row, begin.col, moveto.row, moveto.col)
+        else
+            @Move(@data.creatureField, begin.row, begin.col, begin.row, begin.col)
+        
+        @HighlightOff()
         return
 
     # Переключение видимости объекта и его спрайта.
