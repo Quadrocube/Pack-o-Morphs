@@ -1,3 +1,4 @@
 *.*~
-.js
-.bat
+*.js
+*.bat
+*.js.map

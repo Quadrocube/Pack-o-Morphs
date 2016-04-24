@@ -1,5 +1,5 @@
 class window.Logic
-	constructor: (@grid, @data, @draw) ->
+	constructor: (@grid, @data) ->
 		# currentPlayer: if 0 then local, if > 0 is other
 		@currentPlayer = 0
 		return
@@ -30,8 +30,7 @@ class window.Logic
 			return false
 
 		if fo.creature.effects.dead? or fo.creature.effects.damage >= fo.creature.hpp
-			@draw.Remove(@data.creatureField, fo.row, fo.col)
-			#@data.Remove(fo)
+			@data.creaturesField[fo.row][fo.col] = undefined
 			return true
 		return false
 	
@@ -119,10 +118,12 @@ class window.Logic
 		}
 
 	Move: (subject, object) ->
-		if not subject? or not subject.IsCreature? or not subject.IsCreature()
+		unless subject? and subject.IsCreature? and subject.IsCreature()
 			throw new Error("Move: subject not a creature")
-		if not object? or not object.col? or not object.row?
+		unless object? and object.col? and object.row?
 			throw new Error("Move: object haven't row & col fields")
+		unless @grid.IsValidRowCol(object.row, object.col)
+			throw new Error("Move: object isn't on the grid")
 		# ## checks whether move is valid
 		# cocoons and plants
 		if "immovable" in subject.creature.keywords
@@ -139,9 +140,13 @@ class window.Logic
 			throw new Error("Move: distance is 0")
 		if object.IsCreature? and object.IsCreature()
 			throw new Error("Move: target hex blocked")
-		
+
 		# ## all is ok 
 		# regular drain
+		@data.creaturesField[subject.row][subject.col] = undefined
+		@data.creaturesField[object.row][object.col] = subject
+		subject.row = object.row
+		subject.col = object.col
 		subject.creature.effects.drain ?= 0
 		subject.creature.effects.drain += 1
 		
@@ -212,7 +217,7 @@ class window.Logic
 	Upkeep: () ->
 		if @state != StateType.TS_OPPONENT_MOVE
 			throw new Error("Upkeep: called on my turn")
-		for fo_row in @data.creatureField
+		for fo_row in @data.creaturesField
 			for fo in fo_row
 				if not fo?
 					continue
@@ -257,9 +262,9 @@ class window.Logic
 							fo.creature.effects.dead = true
 							@checkDeathCreature(fo)
 							# place new spawnlings on the field		
-							@draw.Add(first)				
+							@data.creaturesField[first.row][first.col] = first
 							if second.row? and second.col?
-								@draw.Add(second)
+								@data.creaturesField[second.row][second.col] = second
 						else if fo.creature.effects.morph_type == 'evolve'
 							# create a evolved creature
 							evolved = new window.FieldObject(fo.row, fo.col, fo.creature.effects.morph_target, true, fo.player)
@@ -267,7 +272,7 @@ class window.Logic
 							fo.creature.effects.dead = true
 							@checkDeathCreature(fo)
 							# place new
-							@draw.Add(evolved)
+							@data.creaturesField[evolved.row][evolved.col] = evolved
 						else
 							throw error_code: 153, error: "Upkeep: invalid morph_type = #{fo.creature.effects.morph_type}"
 		return
@@ -277,7 +282,7 @@ class window.Logic
 
 
 	
-	SelectAction: (subject, object) ->
+	DoAction: (subject, object) ->
 		if @state == StateType.TS_OPPONENT_MOVE
 			throw error_code: 150, error: "Opponent\'s move"
 

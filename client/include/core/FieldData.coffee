@@ -6,7 +6,7 @@ class window.FieldData
         @groundField = @generateArray()
         @highlightField = @generateArray()
         @obstaclesField = @generateArray()
-        @creatureField = @generateArray()
+        @creaturesField = @generateArray()
         for i in [0..@rowNum-1]
             for j in [0..@colNum-1]
                 @groundField[i][j] = new window.FieldObject(i, j, "EMPTY", true)
@@ -17,8 +17,8 @@ class window.FieldData
 
     # Нахождение самого верхнего объекта
     GetUpperObject: (row, col) ->
-        if @creatureField[row][col]?
-            return @creatureField[row][col]
+        if @creaturesField[row][col]?
+            return @creaturesField[row][col]
         else if @obstaclesField[row][col]?
             return @obstaclesField[row][col]
         else

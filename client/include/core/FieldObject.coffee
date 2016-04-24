@@ -43,7 +43,7 @@ class window.FieldObject
 				"WASP": new window.Creature(4, 4, 2, 4, 4, 2)
 				"SPIDER": new window.Creature(4, 4, 2, 4, 4, 2)
 			@creature = toCreatures[@type]
-
+		@isDraggable = @IsCreature()
 
 	IsCreature: () ->
 		@type not in ["EMPTY", "GRASS", "FOREST"]

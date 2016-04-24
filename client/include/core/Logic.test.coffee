@@ -10,7 +10,7 @@ describe "Tests for Logic", () ->
 	grid = new window.THexGrid(35, 20, 16)
 	data = new window.FieldData(20, 16)
 	Add = (fo) ->
-		data.creatureField[fo.row][fo.col] = fo
+		data.creaturesField[fo.row][fo.col] = fo
 		return
 	Remove = (field, row, col) ->
 		field[row][col] = undefined
@@ -42,7 +42,7 @@ describe "Tests for Logic", () ->
 		object = clone(defaultObject)
 		object.creature.def = 0
 		object.creature.hpp = 1 
-		data.creatureField[object.row][object.col] = object
+		data.creaturesField[object.row][object.col] = object
 		expect(logic.Attack(subject, object).object_dead).toBe(true)
 
 	it "Attack : drained", () ->
@@ -176,11 +176,11 @@ describe "Tests for Logic", () ->
 
 	it "Upkeep : poison death", () ->
 		logic.state = window.StateType.TS_OPPONENT_MOVE
-		data.creatureField[0][0] = createFieldObject(0, 0, {poison: 10,})
-		data.creatureField[3][4] = createFieldObject(3, 4, {poison: 10,})
+		data.creaturesField[0][0] = createFieldObject(0, 0, {poison: 10,})
+		data.creaturesField[3][4] = createFieldObject(3, 4, {poison: 10,})
 		logic.Upkeep()
-		expect(data.creatureField[0][0]).toBe(undefined)
-		expect(data.creatureField[3][4]).toBe(undefined)
+		expect(data.creaturesField[0][0]).toBe(undefined)
+		expect(data.creaturesField[3][4]).toBe(undefined)
 
 	it "Keywords : carapace", () ->
 		att = 4
@@ -190,24 +190,24 @@ describe "Tests for Logic", () ->
 		expect(subject.creature.att).toBe(att - 2)
 		expect(subject.creature.def).toBe(def + 2)
 		expect(subject.creature.effects.carapace).not.toBe(undefined)
-		data.creatureField[0][0] = subject
+		data.creaturesField[0][0] = subject
 		logic.Upkeep()
 		expect(subject.creature.att).toBe(att)
 		expect(subject.creature.def).toBe(def)
 
 	it "Upkeep : replicate regular", () ->
 		logic.state = window.StateType.TS_OPPONENT_MOVE
-		data.creatureField[1][1] = createFieldObject(1, 1, {morph: 1, morph_type: "replicate", morph_target: "VECTOR", damage: 2})
+		data.creaturesField[1][1] = createFieldObject(1, 1, {morph: 1, morph_type: "replicate", morph_target: "VECTOR", damage: 2})
 		rad = grid.GetBlocksInRadius(1, 1, 1)[1][0]
 		[row, col,] = [rad.row, rad.col]
 		logic.Upkeep()
-		expect(data.creatureField[1][1].type).toBe("VECTOR")
-		expect(data.creatureField[row][col].type).toBe("VECTOR")
+		expect(data.creaturesField[1][1].type).toBe("VECTOR")
+		expect(data.creaturesField[row][col].type).toBe("VECTOR")
 
 	it "Upkeep : evolve regular", () ->
 		logic.state = window.StateType.TS_OPPONENT_MOVE
-		data.creatureField[1][1] = createFieldObject(1, 1, {morph: 1, morph_type: "evolve", morph_target: "SPAWN", damage: 2})
+		data.creaturesField[1][1] = createFieldObject(1, 1, {morph: 1, morph_type: "evolve", morph_target: "SPAWN", damage: 2})
 		logic.Upkeep()
-		expect(data.creatureField[1][1].type).toBe("SPAWN")
+		expect(data.creaturesField[1][1].type).toBe("SPAWN")
 
 	return
