@@ -23,6 +23,7 @@ class window.DrawField
             rowcol = @grid.XYToRowCol(@getGridX(@game.input.worldX), @getGridY(@game.input.worldY))
             row = rowcol.row
             col = rowcol.col
+            console.log "clicked on row=#{row}, col=#{col}"
             if @grid.IsValidRowCol(row, col)
                 object = @GetUpperObject(row, col)
                 @actionBar.DisplayObjectActions(object)

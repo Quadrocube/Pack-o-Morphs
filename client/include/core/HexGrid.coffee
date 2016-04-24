@@ -111,6 +111,18 @@ class window.THexGrid
     IsValidRowCol: (row, col) -> (col >= 0 && row >= 0 && col < @colNum && row < @rowNum)
 
     # Нахождение ближайшей к basic клетке по направлению к remote
-    NearestNeighbour: (basic, remote) ->
-        # TODO: реализовать
-        return
+    NearestNeighbour: (basic_row, basic_col, remote_row, remote_col) ->
+        cube_lerp = (a, b, t) ->
+            x: a.x + (b.x - a.x) * t
+            y: a.y + (b.y - a.y) * t
+            z: a.z + (b.z - a.z) * t
+
+        N = @GetDistance basic_row, basic_col, remote_row, remote_col
+        basic  = @RowColToXY(basic_row, basic_col)
+        remote = @RowColToXY(remote_row, remote_col)
+        basic = @XYToCube(basic.x, basic.y)
+        remote = @XYToCube(remote.x, remote.y)
+
+        lerp = cube_lerp(basic, remote, 1.0 / N)
+        ans = @CubeRound(lerp.x, lerp.y, lerp.z)
+        return @CubeToRowCol(ans.x, ans.y, ans.z)
