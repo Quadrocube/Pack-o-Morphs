@@ -112,6 +112,7 @@ class window.Logic
 		subject.creature.effects.drain ?= 0
 		subject.creature.effects.drain += 1
 		
+		console.log("subject, object: #{subject_dead}, #{object_dead}")
 		return {
 			miss : false
 			object_dead : object_dead

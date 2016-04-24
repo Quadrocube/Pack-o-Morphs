@@ -78,6 +78,7 @@ class window.DrawField
     Remove: (field, row, col) ->
         if !@grid.IsValidRowCol(row, col)
             throw new Error("Wrong RowCol in DrawField Remove method")
+        field[row][col].sprite.destroy()
         field[row][col] = undefined
         return
 
