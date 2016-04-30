@@ -5,7 +5,7 @@ class window.InfoBar
 
         @graphics = @game.add.graphics(0, 0)
         @graphics.beginFill(0x01579B, 0.5)
-        @rect = @graphics.drawRoundedRect(@x, @y, @width, @height)
+        @rect = @graphics.drawRoundedRect(@x, @y, @width, @height, 5)
         @rect.fixedToCamera = true
         @graphics.endFill()
 

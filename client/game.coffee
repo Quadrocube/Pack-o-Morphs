@@ -44,6 +44,6 @@ window.onload = () ->
         return
 
     @game = new Phaser.Game('100%', '100%', Phaser.CANVAS, '', {preload: onPreload, create: onCreate, update: onUpdate})
-
+    
     return
 
