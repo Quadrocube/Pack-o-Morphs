@@ -33,7 +33,7 @@ class window.FieldObject
 
 		if (not @creature?) and @IsCreature()
 			toCreatures =
-				"VECTOR": new window.Creature(3, 3, 2, 3, 6, 2)
+				"VECTOR": new window.Creature(3, 3, 2, 3, 6, 6)
 				"COCOON": new window.Creature(0, 2, 0, 3, 0, 2)
 				"PLANT": new window.Creature(0, 5, 0, 3, 0, 2)
 				"SPAWN": new window.Creature(5, 3, 3, 3, 5, 2)
@@ -43,6 +43,8 @@ class window.FieldObject
 				"WASP": new window.Creature(4, 4, 2, 4, 4, 2)
 				"SPIDER": new window.Creature(4, 4, 2, 4, 4, 2)
 			@creature = toCreatures[@type]
+			if @type == "SPAWN"
+				@creature.move_range = 4
 		@isDraggable = @IsCreature()
 
 	IsCreature: () ->

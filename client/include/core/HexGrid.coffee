@@ -110,6 +110,47 @@ class window.THexGrid
     # Проверка на принадлежность сетке
     IsValidRowCol: (row, col) -> (col >= 0 && row >= 0 && col < @colNum && row < @rowNum)
 
+    # Возвращает соседа по направлению direction
+    #           / \     / \
+    #         /     \ /     \
+    #        |   2   |   1   |
+    #        |       |       |
+    #       / \     / \     / \
+    #     /     \ /     \ /     \
+    #    |   3   | basic |   0   |
+    #    |       |       |       |
+    #     \     / \     / \     /
+    #       \ /     \ /     \ /
+    #        |   4   |   5   |
+    #        |       |       |
+    #         \     / \     /
+    #           \ /     \ /
+    #
+    GetNeighbour: (basic_row, basic_col, direction = 0) ->
+        directions = [
+           {x: +1, y: -1, z: 0 }, 
+           {x: +1, y: 0 , z: -1}, 
+           {x: 0 , y: +1, z: -1}, 
+           {x: -1, y: +1, z: 0 }, 
+           {x: -1, y: 0 , z: +1}, 
+           {x: 0, y: -1,  z: +1}, 
+        ]
+        direction = direction % 6
+        hex = @RowColToCube(basic_row, basic_col)
+        hex.x += directions[direction].x
+        hex.y += directions[direction].y
+        hex.z += directions[direction].z
+        return @CubeToRowCol(hex.x, hex.y, hex.z)
+
+    # Возвращает следующего соседа в нумерации @GetNeighbour
+    GetNextNeighbour: (basic_row, basic_col, neigh_row, neigh_col) ->
+        for i in [0..5]
+            candidate = @GetNeighbour(basic_row, basic_col, i)
+            console.log candidate.row, candidate.col
+            if neigh_row == candidate.row and neigh_col == candidate.col
+                return @GetNeighbour(basic_row, basic_col, i + 1)
+        throw new Error("basic (#{basic_row}, #{basic_col}) and neigh (#{neigh_row}, #{neigh_col}) are not nearby")
+
     # Нахождение ближайшей к basic клетке по направлению к remote
     NearestNeighbour: (basic_row, basic_col, remote_row, remote_col) ->
         cube_lerp = (a, b, t) ->
@@ -125,4 +166,6 @@ class window.THexGrid
 
         lerp = cube_lerp(basic, remote, 1.0 / N)
         ans = @CubeRound(lerp.x, lerp.y, lerp.z)
-        return @CubeToRowCol(ans.x, ans.y, ans.z)
+        ans_rc = @CubeToRowCol(ans.x, ans.y, ans.z)
+
+        return ans_rc
