@@ -6,6 +6,11 @@ class window.ActionBar
         @y = @game.height - @height
 
     DisplayObjectActions: (object, buttonCallbacks) ->
+        if @buttons?
+            for button in @buttons
+                button.destroy()
+            @buttons = []
+
         if @graphics?
             @graphics.destroy()
             @graphics = undefined
@@ -26,7 +31,7 @@ class window.ActionBar
                 posY = @y
                 callback = () ->
                     buttonCallbacks[action](object, object)
-                button = this.game.add.button(posX, posY, "button_"+action, callback, this, 0, 1, 1)
+                button = @game.add.button(posX, posY, "button_"+action, callback, this, 0, 1, 1)
                 @buttons.push(button)
                 button.fixedToCamera = true
         return

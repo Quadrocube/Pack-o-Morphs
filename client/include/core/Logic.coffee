@@ -3,12 +3,12 @@ class window.Logic
 		# currentPlayer: if 0 then local, if > 0 is other
 		@currentPlayer = 0
 		return
-	
+
 	d2: () ->
 		if Math.random() > 0.5
 			return 1
 		return 0
-		
+
 	rollAttack: (att, def) ->
 		if def == 0
 			return true
@@ -24,16 +24,16 @@ class window.Logic
 
 	# checks, whether a creature should be dead and performs necessary deletions
 	# return true if fo is dead
-	checkDeathCreature: (fo) ->
+	tryDeath: (object) ->
 		# check typo
-		if not fo.IsCreature()
+		if not object.IsCreature()
 			return false
-
-		if fo.creature.effects.dead? or fo.creature.effects.damage >= fo.creature.hpp
-			@data.creaturesField[fo.row][fo.col] = undefined
+		creature = object.creature
+		if creature.effects.dead? or creature.effects.damage >= creature.hpp
+			@data.creaturesField[object.row][object.col] = undefined
 			return true
 		return false
-	
+
 	Attack: (subject, object, check_distance = true) ->
 		if not subject? or not subject.IsCreature? or not subject.IsCreature()
 			throw new Error("Attack: subject not a creature")
@@ -56,13 +56,13 @@ class window.Logic
 		# ## roll the dice
 		# mark subject as attacked this turn
 		subject.creature.effects.attacked = true
-		
+
 		landed = @rollAttack(subject.creature.att, object.creature.def)
 		if not landed
 			return {
 				miss: true
 			}
-		
+
 		# ## assign damage and effects
 		# execute infest
 		infest = 0
@@ -74,43 +74,43 @@ class window.Logic
 		damage = subject.creature.dam - infest
 		object.creature.effects.damage ?= 0
 		object.creature.effects.damage += damage
-		
+
 		# leech
 		if "leech" in subject.creature.keywords
 			if subject.creature.effects.damage?
 				subject.creature.effects.damage = Math.max(0, subject.creature.effects.damage - damage)
-		
+
 		# assign drain to object
 		if "drain" in subject.creature.keywords
 			object.creature.effects.drain ?= 0
 			if object.creature.effects.drain + 1 <= object.creature.mov
 				object.creature.effects.drain += 1
-		
+
 		# assign poison
 		if "poison" in subject.creature.keywords and not "poisoned" in object.creature.keywords
 			object.creature.effects.poison ?= 0
 			object.creature.effects.poison += 1
-		
+
 		# assign infest
 		if "infest" in subject.creature.keywords
 			object.creature.effects.infest ?= 0
 			object.creature.effects.infest += 1
-		
+
 		# ## aftermath
 		# check for object's death
-		object_dead = @checkDeathCreature(object)
-		
+		object_dead = @tryDeath(object)
+
 		# apply poisoned
 		if object_dead and "poisoned" in object.creature.keywords
 			subject.creature.effects.damage ?= 0
 			subject.creature.effects.damage += damage
-		
-		subject_dead = @checkDeathCreature(subject)
-		
+
+		subject_dead = @tryDeath(subject)
+
 		# regular drain
 		subject.creature.effects.drain ?= 0
 		subject.creature.effects.drain += 1
-		
+
 		return {
 			miss : false
 			object_dead : object_dead
@@ -149,16 +149,16 @@ class window.Logic
 		subject.col = object.col
 		subject.creature.effects.drain ?= 0
 		subject.creature.effects.drain += 1
-		
+
 		return
-	
+
 	RunHit: (subject, object) ->
 		# check distance
 		d = subject.creature.GetMoveRange()
 		user_d = @grid.GetDistance(subject.row, subject.col, object.row, object.col)
 		if user_d > d
 			throw new Error("RunHit: user_d #{user_d} > d #{d}")
-		
+
 		# okay, moving
 		try
 			@Move(subject, @grid.NearestNeighbour(object, subject))
@@ -166,21 +166,21 @@ class window.Logic
 			throw e
 		# moved ok, attacking
 		return @Attack(subject, object, false)
-		
+
 	Morph: (subject, object) ->
 		# check typo
 		if not subject.IsCreature()
-			throw error_code: 100, error: "Morph: subject is not a creature"
+			throw new Error("Morph: subject is not a creature")
 		if not object.IsCreature()
-			throw error_code: 115, error: "Morph: object is not a creature (prototype)" 
+			throw new Error("Morph: object is not a creature (prototype)")
 		# check if drained
 		if subject.creature.effects.drain? and subject.creature.effects.drain >= subject.creature.mov
-			throw error_code : 101, error: "Morph: subject #{subject.Verbose()} completely drained"
+			throw new Error("Morph: subject #{subject.Verbose()} completely drained")
 
 		# okay morphing
 		console.log("morphing")
 		return
-		
+
 	Yield: (subject, object) ->
 		if not object? or not object.type? or object.type != 'GRASS'
 			throw new Error("Yield: object not a GRASS")
@@ -194,8 +194,8 @@ class window.Logic
 		subject.creature.effects.drain -= 1
 		if subject.creature.effects.drain <= 0
 			delete subject.creature.effects.drain
-		return 
-		
+		return
+
 	Special: (subject) ->
 		if not subject? or not subject.IsCreature? or not subject.IsCreature()
 			throw new Error("Special: subject is not a creature")
@@ -231,15 +231,15 @@ class window.Logic
 					fo.creature.effects.damage ?= 0
 					fo.creature.effects.damage += fo.creature.effects.poison
 					delete fo.creature.effects.poison
-				
-				@checkDeathCreature(fo)
+
+				@tryDeath(fo)
 
 				# carapace off
 				if fo.creature.effects.carapace?
 					fo.creature.att += 2
 					fo.creature.def -= 2
 					delete fo.creature.effects.carapace
-				
+
 				# replicate & morph
 				if fo.creature.effects.morph?
 					fo.creature.effects.morph -= 1
@@ -260,7 +260,7 @@ class window.Logic
 									break
 							# remove cocoon
 							fo.creature.effects.dead = true
-							@checkDeathCreature(fo)
+							@tryDeath(fo)
 							# place new spawnlings on the field		
 							@data.creaturesField[first.row][first.col] = first
 							if second.row? and second.col?
@@ -270,21 +270,16 @@ class window.Logic
 							evolved = new window.FieldObject(fo.row, fo.col, fo.creature.effects.morph_target, true, fo.player)
 							# remove cocoon
 							fo.creature.effects.dead = true
-							@checkDeathCreature(fo)
+							@tryDeath(fo)
 							# place new
 							@data.creaturesField[evolved.row][evolved.col] = evolved
 						else
-							throw error_code: 153, error: "Upkeep: invalid morph_type = #{fo.creature.effects.morph_type}"
+							throw new Error("Upkeep: invalid morph_type = #{fo.creature.effects.morph_type}")
 		return
 
-
-
-
-
-	
 	DoAction: (subject, object) ->
 		if @state == StateType.TS_OPPONENT_MOVE
-			throw error_code: 150, error: "Opponent\'s move"
+			throw new Error("Opponent\'s move")
 
 		if not object?
 			@Special(subject)
@@ -297,11 +292,11 @@ class window.Logic
 				return "RunHit"
 			@Attack(subject, object)
 			return "Attack"
-		
+
 		if object.IsGrass()
 			@Yield(subject, object)
 			return "Yield"
-		
+
 		if object.IsEmpty() or object.IsForest()
 			@Move(subject, object)
 			return "Move"

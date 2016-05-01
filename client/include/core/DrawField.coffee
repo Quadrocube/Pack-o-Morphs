@@ -20,6 +20,7 @@ class window.DrawField
         @data.creaturesField[11][11] = new window.FieldObject(11, 11, "VECTOR")
         @data.creaturesField[10][10] = new window.FieldObject(10, 10, "VECTOR")
 
+        # Инициализация и отрисовка начальных обектов
         @groundGroup = @game.add.group()
         @highlightGroup = @game.add.group()
         @obstaclesGroup = @game.add.group()
@@ -29,12 +30,14 @@ class window.DrawField
         @DrawGroup(@obstaclesGroup, @data.obstaclesField)
         @DrawGroup(@creaturesGroup, @data.creaturesField)
 
-        @game.input.mouse.mouseDownCallback = () =>
-            rowcol = @grid.XYToRowCol(@getGridX(@game.input.worldX), @getGridY(@game.input.worldY))
+        @game.input.mouse.mouseDownCallback = (pointer) =>
+            rowcol = @grid.XYToRowCol(@getGridX(pointer.x), @getGridY(pointer.y))
             row = rowcol.row
             col = rowcol.col
             if @grid.IsValidRowCol(row, col)
                 object = @data.GetUpperObject(row, col)
+                @HighlightOff()
+                @Highlight(row, col, 0)
                 buttonCallbacks = (logic) ->
                     "morph": (subject, object) =>
                         logic.Morph(subject, object)
@@ -110,26 +113,31 @@ class window.DrawField
         else
             sprite.input.disableDrag()
 
-    # Обработчик начала перетаскивания спрайта, вешается в ToogleDrag.
+    # Обработчик начала перетаскивания спрайта, вешается в toggleDrag.
     onDragStart: (sprite, pointer) ->
         rowcol = @grid.XYToRowCol(@getGridX(pointer.x), @getGridY(pointer.y))
         @draggedObject = @data.GetUpperObject(rowcol.row, rowcol.col)
-        @HighlightOff()
-        @Highlight(rowcol.row, rowcol.col, @draggedObject.creature.GetMoveRange())
+        @highlightTimer = @game.time.create(true);
+        @highlightTimer.add(100, @Highlight, this, rowcol.row, rowcol.col, @draggedObject.creature.GetMoveRange())
+        @highlightTimer.start()
         return
 
-    # Обработчик конца перетаскивания спрайта, вешается в ToogleDrag.
+    # Обработчик конца перетаскивания спрайта, вешается в toggleDrag.
     onDragStop: (sprite, pointer) ->
+        @highlightTimer.destroy()
         begin = @draggedObject
         end = @grid.XYToRowCol(@getGridX(pointer.x), @getGridY(pointer.y))
         try
-            subject = @data.GetUpperObject(begin.row, begin.col)
-            object = @data.GetUpperObject(end.row, end.col)
-            @logic.DoAction(subject, object)
+            @HighlightOff()
+            if not (begin.row == end.row and begin.col == end.col)
+                subject = @data.GetUpperObject(begin.row, begin.col)
+                object = @data.GetUpperObject(end.row, end.col)
+                @logic.DoAction(subject, object)
+            else
+                @Highlight(begin.row, begin.col, 0)
         catch e
             console.log(e)
         finally
             @DrawGroup(@obstaclesGroup, @data.obstaclesField)
             @DrawGroup(@creaturesGroup, @data.creaturesField)
-            @HighlightOff()
             return
