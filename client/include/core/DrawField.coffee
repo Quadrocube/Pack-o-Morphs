@@ -3,8 +3,8 @@
 # Второй слой - подсветка (highlight). Третий слой - препятствия (obstacles). Четвёртый слой - существа (creatures).
 
 class window.DrawField
-    constructor: (@game, hexWidth, @rowNum, @colNum) ->
-        @data = new window.FieldData(@rowNum, @colNum)
+    constructor: (@game, hexWidth, @rowNum, @colNum, @data) ->
+        @data ?= new window.FieldData(@rowNum, @colNum)
         @grid = new window.THexGrid(hexWidth, @rowNum, @colNum)
         @logic = new window.Logic(@grid, @data, @)
         @leftBound = (@game.width - @grid.fieldWidth) / 2
@@ -15,10 +15,6 @@ class window.DrawField
         @playerBar = window.PlayerBar.instance = new window.PlayerBar(@game)
 
         @draggedObject = null
-
-        # Пример
-        @data.creaturesField[11][11] = new window.FieldObject(11, 11, "VECTOR")
-        @data.creaturesField[10][10] = new window.FieldObject(10, 10, "VECTOR")
 
         # Инициализация и отрисовка начальных обектов
         @groundGroup = @game.add.group()
@@ -38,11 +34,55 @@ class window.DrawField
                 object = @data.GetUpperObject(row, col)
                 @HighlightOff()
                 @Highlight(row, col, 0)
-                buttonCallbacks = (logic) ->
-                    "morph": (subject, object) =>
-                        logic.Morph(subject, object)
-                @actionBar.DisplayObjectActions(object, buttonCallbacks(@logic))
                 @infoBar.DisplayObjectInfo(object)
+
+                morph = (type) =>
+                    from = object
+                    to = new FieldObject(from.row, from.col, type, true, from.player)
+                    @logic.Morph(from, to)
+                    return
+
+                morphCallbacks = () =>
+                    "morph_vector": () =>
+                        morph("VECTOR")
+                    'morph_cocoon': () =>
+                        morph("COCOON")
+                    'morph_plant': () =>
+                        morph("PLANT")
+                    'morph_spawn': () =>
+                        morph("SPAWN")
+                    'morph_daemon': () =>
+                        morph("DAEMON")
+                    'morph_turtle': () =>
+                        morph("TURTLE")
+                    #'morph_rhino': () =>
+                    #    morph("RHINO")
+                    #'morph_wasp': () =>
+                    #    morph("WASP")
+                    #'morph_spider': () =>
+                    #    morph("SPIDER")
+                    'morph_cancel': () =>
+                        @actionBar.DisplayObjectActions(object, actionCallbacks(@logic))
+
+                actionCallbacks = () =>
+                    "morph": () =>
+                        console.log("morph")
+                        @actionBar.DisplayObjectActions(object, morphCallbacks(@logic))
+                    "yield": () =>
+                        console.log("yield")
+                    "replicate": () =>
+                        console.log("replicate")
+                    "feed": () =>
+                        console.log("feed")
+                    "spec_ability": () =>
+                        console.log("spec_ability")
+
+                @actionBar.DisplayObjectActions(object, actionCallbacks(@logic))
+
+        @game.input.keyboard.onDownCallback = (key) =>
+            if key.keyCode == Phaser.Keyboard.SPACEBAR
+                console.log("Upkeep")
+                @logic.Upkeep()
 
     # Интерфейс.
     # ---------------------------------------------------------------------------------------------------------------
@@ -117,9 +157,10 @@ class window.DrawField
     onDragStart: (sprite, pointer) ->
         rowcol = @grid.XYToRowCol(@getGridX(pointer.x), @getGridY(pointer.y))
         @draggedObject = @data.GetUpperObject(rowcol.row, rowcol.col)
-        @highlightTimer = @game.time.create(true);
-        @highlightTimer.add(100, @Highlight, this, rowcol.row, rowcol.col, @draggedObject.creature.GetMoveRange())
-        @highlightTimer.start()
+        if @draggedObject.IsCreature()
+            @highlightTimer = @game.time.create(true);
+            @highlightTimer.add(100, @Highlight, this, rowcol.row, rowcol.col, @draggedObject.creature.GetMoveRange())
+            @highlightTimer.start()
         return
 
     # Обработчик конца перетаскивания спрайта, вешается в toggleDrag.

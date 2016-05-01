@@ -46,7 +46,7 @@ class window.FieldObject
 		@isDraggable = @IsCreature()
 
 	IsCreature: () ->
-		@type not in ["EMPTY", "GRASS", "FOREST"]
+		@type not in ["EMPTY", "GRASS", "FOREST", "HIGHLIGHT"]
 	IsForest: () ->
 		@type == "FOREST"
 	IsGrass: () ->

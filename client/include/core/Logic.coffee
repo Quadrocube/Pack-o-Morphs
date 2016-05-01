@@ -178,7 +178,7 @@ class window.Logic
 			throw new Error("Morph: subject #{subject.Verbose()} completely drained")
 
 		# okay morphing
-		console.log("morphing")
+		console.log("morphing from "+subject.type+" to "+object.type)
 		return
 
 	Yield: (subject, object) ->

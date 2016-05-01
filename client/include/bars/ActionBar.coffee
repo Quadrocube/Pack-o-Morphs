@@ -2,10 +2,10 @@ class window.ActionBar
     constructor: (@game, @grid, @borderMargin = 40, @x = 10, @width = 300, @height = 128) ->
         @buttons = []
         @isLock = false
-        @buttonWidth = 40
+        @buttonWidth = 128
         @y = @game.height - @height
 
-    DisplayObjectActions: (object, buttonCallbacks) ->
+    DisplayObjectActions: (object, actionCallbacks) ->
         if @buttons?
             for button in @buttons
                 button.destroy()
@@ -16,7 +16,7 @@ class window.ActionBar
             @graphics = undefined
 
         if object.IsCreature()
-            actions = Object.keys(buttonCallbacks)
+            actions = Object.keys(actionCallbacks)
             @width = Math.max(@grid.fieldWidth, @buttonWidth * actions.length + @borderMargin )
             @x = (@game.width - @width) / 2
 
@@ -27,11 +27,8 @@ class window.ActionBar
             @graphics.endFill()
 
             for action in actions
-                posX = @x + @buttonWidth * actions.indexOf(action)
-                posY = @y
-                callback = () ->
-                    buttonCallbacks[action](object, object)
-                button = @game.add.button(posX, posY, "button_"+action, callback, this, 0, 1, 1)
-                @buttons.push(button)
+                x = @x + (@width - @buttonWidth * actions.length)/2 + @buttonWidth * actions.indexOf(action)
+                button = @game.add.button(x, @y, "button_"+action, actionCallbacks[action], this, 0, 1, 1)
                 button.fixedToCamera = true
+                @buttons.push(button)
         return

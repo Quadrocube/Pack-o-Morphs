@@ -37,7 +37,20 @@ window.onload = () ->
     onCreate = () =>
         @game.stage.backgroundColor = '#B3E5FC'
         @game.world.setBounds(0, 0, @game.width, @game.height)
-        field = new window.DrawField(@game, 35, 20, 16)
+
+
+        grass = [[17,12],[0,7],[1,8],[2,8],[2,7],[2,6],[1,6],[1,10],[0,11],[1,12],[2,12],[2,11],[2,10],
+            [13,11],[14,11],[15,10],[14,9],[13,9],[13,10],[13,7],[14,7],[15,6],[14,5],[13,5],[13,6]]
+        playerOne = [[7,0],[6,1],[7,2],[8,2],[8,1],[8,0]]
+        playerTwo = [[7,18],[6,17],[7,16],[8,16],[8,17],[8,18]]
+        data = new window.FieldData(35, 20)
+        for cell in grass
+            data.obstaclesField[cell[1]][cell[0]] = new window.FieldObject(cell[1], cell[0], "GRASS")
+        for cell in playerOne
+            data.creaturesField[cell[1]][cell[0]] = new window.FieldObject(cell[1], cell[0], "VECTOR")
+        for cell in playerTwo
+            data.creaturesField[cell[1]][cell[0]] = new window.FieldObject(cell[1], cell[0], "VECTOR", true, 1)
+        field = new window.DrawField(@game, 35, 20, 16, data)
         return
 
     onUpdate = () =>

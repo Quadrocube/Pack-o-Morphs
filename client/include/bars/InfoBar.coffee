@@ -9,7 +9,7 @@ class window.InfoBar
         @rect.fixedToCamera = true
         @graphics.endFill()
 
-        style = { font: "32px Comfortaa", fill: "#B3E5FC", wordWrap: true, wordWrapWidth: @width - @margin, align: "left"}
+        style = {font: "32px Comfortaa", fill: "#B3E5FC", wordWrap: true, wordWrapWidth: @width - @margin, align: "left"}
         @textHandler = @game.add.text(@x + @margin / 2, @y + @margin/2, "", style)
         @textHandler.fixedToCamera = true
         return
