@@ -18,7 +18,7 @@ class window.DrawField
 
         # Пример
         @data.creaturesField[11][11] = new window.FieldObject(11, 11, "VECTOR")
-        @data.creaturesField[10][10] = new window.FieldObject(10, 10, "VECTOR")
+        @data.creaturesField[10][10] = new window.FieldObject(10, 10, "SPAWN")
 
         # Инициализация и отрисовка начальных обектов
         @groundGroup = @game.add.group()

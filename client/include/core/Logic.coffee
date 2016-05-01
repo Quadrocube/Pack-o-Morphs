@@ -117,12 +117,13 @@ class window.Logic
 			subject_dead : subject_dead
 		}
 
-	Move: (subject, object) ->
+	Move: (subject, object, drain_cost = true) ->
 		unless subject? and subject.IsCreature? and subject.IsCreature()
 			throw new Error("Move: subject not a creature")
 		unless object? and object.col? and object.row?
 			throw new Error("Move: object haven't row & col fields")
 		unless @grid.IsValidRowCol(object.row, object.col)
+			console.log object.row, object.col
 			throw new Error("Move: object isn't on the grid")
 		# ## checks whether move is valid
 		# cocoons and plants
@@ -142,13 +143,15 @@ class window.Logic
 			throw new Error("Move: target hex blocked")
 
 		# ## all is ok 
-		# regular drain
 		@data.creaturesField[subject.row][subject.col] = undefined
 		@data.creaturesField[object.row][object.col] = subject
 		subject.row = object.row
 		subject.col = object.col
-		subject.creature.effects.drain ?= 0
-		subject.creature.effects.drain += 1
+
+		# regular drain
+		if drain_cost
+			subject.creature.effects.drain ?= 0
+			subject.creature.effects.drain += 1
 
 		return
 
@@ -156,12 +159,22 @@ class window.Logic
 		# check distance
 		d = subject.creature.GetMoveRange()
 		user_d = @grid.GetDistance(subject.row, subject.col, object.row, object.col)
+		if user_d == 0
+			throw new Error("RunHit: used_d is 0")
 		if user_d > d
 			throw new Error("RunHit: user_d #{user_d} > d #{d}")
 
 		# okay, moving
 		try
-			@Move(subject, @grid.NearestNeighbour(object, subject))
+			candidate = @grid.NearestNeighbour(object.row, object.col, subject.row, subject.col)
+			tmp_count = 0
+			while not @grid.IsValidRowCol(candidate.row, candidate.col) and @data.IsFieldCreatureless(candidate.row, candidate.col)
+				candidate = @grid.GetNextNeighbour(object.row, object.col, candidate.row, candidate.col)
+				tmp_count += 1
+				if tmp_count > 6
+					candidate = undefined
+					throw new Error("search for a free cell around #{object} fucked up")
+			@Move(subject, candidate, false)
 		catch e
 			throw e
 		# moved ok, attacking

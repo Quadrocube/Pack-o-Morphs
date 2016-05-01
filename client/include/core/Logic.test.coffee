@@ -96,19 +96,37 @@ describe "Tests for Logic", () ->
 		object = clone(defaultObject)
 		expect( =>logic.Move(subject, object)).toThrowError(/blocked/)
 
-	# TODO: test
 	it "RunHit : regular", () ->
-		return
+		subject = clone(defaultSubject)
+		object = clone(defaultObject)
+		object.col = 2
+		expect( =>logic.RunHit(subject, object)).not.toThrowError()
 	it "RunHit : distance 0", () ->
-		return
+		subject = clone(defaultSubject)
+		subject2 = clone(defaultSubject)
+		expect( =>logic.RunHit(subject, subject2)).toThrowError(/is 0/)
 	it "RunHit : distance 100", () ->
-		return
-	it "RunHit : error in Move", () ->
-		return
-	it "RunHit : error in Attack", () ->
-		return
-	it "RunHit : drained", () ->
-		return
+		subject = clone(defaultSubject)
+		object = clone(defaultObject)
+		object.row = 10
+		object.col = 9
+		subject.creature.move_range = 5
+		expect( =>logic.RunHit(subject, object)).toThrowError(/>/)
+	it "RunHit : not drained", () ->
+		subject = clone(defaultSubject)
+		subject.creature.mov = 2
+		subject.creature.effects.drain = 1
+		object = clone(defaultObject)
+		object.col = 2
+		expect( =>logic.RunHit(subject, object)).not.toThrowError(/drained/)
+
+	it "RunHit : not drained", () ->
+		subject = clone(defaultSubject)
+		subject.creature.mov = 2
+		subject.creature.effects.drain = 2
+		object = clone(defaultObject)
+		object.col = 2
+		expect( =>logic.RunHit(subject, object)).toThrowError(/drained/)
 
 	it "Yield : typo", () ->
 		subject = clone(defaultSubject)

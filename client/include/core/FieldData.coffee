@@ -24,4 +24,7 @@ class window.FieldData
         else
             return @groundField[row][col]
 
+    IsFieldCreatureless: (row, col) ->
+        return (@creaturesField[row][col] == undefined)
+
 

@@ -17,4 +17,12 @@ describe "Tests for HexGrid", () ->
             x = grid.NearestNeighbour(test[0], test[1], test[2], test[3])
             expect(x.row).toBe(test[4])
             expect(x.col).toBe(test[5])
-    return
+    it "GetNextNeighbour regular", () ->
+        minitests = [[13, 13, 13, 14, 12, 14], [10, 11, 9, 11, 9, 10], [18, 4, 17, 3, 18, 3], [14, 9, 14, 8, 15, 8], [9, 3, 10, 3, 10, 4], [6, 8, 7, 8, 6, 9]]
+        for test in minitests
+            x = grid.GetNextNeighbour(test[0], test[1], test[2], test[3])
+            expect(x.row).toBe(test[4])
+            expect(x.col).toBe(test[5])
+    it "GetNextNeighbour out of field", () ->
+        x = grid.GetNextNeighbour(19, 2, 19, 1)
+        expect(grid.IsValidRowCol(x)).toBe(false)
