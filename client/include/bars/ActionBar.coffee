@@ -3,22 +3,16 @@ class window.ActionBar
         @buttons = []
         @isLock = false
         @buttonWidth = 128
-        @y = @game.height - @height
+        @callbacks = {}
 
-    DisplayObjectActions: (object, actionCallbacks) ->
-        if @buttons?
-            for button in @buttons
-                button.destroy()
-            @buttons = []
+    Draw: () ->
+        @Destroy()
+        if @callbacks? && @toRedraw? && @toRedraw
+            actions = Object.keys(@callbacks)
 
-        if @graphics?
-            @graphics.destroy()
-            @graphics = undefined
-
-        if object.IsCreature()
-            actions = Object.keys(actionCallbacks)
             @width = Math.max(@grid.fieldWidth, @buttonWidth * actions.length + @borderMargin )
             @x = (@game.width - @width) / 2
+            @y = @game.height - @height
 
             @graphics = @game.add.graphics(0, 0)
             @graphics.beginFill(0x01579B, 0.5)
@@ -28,7 +22,27 @@ class window.ActionBar
 
             for action in actions
                 x = @x + (@width - @buttonWidth * actions.length)/2 + @buttonWidth * actions.indexOf(action)
-                button = @game.add.button(x, @y, "button_"+action, actionCallbacks[action], this, 0, 1, 1)
+                button = @game.add.button(x, @y, "button_"+action, @callbacks[action], this, 0, 1, 1)
                 button.fixedToCamera = true
                 @buttons.push(button)
+        return
+
+    Destroy: () ->
+        if @buttons?
+            for button in @buttons
+                button.destroy()
+            @buttons = []
+        if @graphics?
+            @graphics.destroy()
+            @graphics = undefined
+        return
+
+    DisplayObjectActions: (object, @callbacks) ->
+        @toRedraw = false
+        if object.IsCreature()
+            @toRedraw = true
+            @Draw()
+        else
+            @toRedraw = false
+            @Destroy()
         return

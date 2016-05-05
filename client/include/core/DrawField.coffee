@@ -7,25 +7,19 @@ class window.DrawField
         @data ?= new window.FieldData(@rowNum, @colNum)
         @grid = new window.THexGrid(hexWidth, @rowNum, @colNum)
         @logic = new window.Logic(@grid, @data, @)
-        @leftBound = (@game.width - @grid.fieldWidth) / 2
-        @upperBound = (@game.height - @grid.fieldHeight) / 2 - 100
+
+        @groundGroup = @game.add.group()
+        @highlightGroup = @game.add.group()
+        @obstaclesGroup = @game.add.group()
+        @creaturesGroup = @game.add.group()
 
         @actionBar = window.ActionBar.instance = new window.ActionBar(@game, @grid)
         @infoBar = window.InfoBar.instance = new window.InfoBar(@game)
         @playerBar = window.PlayerBar.instance = new window.PlayerBar(@game)
 
+        @Draw()
+
         @draggedObject = null
-
-        # Инициализация и отрисовка начальных обектов
-        @groundGroup = @game.add.group()
-        @highlightGroup = @game.add.group()
-        @obstaclesGroup = @game.add.group()
-        @creaturesGroup = @game.add.group()
-        @DrawGroup(@groundGroup, @data.groundField)
-        @DrawGroup(@highlightGroup, @data.highlightField)
-        @DrawGroup(@obstaclesGroup, @data.obstaclesField)
-        @DrawGroup(@creaturesGroup, @data.creaturesField)
-
         @game.input.mouse.mouseDownCallback = (pointer) =>
             rowcol = @grid.XYToRowCol(@getGridX(pointer.x), @getGridY(pointer.y))
             row = rowcol.row
@@ -87,6 +81,20 @@ class window.DrawField
     # Интерфейс.
     # ---------------------------------------------------------------------------------------------------------------
     # Подсветка области вокруг [row][col] радиусом rad.
+    Draw: () ->
+        @leftBound = (@game.width - @grid.fieldWidth) / 2
+        @upperBound = (@game.height - @grid.fieldHeight) / 2 - 100
+
+        @actionBar.Draw()
+        @infoBar.Draw()
+        @playerBar.Draw()
+
+        # Инициализация и отрисовка начальных обектов
+        @DrawGroup(@groundGroup, @data.groundField)
+        @DrawGroup(@highlightGroup, @data.highlightField)
+        @DrawGroup(@obstaclesGroup, @data.obstaclesField)
+        @DrawGroup(@creaturesGroup, @data.creaturesField)
+
     Highlight: (row, col, rad) ->
         @HighlightOff()
         highlight = @grid.GetBlocksInRadius(row, col, rad)
@@ -165,7 +173,8 @@ class window.DrawField
 
     # Обработчик конца перетаскивания спрайта, вешается в toggleDrag.
     onDragStop: (sprite, pointer) ->
-        @highlightTimer.destroy()
+        if @highlightTimer?
+            @highlightTimer.destroy()
         begin = @draggedObject
         end = @grid.XYToRowCol(@getGridX(pointer.x), @getGridY(pointer.y))
         try
