@@ -182,10 +182,6 @@ describe "Tests for Logic", () ->
 		logic.Attack(subject, object)
 		expect(object.creature.effects.drain).toBe(1)
 
-	it "Upkeep : not my turn", () ->
-		logic.state = window.StateType.TS_NONE
-		expect( =>logic.Upkeep()).toThrowError(/turn/)
-
 	createFieldObject = (row, col, effects) ->
 		creature = new window.Creature(4, 4, 4, 4, 4, 4, [])
 		creature.effects = effects
