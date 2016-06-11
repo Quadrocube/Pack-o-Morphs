@@ -1,6 +1,5 @@
 # Автор: Гусев Илья.
-# Описание: Класс, содержащтй данные об объекте: тип, положение на сетке, текущий спрайт.
-# DrawField даёт спрайту обратную ссылку на объект: sprite.object.
+# Описание: Класс, содержащий данные об объекте: тип, положение на сетке, характеристики.
 
 class window.Creature
 	constructor: (@att, @dam, @def, @hpp, @nut, @mov, @keywords = []) ->
@@ -12,6 +11,11 @@ class window.Creature
 		return @attack_range
 	GetMoveRange: () ->
 		return @move_range
+	Load: (data) ->
+		if data?
+			for key of data
+				@[key] = data[key]
+		return @
 
 class window.FieldObject
 	constructor: (@row, @col, @type, @isVisible = true, @player = 0, @creature) ->

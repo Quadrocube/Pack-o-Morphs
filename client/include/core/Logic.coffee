@@ -228,8 +228,8 @@ class window.Logic
 		return
 
 	Upkeep: () ->
-		if @state != StateType.TS_OPPONENT_MOVE
-			throw new Error("Upkeep: called on my turn")
+		#if @state != StateType.TS_OPPONENT_MOVE
+		#	throw new Error("Upkeep: called on my turn")
 		for fo_row in @data.creaturesField
 			for fo in fo_row
 				if not fo?

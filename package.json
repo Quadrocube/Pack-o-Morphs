@@ -2,7 +2,7 @@
   "name": "pack-o-morphs",
   "version": "1.0.0",
   "description": "tactical game",
-  "main": "server/index.js",
+  "main": "server/Main.js",
   "devDependencies": {
     "coffee-script": "latest",
     "karma": "~0.12",

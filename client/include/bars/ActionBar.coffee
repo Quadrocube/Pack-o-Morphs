@@ -4,10 +4,11 @@ class window.ActionBar
         @isLock = false
         @buttonWidth = 128
         @callbacks = {}
+        @locked = false
 
     Draw: () ->
         @Destroy()
-        if @callbacks? && @toRedraw? && @toRedraw
+        if not @locked && @callbacks? && @toRedraw? && @toRedraw
             actions = Object.keys(@callbacks)
 
             @width = Math.max(@grid.fieldWidth, @buttonWidth * actions.length + @borderMargin )
@@ -28,6 +29,8 @@ class window.ActionBar
         return
 
     Destroy: () ->
+        if @locked
+            @callbacks = undefined
         if @buttons?
             for button in @buttons
                 button.destroy()
@@ -46,3 +49,11 @@ class window.ActionBar
             @toRedraw = false
             @Destroy()
         return
+
+    Lock: () ->
+        @locked = true
+        @Draw()
+
+    Unlock: () ->
+        @locked = false
+        @Draw()

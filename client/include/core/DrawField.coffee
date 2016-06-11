@@ -3,80 +3,17 @@
 # Второй слой - подсветка (highlight). Третий слой - препятствия (obstacles). Четвёртый слой - существа (creatures).
 
 class window.DrawField
-    constructor: (@game, hexWidth, @rowNum, @colNum, @data) ->
-        @data ?= new window.FieldData(@rowNum, @colNum)
-        @grid = new window.THexGrid(hexWidth, @rowNum, @colNum)
-        @logic = new window.Logic(@grid, @data, @)
+    constructor: (@game, @data, @grid) ->
+        @rowNum = @data.rowNum
+        @colNum = @data.colNum
 
         @groundGroup = @game.add.group()
         @highlightGroup = @game.add.group()
         @obstaclesGroup = @game.add.group()
         @creaturesGroup = @game.add.group()
 
-        @actionBar = window.ActionBar.instance = new window.ActionBar(@game, @grid)
-        @infoBar = window.InfoBar.instance = new window.InfoBar(@game)
-        @playerBar = window.PlayerBar.instance = new window.PlayerBar(@game)
-
-        @Draw()
-
+        @locked = false
         @draggedObject = null
-        @game.input.mouse.mouseDownCallback = (pointer) =>
-            rowcol = @grid.XYToRowCol(@getGridX(pointer.x), @getGridY(pointer.y))
-            row = rowcol.row
-            col = rowcol.col
-            if @grid.IsValidRowCol(row, col)
-                object = @data.GetUpperObject(row, col)
-                @HighlightOff()
-                @Highlight(row, col, 0)
-                @infoBar.DisplayObjectInfo(object)
-
-                morph = (type) =>
-                    from = object
-                    to = new FieldObject(from.row, from.col, type, true, from.player)
-                    @logic.Morph(from, to)
-                    return
-
-                morphCallbacks = () =>
-                    "morph_vector": () =>
-                        morph("VECTOR")
-                    'morph_cocoon': () =>
-                        morph("COCOON")
-                    'morph_plant': () =>
-                        morph("PLANT")
-                    'morph_spawn': () =>
-                        morph("SPAWN")
-                    'morph_daemon': () =>
-                        morph("DAEMON")
-                    'morph_turtle': () =>
-                        morph("TURTLE")
-                    #'morph_rhino': () =>
-                    #    morph("RHINO")
-                    #'morph_wasp': () =>
-                    #    morph("WASP")
-                    #'morph_spider': () =>
-                    #    morph("SPIDER")
-                    'morph_cancel': () =>
-                        @actionBar.DisplayObjectActions(object, actionCallbacks(@logic))
-
-                actionCallbacks = () =>
-                    "morph": () =>
-                        console.log("morph")
-                        @actionBar.DisplayObjectActions(object, morphCallbacks(@logic))
-                    "yield": () =>
-                        console.log("yield")
-                    "replicate": () =>
-                        console.log("replicate")
-                    "feed": () =>
-                        console.log("feed")
-                    "spec_ability": () =>
-                        console.log("spec_ability")
-
-                @actionBar.DisplayObjectActions(object, actionCallbacks(@logic))
-
-        @game.input.keyboard.onDownCallback = (key) =>
-            if key.keyCode == Phaser.Keyboard.SPACEBAR
-                console.log("Upkeep")
-                @logic.Upkeep()
 
     # Интерфейс.
     # ---------------------------------------------------------------------------------------------------------------
@@ -85,15 +22,19 @@ class window.DrawField
         @leftBound = (@game.width - @grid.fieldWidth) / 2
         @upperBound = (@game.height - @grid.fieldHeight) / 2 - 100
 
-        @actionBar.Draw()
-        @infoBar.Draw()
-        @playerBar.Draw()
-
         # Инициализация и отрисовка начальных обектов
         @DrawGroup(@groundGroup, @data.groundField)
         @DrawGroup(@highlightGroup, @data.highlightField)
         @DrawGroup(@obstaclesGroup, @data.obstaclesField)
         @DrawGroup(@creaturesGroup, @data.creaturesField)
+
+    Lock: () ->
+        @locked = true
+        @Draw()
+
+    Unlock: () ->
+        @locked = false
+        @Draw()
 
     Highlight: (row, col, rad) ->
         @HighlightOff()
@@ -123,6 +64,11 @@ class window.DrawField
                     @addToGroup(i, j, group, field, field[i][j])
         return
 
+    # Обработка нажатия (связь с барами)
+    OnClick: (@actionBar, @infoBar, @playerBar) ->
+        return @onClick
+
+
     # Внутренние методы.
     # ---------------------------------------------------------------------------------------------------------------
     # Расчёт перевода глобальных коородинат в коородинаты XY у @grid
@@ -141,7 +87,10 @@ class window.DrawField
         sprite = @game.add.sprite(x, y, object.spriteTag)
         sprite.visible = object.isVisible
         sprite.inputEnabled = true
-        @toggleDrag(sprite, object.isDraggable)
+        if not @locked
+            @toggleDrag(sprite, object.isDraggable)
+        else
+            @toggleDrag(sprite, false)
         return sprite
 
     # Добавление object в ячейку field[row][col] и отрисовка его спрайта с добавлением в group.
@@ -191,3 +140,57 @@ class window.DrawField
             @DrawGroup(@obstaclesGroup, @data.obstaclesField)
             @DrawGroup(@creaturesGroup, @data.creaturesField)
             return
+
+    # Обработчик нажатия - внутренняя часть
+    onClick: (pointer) =>
+        rowcol = @grid.XYToRowCol(@getGridX(pointer.x), @getGridY(pointer.y))
+        row = rowcol.row
+        col = rowcol.col
+        if @grid.IsValidRowCol(row, col)
+            object = @data.GetUpperObject(row, col)
+            @HighlightOff()
+            @Highlight(row, col, 0)
+            @infoBar.DisplayObjectInfo(object)
+
+            morph = (type) =>
+                from = object
+                to = new FieldObject(from.row, from.col, type, true, from.player)
+                @logic.Morph(from, to)
+                return
+
+            morphCallbacks = () =>
+                "morph_vector": () =>
+                    morph("VECTOR")
+                'morph_cocoon': () =>
+                    morph("COCOON")
+                'morph_plant': () =>
+                    morph("PLANT")
+                'morph_spawn': () =>
+                    morph("SPAWN")
+                'morph_daemon': () =>
+                    morph("DAEMON")
+                'morph_turtle': () =>
+                    morph("TURTLE")
+                #'morph_rhino': () =>
+                #    morph("RHINO")
+                #'morph_wasp': () =>
+                #    morph("WASP")
+                #'morph_spider': () =>
+                #    morph("SPIDER")
+                'morph_cancel': () =>
+                    @actionBar.DisplayObjectActions(object, actionCallbacks())
+
+            actionCallbacks = () =>
+                "morph": () =>
+                    console.log("morph")
+                    @actionBar.DisplayObjectActions(object, morphCallbacks())
+                "yield": () =>
+                    console.log("yield")
+                "replicate": () =>
+                    console.log("replicate")
+                "feed": () =>
+                    console.log("feed")
+                "spec_ability": () =>
+                    console.log("spec_ability")
+
+            @actionBar.DisplayObjectActions(object, actionCallbacks())

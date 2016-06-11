@@ -4,6 +4,6 @@
   "description": "second serving the duels to morhs",
   "dependencies": {
     "express": "^4.10.2",
-    "socket.io": "^1.4.5"
+    "socket.io": "^1.4.6"
   }
 }

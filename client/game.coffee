@@ -44,19 +44,43 @@ window.onload = () ->
     onCreate = () =>
         @game.stage.backgroundColor = '#B3E5FC'
         @game.world.setBounds(0, 0, @game.width, @game.height)
+        hexWidth = 35
+        rowNum = 20
+        colNum = 16
 
-        grass = [[17,12],[0,7],[1,8],[2,8],[2,7],[2,6],[1,6],[1,10],[0,11],[1,12],[2,12],[2,11],[2,10],
-            [13,11],[14,11],[15,10],[14,9],[13,9],[13,10],[13,7],[14,7],[15,6],[14,5],[13,5],[13,6]]
-        playerOne = [[7,0],[6,1],[7,2],[8,2],[8,1],[8,0]]
-        playerTwo = [[7,18],[6,17],[7,16],[8,16],[8,17],[8,18]]
-        data = new window.FieldData(35, 20)
-        for cell in grass
-            data.obstaclesField[cell[1]][cell[0]] = new window.FieldObject(cell[1], cell[0], "GRASS")
-        for cell in playerOne
-            data.creaturesField[cell[1]][cell[0]] = new window.FieldObject(cell[1], cell[0], "VECTOR")
-        for cell in playerTwo
-            data.creaturesField[cell[1]][cell[0]] = new window.FieldObject(cell[1], cell[0], "VECTOR", true, 1)
-        @field = new window.DrawField(@game, 35, 20, 16, data)
+        @serverConnection = new window.ServerTalk()
+        @serverConnection.initCallback = (order) =>
+            @turnState = new window.TurnState(order)
+            @field = new window.DrawField(@game, new window.FieldData(rowNum, colNum), new window.THexGrid(hexWidth, rowNum, colNum))
+            @logic = new window.Logic(@field.grid, @field.data)
+            @field.logic = @logic
+
+            @actionBar = new window.ActionBar(@game, @field.grid)
+            @infoBar = new window.InfoBar(@game)
+            @playerBar = new window.PlayerBar(@game)
+
+            @game.input.mouse.mouseDownCallback = @field.OnClick(@actionBar, @infoBar, @playerBar)
+
+            if @turnState.currentPlayer != @turnState.clientPlayer
+                @field.Lock()
+                @actionBar.Lock()
+            else
+                @field.Unlock()
+                @actionBar.Unlock()
+
+        @serverConnection.turnCallback = (data) =>
+            @field.logic.Upkeep()
+            @turnState.currentPlayer = @turnState.clientPlayer
+            @field.data.Load(data)
+            @field.Unlock()
+            @actionBar.Unlock()
+
+        @game.input.keyboard.onDownCallback = (key) =>
+            if key.keyCode == Phaser.Keyboard.SPACEBAR && @turnState.currentPlayer == @turnState.clientPlayer
+                @field.Lock()
+                @actionBar.Lock()
+                @turnState.currentPlayer = ( @turnState.clientPlayer + 1 ) % 2
+                @serverConnection.Send('new-turn', @field.data)
         return
 
     onUpdate = () =>
@@ -64,9 +88,8 @@ window.onload = () ->
 
     @game = new Phaser.Game('100%', '100%', Phaser.CANVAS, '', {preload: onPreload, create: onCreate, update: onUpdate})
 
-    $(window).resize( () =>
-        #clearTimeout(timeoutResize)
-        timeoutResize = setTimeout( () ->
+    window.onresize = () =>
+        setTimeout( () ->
             # resize game
             @game.scale.scaleMode = Phaser.ScaleManager.RESIZE
             @game.scale.pageAlignHorizontally = true
@@ -76,7 +99,6 @@ window.onload = () ->
             @game.scale.refresh()
             @field.Draw();
         , 1000)
-    )
 
     return
 
