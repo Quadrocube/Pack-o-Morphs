@@ -35,9 +35,11 @@ class window.FieldData
         else
             return @groundField[row][col]
 
+    # Проверка, не находится ли существо в клетке
     IsFieldCreatureless: (row, col) ->
         return (@creaturesField[row][col] == undefined)
 
+    # Загрузка инстанса класса из сырых данных
     Load: (newData) ->
         @rowNum = newData.rowNum
         @colNum = newData.colNum

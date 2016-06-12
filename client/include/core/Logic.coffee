@@ -1,3 +1,6 @@
+# Автор: Виноградов Марк
+# Описание: Вся логика взаимодействий объектов.
+
 class window.Logic
 	constructor: (@grid, @data) ->
 		# currentPlayer: if 0 then local, if > 0 is other
@@ -291,8 +294,8 @@ class window.Logic
 		return
 
 	DoAction: (subject, object) ->
-		if @state == StateType.TS_OPPONENT_MOVE
-			throw new Error("Opponent\'s move")
+		#if @state == StateType.TS_OPPONENT_MOVE
+		#	throw new Error("Opponent\'s move")
 
 		if not object?
 			@Special(subject)

@@ -1,3 +1,6 @@
+# Автор: Гусев Илья.
+# Описание: Общение клиента с сервером. Все callbacks в game.coffee.
+
 class window.ServerTalk
     constructor: () ->
         @socket = io.connect('http://localhost:3000')

@@ -3,7 +3,7 @@
 # Второй слой - подсветка (highlight). Третий слой - препятствия (obstacles). Четвёртый слой - существа (creatures).
 
 class window.DrawField
-    constructor: (@game, @data, @grid) ->
+    constructor: (@game, @data, @grid, @logic, @turnState) ->
         @rowNum = @data.rowNum
         @colNum = @data.colNum
 
@@ -17,7 +17,6 @@ class window.DrawField
 
     # Интерфейс.
     # ---------------------------------------------------------------------------------------------------------------
-    # Подсветка области вокруг [row][col] радиусом rad.
     Draw: () ->
         @leftBound = (@game.width - @grid.fieldWidth) / 2
         @upperBound = (@game.height - @grid.fieldHeight) / 2 - 100
@@ -27,15 +26,18 @@ class window.DrawField
         @DrawGroup(@highlightGroup, @data.highlightField)
         @DrawGroup(@obstaclesGroup, @data.obstaclesField)
         @DrawGroup(@creaturesGroup, @data.creaturesField)
-
+    
+    # Блокирование перемещений по полю
     Lock: () ->
         @locked = true
         @Draw()
 
+    # Разблокирование перемещений по полю
     Unlock: () ->
         @locked = false
         @Draw()
 
+    # Подсветка области вокруг [row][col] радиусом rad.
     Highlight: (row, col, rad) ->
         @HighlightOff()
         highlight = @grid.GetBlocksInRadius(row, col, rad)
@@ -65,7 +67,7 @@ class window.DrawField
         return
 
     # Обработка нажатия (связь с барами)
-    OnClick: (@actionBar, @infoBar, @playerBar) ->
+    OnClick: (@actionBar, @infoBar) ->
         return @onClick
 
 
@@ -88,7 +90,7 @@ class window.DrawField
         sprite.visible = object.isVisible
         sprite.inputEnabled = true
         if not @locked
-            @toggleDrag(sprite, object.isDraggable)
+            @toggleDrag(sprite, object.IsDraggable(@turnState.clientPlayer.id))
         else
             @toggleDrag(sprite, false)
         return sprite
@@ -114,8 +116,9 @@ class window.DrawField
     onDragStart: (sprite, pointer) ->
         rowcol = @grid.XYToRowCol(@getGridX(pointer.x), @getGridY(pointer.y))
         @draggedObject = @data.GetUpperObject(rowcol.row, rowcol.col)
-        if @draggedObject.IsCreature()
-            @highlightTimer = @game.time.create(true);
+        # Может быть, что по поинту не draggable, а по спрайту вполне, поэтому дополнительная проверка
+        if @draggedObject.IsDraggable(@turnState.clientPlayer.id)
+            @highlightTimer = @game.time.create(true)
             @highlightTimer.add(100, @Highlight, this, rowcol.row, rowcol.col, @draggedObject.creature.GetMoveRange())
             @highlightTimer.start()
         return
@@ -192,5 +195,5 @@ class window.DrawField
                     console.log("feed")
                 "spec_ability": () =>
                     console.log("spec_ability")
-
-            @actionBar.DisplayObjectActions(object, actionCallbacks())
+            if object.IsOwnedBy(@turnState.clientPlayer.id)
+                @actionBar.DisplayObjectActions(object, actionCallbacks())

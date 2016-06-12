@@ -16,6 +16,7 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
+      'https://ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js',
 	  'client/libs/phaser.min.js',
 	  'client/*.js',
 	  'client/include/*.js',

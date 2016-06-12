@@ -1,4 +1,12 @@
-window.onload = () ->
+wfconfig =
+    active: () ->
+        init()
+    google:
+        families: ['Comfortaa']
+
+WebFont.load(wfconfig);
+
+init = () ->
     onPreload = () =>
         images =
             'bubble': 'arts/bubble.png'
@@ -48,38 +56,47 @@ window.onload = () ->
         rowNum = 20
         colNum = 16
 
+        # Присоеднияемся к серверу
         @serverConnection = new window.ServerTalk()
+
+        # Сервер нашёл противника
         @serverConnection.initCallback = (order) =>
             @turnState = new window.TurnState(order)
-            @field = new window.DrawField(@game, new window.FieldData(rowNum, colNum), new window.THexGrid(hexWidth, rowNum, colNum))
-            @logic = new window.Logic(@field.grid, @field.data)
-            @field.logic = @logic
+            data = new window.FieldData(rowNum, colNum)
+            grid = new window.THexGrid(hexWidth, rowNum, colNum)
+            @logic = new window.Logic(grid, data)
+            @field = new window.DrawField(@game, data, grid, @logic, @turnState)
 
-            @actionBar = new window.ActionBar(@game, @field.grid)
+            @actionBar = new window.ActionBar(@game, grid)
             @infoBar = new window.InfoBar(@game)
             @playerBar = new window.PlayerBar(@game)
 
             @game.input.mouse.mouseDownCallback = @field.OnClick(@actionBar, @infoBar, @playerBar)
 
-            if @turnState.currentPlayer != @turnState.clientPlayer
-                @field.Lock()
-                @actionBar.Lock()
-            else
+            if @turnState.IsClientTurn()
                 @field.Unlock()
                 @actionBar.Unlock()
+            else
+                @field.Lock()
+                @actionBar.Lock()
+            @playerBar.DisplayPlayerInfo(@turnState)
 
+        # Противник походил
         @serverConnection.turnCallback = (data) =>
-            @field.logic.Upkeep()
-            @turnState.currentPlayer = @turnState.clientPlayer
+            @logic.Upkeep()
+            @turnState.ChangeTurn()
+            @playerBar.DisplayPlayerInfo(@turnState)
             @field.data.Load(data)
             @field.Unlock()
             @actionBar.Unlock()
 
+        # Клиент походил
         @game.input.keyboard.onDownCallback = (key) =>
-            if key.keyCode == Phaser.Keyboard.SPACEBAR && @turnState.currentPlayer == @turnState.clientPlayer
+            if key.keyCode == Phaser.Keyboard.SPACEBAR && @turnState.IsClientTurn()
                 @field.Lock()
                 @actionBar.Lock()
-                @turnState.currentPlayer = ( @turnState.clientPlayer + 1 ) % 2
+                @turnState.ChangeTurn()
+                @playerBar.DisplayPlayerInfo(@turnState)
                 @serverConnection.Send('new-turn', @field.data)
         return
 
@@ -97,7 +114,8 @@ window.onload = () ->
             @game.scale.forceLandscape = true
             @game.scale.parentIsWindow = true
             @game.scale.refresh()
-            @field.Draw();
+            if field?
+                @field.Draw()
         , 1000)
 
     return

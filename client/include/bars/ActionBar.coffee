@@ -1,4 +1,7 @@
-class window.ActionBar
+# Автор: Гусев Илья.
+# Описание: Класс панели действий.
+
+class window.ActionBar extends window.Bar
     constructor: (@game, @grid, @borderMargin = 40, @x = 10, @width = 300, @height = 128) ->
         @buttons = []
         @isLock = false
@@ -15,11 +18,7 @@ class window.ActionBar
             @x = (@game.width - @width) / 2
             @y = @game.height - @height
 
-            @graphics = @game.add.graphics(0, 0)
-            @graphics.beginFill(0x01579B, 0.5)
-            @rect = @graphics.drawRoundedRect(@x, @y, @width, @height, 5)
-            @rect.fixedToCamera = true
-            @graphics.endFill()
+            super(@game, @x, @y, @width, @height)
 
             for action in actions
                 x = @x + (@width - @buttonWidth * actions.length)/2 + @buttonWidth * actions.indexOf(action)
@@ -35,9 +34,7 @@ class window.ActionBar
             for button in @buttons
                 button.destroy()
             @buttons = []
-        if @graphics?
-            @graphics.destroy()
-            @graphics = undefined
+        super()
         return
 
     DisplayObjectActions: (object, @callbacks) ->

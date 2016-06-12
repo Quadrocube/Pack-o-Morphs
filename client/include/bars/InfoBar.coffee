@@ -1,4 +1,7 @@
-class window.InfoBar
+# Автор: Гусев Илья.
+# Описание: Класс панели, отображающей информацию об объектах на поле.
+
+class window.InfoBar extends window.Bar
     constructor: (@game, @width = 200, @margin = 40, @height = 400) ->
         @Draw()
         return
@@ -8,11 +11,7 @@ class window.InfoBar
         @x = @game.width - @width
         @y = 0
 
-        @graphics = @game.add.graphics(0, 0)
-        @graphics.beginFill(0x01579B, 0.5)
-        @rect = @graphics.drawRoundedRect(@x, @y, @width, @height, 5)
-        @rect.fixedToCamera = true
-        @graphics.endFill()
+        super(@game, @x, @y, @width, @height)
 
         style = {font: "32px Comfortaa", fill: "#B3E5FC", wordWrap: true, wordWrapWidth: @width - @margin, align: "left"}
         @textHandler = @game.add.text(@x + @margin / 2, @y + @margin/2, "", style)
@@ -22,9 +21,7 @@ class window.InfoBar
         return
 
     Destroy: () ->
-        if @graphics?
-            @graphics.destroy()
-            @graphics = undefined
+        super()
         if @textHandler?
             @textHandler.destroy()
             @textHandler = undefined

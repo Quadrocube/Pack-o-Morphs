@@ -9,8 +9,10 @@ class window.Creature
 
 	GetAttackRange: () ->
 		return @attack_range
+
 	GetMoveRange: () ->
 		return @move_range
+
 	Load: (data) ->
 		if data?
 			for key of data
@@ -49,16 +51,24 @@ class window.FieldObject
 			@creature = toCreatures[@type]
 			if @type == "SPAWN"
 				@creature.move_range = 4
-		@isDraggable = @IsCreature()
+
+	IsDraggable: (playerId) ->
+		@IsCreature() && @IsOwnedBy(playerId)
 
 	IsCreature: () ->
 		@type not in ["EMPTY", "GRASS", "FOREST", "HIGHLIGHT"]
+
 	IsForest: () ->
 		@type == "FOREST"
+
 	IsGrass: () ->
 		@type == "GRASS"
+
 	IsEmpty: () ->
 		@type == "EMPTY"
+
+	IsOwnedBy: (playerId) ->
+		@player == playerId
 
 	Verbose: () ->
 		if @IsCreature()
